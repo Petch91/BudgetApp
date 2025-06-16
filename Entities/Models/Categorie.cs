@@ -2,12 +2,11 @@
 
 namespace Entities.Models;
 
-public class DepenseVariable : ITransaction
+public class Categorie : IModel
 {
     public int Id { get; set; }
-    public string Intitule { get; set; }
-    public decimal Montant { get; set; }
-    public DateTime Date { get; set; }
+    public string Name { get; set; } = "";
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public IEnumerable<Transaction>  Transactions { get; set; } = new List<Transaction>(); 
 }

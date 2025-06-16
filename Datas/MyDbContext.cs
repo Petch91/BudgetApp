@@ -6,8 +6,8 @@ namespace Datas;
 public class MyDbContext : DbContext
 {
     public DbSet<DepenseFixe> DepenseFixes => Set<DepenseFixe>();
-    public DbSet<DepenseVariable> DepenseVariables => Set<DepenseVariable>();
-    public DbSet<Revenu> Revenues => Set<Revenu>();
+    //public DbSet<DepenseVariable> DepenseVariables => Set<DepenseVariable>();
+    public DbSet<TransactionVariable> TransactionsVariables => Set<TransactionVariable>();
     
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
@@ -29,8 +29,35 @@ public class MyDbContext : DbContext
         
         entityDepenseFixe
             .Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+        entityDepenseFixe.HasOne(t => t.Categorie).WithMany(c => c.Transactions as IEnumerable<DepenseFixe>);
+
         
-        var entityDepenseVariable = modelBuilder.Entity<DepenseVariable>();
-        var entityRevenu = modelBuilder.Entity<Revenu>();
+        var entityTransaction = modelBuilder.Entity<TransactionVariable>();
+        
+        entityTransaction.ToTable("TransactionsVariables", tb => tb.HasTrigger("TG_UpdateTransaction"));
+        
+        entityTransaction
+            .Property(p => p.Intitule).HasMaxLength(150);
+        
+        entityTransaction
+            .Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
+        
+        entityTransaction
+            .Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+
+        entityTransaction.HasOne(t => t.Categorie).WithMany(c => c.Transactions as IEnumerable<TransactionVariable>);
+
+        var entityCategorie = modelBuilder.Entity<Categorie>();
+        
+        entityCategorie.ToTable("Categories", tb => tb.HasTrigger("TG_UpdateCategorie"));
+        
+        entityCategorie
+            .Property(p => p.Name).HasMaxLength(50);
+        
+        entityCategorie
+            .Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
+        
+        entityCategorie
+            .Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
     }
 }

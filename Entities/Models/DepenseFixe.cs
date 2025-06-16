@@ -2,21 +2,17 @@
 
 namespace Entities.Models;
 
-public class DepenseFixe : ITransaction
+public class DepenseFixe : Transaction
 {
-    public int Id { get; set; }
-    public string Intitule { get; set; } = String.Empty;
-    public decimal Montant { get; set; }
+   
     public Frequence Frequence { get; set; }
     public bool EstDomiciliée { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
 }
 
 public enum Frequence
 {
-    Mensuel,
-    Trimestriel,
-    Biannuel,
-    Annuel
+    Mensuel =12,
+    Trimestriel = 4,
+    Biannuel = 2,
+    Annuel = 1
 }

@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ati_ppi\\RiderProjects\\API_BudgetApp\\Entities\\Entities.csproj": {}
+    "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ati_ppi\\RiderProjects\\API_BudgetApp\\Entities\\Entities.csproj": {
+    "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ati_ppi\\RiderProjects\\API_BudgetApp\\Entities\\Entities.csproj",
+        "projectUniqueName": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
         "projectName": "Entities",
-        "projectPath": "C:\\Users\\ati_ppi\\RiderProjects\\API_BudgetApp\\Entities\\Entities.csproj",
-        "packagesPath": "C:\\Users\\ati_ppi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ati_ppi\\RiderProjects\\API_BudgetApp\\Entities\\obj\\",
+        "projectPath": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
+        "packagesPath": "C:\\Users\\petch\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\ati_ppi\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\petch\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -50,6 +43,12 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[9.0.6, )"
@@ -71,7 +70,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
