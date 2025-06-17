@@ -6,8 +6,9 @@ namespace Datas;
 public class MyDbContext : DbContext
 {
     public DbSet<DepenseFixe> DepenseFixes => Set<DepenseFixe>();
-    //public DbSet<DepenseVariable> DepenseVariables => Set<DepenseVariable>();
     public DbSet<TransactionVariable> TransactionsVariables => Set<TransactionVariable>();
+    public DbSet<Rappel> Rappels => Set<Rappel>();
+    public DbSet<Categorie> Categories => Set<Categorie>();
     
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
@@ -59,5 +60,16 @@ public class MyDbContext : DbContext
         
         entityCategorie
             .Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+        
+        var entityRappel = modelBuilder.Entity<Rappel>();
+        
+        entityRappel.ToTable("Rappels", tb => tb.HasTrigger("TG_UpdateRappel"));
+        
+        entityRappel
+            .Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
+        
+        entityRappel
+            .Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+        entityRappel.HasOne(r => r.DepenseFixe).WithMany(d => d.Rappels);
     }
 }

@@ -9,8 +9,6 @@ public class Transaction : ITransaction
     public decimal Montant { get; set; }
     public int CategorieId { get; set; }
     public Categorie Categorie { get; set; }
-  
-    public DateTime Date { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
