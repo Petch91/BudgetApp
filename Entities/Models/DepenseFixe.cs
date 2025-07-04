@@ -7,7 +7,7 @@ public class DepenseFixe : Transaction
    
     public Frequence Frequence { get; set; }
     public bool EstDomiciliée { get; set; }
-    public DateTime DueDate { get; set; }
+    public ICollection<DepenseDueDate> DueDates { get; set; }
     public int ReminderDaysBefore { get; set; } = 3;
 
     public ICollection<Rappel> Rappels { get; set; } = new List<Rappel>();

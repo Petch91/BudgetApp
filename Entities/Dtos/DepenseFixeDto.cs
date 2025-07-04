@@ -10,7 +10,7 @@ public class DepenseFixeDto
     public CategorieDto Categorie { get; set; }
     public Frequence Frequence { get; set; }
     public bool EstDomiciliée { get; set; }
-    public DateTime DueDate { get; set; }
+    public List<DateTime> DueDates { get; set; }
     public int ReminderDaysBefore { get; set; } = 3;
     public List<RappelDto> Rappels { get; set; } = new List<RappelDto>();
 }

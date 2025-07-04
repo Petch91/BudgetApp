@@ -1,4 +1,5 @@
 C:\Users\petch\RiderProjects\BudgetApp\Entities\bin\Debug\net8.0\Entities.deps.json
+C:\Users\petch\RiderProjects\BudgetApp\Entities\bin\Debug\net8.0\Entities.runtimeconfig.json
 C:\Users\petch\RiderProjects\BudgetApp\Entities\bin\Debug\net8.0\Entities.dll
 C:\Users\petch\RiderProjects\BudgetApp\Entities\bin\Debug\net8.0\Entities.pdb
 C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\Entities.csproj.AssemblyReference.cache
@@ -10,6 +11,5 @@ C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\Entities.source
 C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\Entities.dll
 C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\refint\Entities.dll
 C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\Entities.pdb
-C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\ref\Entities.dll
-C:\Users\petch\RiderProjects\BudgetApp\Entities\bin\Debug\net8.0\Entities.runtimeconfig.json
 C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\Entities.genruntimeconfig.cache
+C:\Users\petch\RiderProjects\BudgetApp\Entities\obj\Debug\net8.0\ref\Entities.dll

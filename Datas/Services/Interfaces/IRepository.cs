@@ -1,4 +1,6 @@
-﻿namespace Datas.Services.Interfaces;
+﻿using Datas.Tools;
+
+namespace Datas.Services.Interfaces;
 
 public interface IReadRepository<TDto> where TDto : class
 {
@@ -6,7 +8,7 @@ public interface IReadRepository<TDto> where TDto : class
 }
 public interface IWriteRepository<TForm> where TForm : class
 {
-    Task<bool> Add(TForm entity);
-    Task<bool> Update(int id, TForm entity);
+    Task<Result> Add(TForm entity);
+    Task<Result> Update(int id, TForm entity);
     Task<bool> Delete(int id);
 }
