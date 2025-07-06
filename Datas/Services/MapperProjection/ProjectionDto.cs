@@ -12,7 +12,7 @@ public static class ProjectionDto
         Intitule = d.Intitule,
         Montant = d.Montant,
         Frequence = d.Frequence,
-        Categorie = new CategorieDto{ Id = d.Categorie.Id, Name = d.Categorie.Name},
+        Categorie = new CategorieDto{ Id = d.Categorie.Id, Name = d.Categorie.Name, Icon = d.Categorie.Icon },
         EstDomiciliée = d.EstDomiciliée,
         ReminderDaysBefore = d.ReminderDaysBefore,
         DueDates = d.DueDates.Select(date => date.Date).ToList(),
@@ -29,7 +29,7 @@ public static class ProjectionDto
         Id = t.Id,
         Intitule = t.Intitule,
         Montant = t.Montant,
-        Categorie = new CategorieDto{ Id = t.Categorie.Id, Name = t.Categorie.Name},
+        Categorie = new CategorieDto{ Id = t.Categorie.Id, Name = t.Categorie.Name, Icon = t.Categorie.Icon },
         TransactionType = t.TransactionType,
         Date = t.Date,
     };
@@ -37,6 +37,7 @@ public static class ProjectionDto
     {
         Id = categorie.Id,
         Name = categorie.Name,
+        Icon = categorie.Icon,
     };
 
     public static Expression<Func<Rappel, RappelDto>> RappelAsDto => r => new RappelDto

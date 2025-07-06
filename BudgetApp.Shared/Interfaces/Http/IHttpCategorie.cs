@@ -1,6 +1,12 @@
-﻿namespace BudgetApp.Shared.Interfaces.Http;
+﻿using Entities.Dtos;
+using Entities.Forms;
+
+namespace BudgetApp.Shared.Interfaces.Http;
 
 public interface IHttpCategorie
 {
-    
+    Task<IEnumerable<CategorieDto>> GetCategories();
+    Task<bool> Add(CategorieForm categorieForm);
+    Task<bool> Update(int id, CategorieForm categorieForm);
+    Task<bool> Delete(int id);
 }

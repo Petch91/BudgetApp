@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
+        <PackageReference Include="FluentValidation" Version="12.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,7 +27,24 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Services\" />
+      <Compile Remove="wwwroot\bootstrap\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="wwwroot\bootstrap\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="wwwroot\bootstrap\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="wwwroot\bootstrap\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css.map" />
     </ItemGroup>
 
 </Project>

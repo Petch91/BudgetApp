@@ -47,6 +47,19 @@
           }
         }
       },
+      "FluentValidation/12.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -1681,6 +1694,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "FluentValidation": "12.0.0",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.6",
           "Serilog": "4.3.1-dev-02373",
           "Serilog.Extensions.Logging": "9.0.3-dev-02320",
@@ -1734,6 +1748,21 @@
         "azureicon.png",
         "lib/netstandard2.0/Azure.Identity.dll",
         "lib/netstandard2.0/Azure.Identity.xml"
+      ]
+    },
+    "FluentValidation/12.0.0": {
+      "sha512": "8NVLxtMUXynRHJIX3Hn1ACovaqZIJASufXIIFkD0EUbcd5PmMsL1xUD5h548gCezJ5BzlITaR9CAMrGe29aWpA==",
+      "type": "package",
+      "path": "fluentvalidation/12.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "fluent-validation-icon.png",
+        "fluentvalidation.12.0.0.nupkg.sha512",
+        "fluentvalidation.nuspec",
+        "lib/net8.0/FluentValidation.dll",
+        "lib/net8.0/FluentValidation.xml"
       ]
     },
     "Humanizer.Core/2.14.1": {
@@ -4910,6 +4939,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "Entities >= 1.0.0",
+      "FluentValidation >= 12.0.0",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.6",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.6",
       "Serilog >= 4.3.1-dev-02373",
@@ -4920,32 +4950,40 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\petch\\.nuget\\packages\\": {}
+    "C:\\Users\\Petch\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
+      "projectUniqueName": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
       "projectName": "Datas",
-      "projectPath": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
-      "packagesPath": "C:\\Users\\petch\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Datas\\obj\\",
+      "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
+      "packagesPath": "C:\\Users\\Petch\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\petch\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Petch\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
-              "projectPath": "C:\\Users\\petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj"
+            "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
+              "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj"
             }
           }
         }
@@ -4965,6 +5003,10 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
+          "FluentValidation": {
+            "target": "Package",
+            "version": "[12.0.0, )"
+          },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",
@@ -5012,7 +5054,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -9,7 +9,7 @@ public static class TransactionVariableEndpoints
 {
     public static void MapTransactionVariable(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/transaction").WithTags("Transactions");
+        var group = app.MapGroup("/api/transaction").WithTags("Transactions");
         
         group.MapGet("/{id:int}", async (int id, ITranscationService service) =>
         {

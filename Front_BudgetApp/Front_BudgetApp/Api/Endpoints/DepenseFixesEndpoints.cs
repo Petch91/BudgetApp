@@ -9,7 +9,7 @@ public static class DepenseFixesEndpoints
 {
     public static void MapDepenseFixe(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/depensefixe").WithTags("DepenseFixes");
+        var group = app.MapGroup("/api/depensefixe").WithTags("DepenseFixes");
         
         group.MapGet("/{id:int}", async (int id, IDepenseFixeService service) =>
         {

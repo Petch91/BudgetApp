@@ -1,10 +1,12 @@
 using API_BudgetApp.Endpoints;
+using BudgetApp.Shared.Interfaces.Http;
 using BudgetApp.Shared.Tools;
 using Datas;
 using Datas.Services;
 using Datas.Services.Interfaces;
 using Front_BudgetApp.Client.Pages;
 using Front_BudgetApp.Components;
+using Front_BudgetApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -21,15 +23,25 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.AddBlazorBootstrap();
+
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options => { options.DetailedErrors = true; });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>(); 
-builder.Services.AddScoped<ITranscationService, TransactionService>(); 
-builder.Services.AddScoped<ICategorieService, CategorieService>(); 
+builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>();
+builder.Services.AddScoped<ITranscationService, TransactionService>();
+builder.Services.AddScoped<ICategorieService, CategorieService>();
+
+builder.Services.AddHttpClient(
+    "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
+
+builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 
 var app = builder.Build();
 

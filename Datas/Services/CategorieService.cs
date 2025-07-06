@@ -8,11 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datas.Services;
 
-public class CategorieService(MyDbContext context) :  ICategorieService
+public class CategorieService(MyDbContext context) : ICategorieService
 {
     public async Task<CategorieDto> GetById(int id)
     {
-        var categorie = await context.Categories.Where(d => d.Id == id).Select(ProjectionDto.CategorieAsDto).FirstOrDefaultAsync();
+        var categorie = await context.Categories.Where(d => d.Id == id).Select(ProjectionDto.CategorieAsDto)
+            .FirstOrDefaultAsync();
         if (categorie == null) return null;
         return categorie;
     }
@@ -26,7 +27,7 @@ public class CategorieService(MyDbContext context) :  ICategorieService
 
     public async Task<Result> Add(CategorieForm entity)
     {
-        context.Categories.Add(new Categorie{Name = entity.Name});
+        context.Categories.Add(new Categorie { Name = entity.Name, Icon = entity.Icon });
         var result = await context.SaveChangesAsync();
         return result > 0 ? Result.Success : Result.Failure;
     }
@@ -35,11 +36,11 @@ public class CategorieService(MyDbContext context) :  ICategorieService
     {
         var categorie = await context.TransactionsVariables.FindAsync(id);
         if (categorie == null) return Result.NotFound; //return not found
-        
+
         var result = await context.Categories
             .Where(c => c.Id == id)
-            .ExecuteUpdateAsync(f => f.SetProperty(a => a.Name, entity.Name));
-        return result > 0 ? Result.Success : Result.NotFound; 
+            .ExecuteUpdateAsync(f => f.SetProperty(a => a.Name, entity.Name).SetProperty(c => c.Icon, entity.Icon));
+        return result > 0 ? Result.Success : Result.NotFound;
     }
 
     public async Task<bool> Delete(int id)

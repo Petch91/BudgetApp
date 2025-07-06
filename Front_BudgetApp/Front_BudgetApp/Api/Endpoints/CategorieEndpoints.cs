@@ -8,7 +8,7 @@ public static class CategorieEndpoints
 {
     public static void MapCategorie(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/categorie")
+        var group = app.MapGroup("/api/categorie")
             .WithTags("Catégories");
         
         group.MapGet("/{id:int}", async (int id, ICategorieService service) =>

@@ -6,6 +6,7 @@ using Entities.Forms;
 using Entities.Mappers;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 
@@ -13,7 +14,7 @@ namespace Datas.Services;
 
 public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 {
-   public async Task<DepenseFixeDto> GetById(int id)
+    public async Task<DepenseFixeDto> GetById(int id)
     {
         Log.Information("Récupération de la dépense fixe avec ID {Id}", id);
         var depense = await context.DepenseFixes.Where(d => d.Id == id).Select(ProjectionDto.DepenseFixeAsDto)
@@ -40,7 +41,9 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
     {
         Log.Information("Ajout d'une nouvelle dépense fixe");
 
-        if (!await context.Categories.AnyAsync(c => c.Id == entity.Categorie.Id || entity.BeginDate == default || entity.ReminderDaysBefore < 0))
+        if (!await context.Categories.AnyAsync(c =>
+                c.Id == entity.Categorie.Id) || entity.BeginDate == default || entity.ReminderDaysBefore < 0 ||
+            !Enum.IsDefined(typeof(Frequence), entity.Frequence))
         {
             Log.Warning("Échec de l'ajout : données invalides ou catégorie inexistante");
             return Result.BadRequest;
@@ -57,7 +60,8 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
     {
         Log.Information("Mise à jour de la dépense fixe ID {Id}", id);
 
-        if (!await context.Categories.AnyAsync(c => c.Id == entity.Categorie.Id || entity.BeginDate == default || entity.ReminderDaysBefore < 0))
+        if (!await context.Categories.AnyAsync(c => c.Id == entity.Categorie.Id) || entity.BeginDate == default ||
+            entity.ReminderDaysBefore < 0 || !Enum.IsDefined(typeof(Frequence), entity.Frequence))
         {
             Log.Warning("Échec de la mise à jour : données invalides pour la dépense fixe ID {Id}", id);
             return Result.BadRequest;
@@ -71,29 +75,41 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             return Result.NotFound;
         }
 
-        if (depense.EstDomiciliée != entity.EstDomiciliée)
+        var newdepense = new DepenseFixe();
+
+        if (depense.DueDates.IsNullOrEmpty() ||
+            depense.DueDates.Select(d => d.Date).Min(date => date.Date) != entity.BeginDate.Date ||
+            depense.Frequence != entity.Frequence)
         {
+            newdepense = depense.ToDb(entity);
+            //await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
+            //await context.depenseDueDates.Where(d => d.DepenseId == id).ExecuteDeleteAsync();
+            depense = SetDates(depense, entity.BeginDate);
+        }
+        else if (depense.EstDomiciliée != entity.EstDomiciliée ||
+                 depense.ReminderDaysBefore != entity.ReminderDaysBefore)
+        {
+            newdepense = depense.ToDb(entity);
             if (!entity.EstDomiciliée)
             {
+                //if (depense.Rappels.Count > 0) await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
+                var rappels = new List<Rappel>();
                 foreach (var date in depense.DueDates)
                 {
-                    SetRappels(date.Date, depense.ReminderDaysBefore);
+                    rappels.AddRange(SetRappels(date.Date, entity.ReminderDaysBefore));
                 }
+
+                depense.Rappels = rappels;
             }
             else
             {
-                await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
+                //await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
                 depense.Rappels = new List<Rappel>();
             }
         }
-        else if (depense.DueDates.Select(d => d.Date).Min(date => date.Date) != entity.BeginDate.Date)
-        {
-            await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
-            await context.depenseDueDates.Where(d => d.DepenseId == id).ExecuteDeleteAsync();
-            depense = SetDates(depense, entity.BeginDate);
-        }
 
-        context.DepenseFixes.Update(depense.ToDb(entity));
+
+        context.DepenseFixes.Update(newdepense);
         var result = await context.SaveChangesAsync();
 
         Log.Information("Dépense fixe mise à jour : succès = {Success} (ID {Id})", result > 0, id);
@@ -127,7 +143,8 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 
     public async Task<Result> ChangeCategorie(int depenseId, int categorieId)
     {
-        Log.Information("Changement de catégorie pour la dépense fixe ID {Id} vers la catégorie {CategorieId}", depenseId, categorieId);
+        Log.Information("Changement de catégorie pour la dépense fixe ID {Id} vers la catégorie {CategorieId}",
+            depenseId, categorieId);
         var depense = await context.DepenseFixes.FindAsync(depenseId);
         if (depense == null)
         {
@@ -161,12 +178,11 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             return false;
         }
 
-        if (depense.DueDates.Select(d => d.Date).Min(date => date.Date) != beginDate.Date)
-        {
-            await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();
-            await context.depenseDueDates.Where(d => d.DepenseId == id).ExecuteDeleteAsync();
-            depense = SetDates(depense, beginDate);
-        }
+        // await context.Rappels.Where(r => r.DepenseFixeId == id).ExecuteDeleteAsync();  il ne faut pas supprimer de soit meme car on fais par les includes 
+        // await context.depenseDueDates.Where(d => d.DepenseId == id).ExecuteDeleteAsync(); ceci est fait quand on le gere nous meme revoir les video formation EF mommer 
+
+
+        depense = SetDates(depense, beginDate);
 
         context.DepenseFixes.Update(depense);
         var result = await context.SaveChangesAsync();
@@ -180,13 +196,14 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         var year = date.Year;
         var rappels = new List<Rappel>();
 
+        depense.DueDates = new List<DepenseDueDate>();
+
         bool shouldBreak = false;
 
         for (int i = 0; i < (int)depense.Frequence; i++)
         {
             if (year >= date.Year)
             {
-                depense.DueDates ??= new List<DepenseDueDate>();
                 depense.DueDates.Add(new DepenseDueDate { Date = date });
                 if (!depense.EstDomiciliée)
                 {
@@ -198,7 +215,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
                     case Frequence.Biannuel:
                     {
                         date = date.AddMonths(6);
-                                                      break;
+                        break;
                     }
                     case Frequence.Trimestriel:
                     {
@@ -223,6 +240,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             }
             else break;
         }
+
         depense.Rappels = rappels;
         return depense;
     }
