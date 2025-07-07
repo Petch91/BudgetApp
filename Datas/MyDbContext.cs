@@ -51,7 +51,7 @@ public class MyDbContext : DbContext
         var entityCategorie = modelBuilder.Entity<Categorie>();
         entityCategorie.ToTable("Categories", tb => tb.HasTrigger("TG_UpdateCategorie"));
         entityCategorie.Property(p => p.Name).HasMaxLength(50);
-        entityCategorie.Property(p => p.Name).HasMaxLength(25);
+        entityCategorie.Property(p => p.Icon).HasMaxLength(25);
         entityCategorie.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
         entityCategorie.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
         entityCategorie.HasData(new Categorie { Id = 1, Name = "NoCategory" });

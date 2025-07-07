@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+<EditForm Model="@SelectedCategory" OnValidSubmit="SaveCategory">
+    <Blazored.FluentValidation.FluentValidationValidator/>
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nom de la catégorie</label>
+        <InputText @bind-Value="SelectedCategory.Name" class="form-control" placeholder="Ex: Loisirs" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Icône Bootstrap</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="@SelectedCategory.Icon"></i>
+            </span>
+            <InputSelect @bind-Value="SelectedCategory.Icon" class="form-select">
+                @foreach (var icon in BootstrapIcons)
+                {
+                    <option value="@icon">@icon</option>
+                }
+            </InputSelect>
+        </div>
+        <small class="form-text text-muted">Aperçu visible à gauche, sélectionnez une icône Bootstrap valide.</small>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Enregistrer</Button>
+        <Button Color="ButtonColor.Secondary" Outline="true" class="ms-2" @onclick="Quit">Annuler</Button>
+    </div>
+</EditForm>

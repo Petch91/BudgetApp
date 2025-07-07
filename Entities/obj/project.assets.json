@@ -47,6 +47,19 @@
           }
         }
       },
+      "Blazored.FluentValidation/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "FluentValidation": "11.9.1",
+          "Microsoft.AspNetCore.Components.Web": "8.0.6"
+        },
+        "compile": {
+          "lib/net8.0/Blazored.FluentValidation.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/Blazored.FluentValidation.dll": {}
+        }
+      },
       "FluentValidation/12.0.0": {
         "type": "package",
         "compile": {
@@ -69,6 +82,97 @@
         },
         "runtime": {
           "lib/net6.0/Humanizer.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Authorization/8.0.6": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Metadata": "8.0.6",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.1",
+          "Microsoft.Extensions.Options": "8.0.2"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.Authorization.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Authorization.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Components/8.0.6": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authorization": "8.0.6",
+          "Microsoft.AspNetCore.Components.Analyzers": "8.0.6"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Components.Analyzers/8.0.6": {
+        "type": "package",
+        "build": {
+          "buildTransitive/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets": {}
+        }
+      },
+      "Microsoft.AspNetCore.Components.Forms/8.0.6": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Components": "8.0.6"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.Forms.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.Forms.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Components.Web/8.0.6": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Components": "8.0.6",
+          "Microsoft.AspNetCore.Components.Forms": "8.0.6",
+          "Microsoft.Extensions.DependencyInjection": "8.0.0",
+          "Microsoft.Extensions.Primitives": "8.0.0",
+          "Microsoft.JSInterop": "8.0.6",
+          "System.IO.Pipelines": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.Web.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.Web.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Metadata/8.0.6": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.Metadata.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Metadata.dll": {
             "related": ".xml"
           }
         }
@@ -925,6 +1029,19 @@
           }
         }
       },
+      "Microsoft.JSInterop/8.0.6": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.JSInterop.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.JSInterop.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.NETCore.Platforms/1.1.0": {
         "type": "package",
         "compile": {
@@ -1731,6 +1848,21 @@
         "lib/netstandard2.0/Azure.Identity.xml"
       ]
     },
+    "Blazored.FluentValidation/2.2.0": {
+      "sha512": "lBSHW7faCJqwn7KtZt6vqHSiyGvTL5McpS4sQUW3RLu2R5eMmf4oolFeufZfcAB8TV8iI+/PYouz7sn773E8Og==",
+      "type": "package",
+      "path": "blazored.fluentvalidation/2.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "blazored.fluentvalidation.2.2.0.nupkg.sha512",
+        "blazored.fluentvalidation.nuspec",
+        "icon.png",
+        "lib/net6.0/Blazored.FluentValidation.dll",
+        "lib/net7.0/Blazored.FluentValidation.dll",
+        "lib/net8.0/Blazored.FluentValidation.dll"
+      ]
+    },
     "FluentValidation/12.0.0": {
       "sha512": "8NVLxtMUXynRHJIX3Hn1ACovaqZIJASufXIIFkD0EUbcd5PmMsL1xUD5h548gCezJ5BzlITaR9CAMrGe29aWpA==",
       "type": "package",
@@ -1762,6 +1894,105 @@
         "lib/netstandard2.0/Humanizer.dll",
         "lib/netstandard2.0/Humanizer.xml",
         "logo.png"
+      ]
+    },
+    "Microsoft.AspNetCore.Authorization/8.0.6": {
+      "sha512": "H1CSbD7UeSPsrJSUpvbms6SqWMa5y8ch4Rw+gyHh2uztOEb20fTP2r0AUnStn1Q9WYghikiDO5wzkgV+n6KC2Q==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.authorization/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net462/Microsoft.AspNetCore.Authorization.dll",
+        "lib/net462/Microsoft.AspNetCore.Authorization.xml",
+        "lib/net8.0/Microsoft.AspNetCore.Authorization.dll",
+        "lib/net8.0/Microsoft.AspNetCore.Authorization.xml",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Authorization.dll",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Authorization.xml",
+        "microsoft.aspnetcore.authorization.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.authorization.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Components/8.0.6": {
+      "sha512": "Je2l+rd5i8gB+ZWsN5wBHOsnyAh81h6+a5vNq6rjfQhM2ZYxH+BVsmanCYa+F8BFy6rmd+ZL61SEiNaAyAOgtg==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.components/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.txt",
+        "lib/net8.0/Microsoft.AspNetCore.Components.dll",
+        "lib/net8.0/Microsoft.AspNetCore.Components.xml",
+        "microsoft.aspnetcore.components.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.components.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Components.Analyzers/8.0.6": {
+      "sha512": "SEL0CN1jJdJkCDwRox3kSY1ffMnahlOCDJZYrYWfQ6ftjqRuuiPtwyvI3VIeVHLcpT3VP1AXww8wzKDK3oeFxg==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.components.analyzers/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.txt",
+        "analyzers/dotnet/cs/Microsoft.AspNetCore.Components.Analyzers.dll",
+        "build/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets",
+        "buildTransitive/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets",
+        "microsoft.aspnetcore.components.analyzers.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.components.analyzers.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Components.Forms/8.0.6": {
+      "sha512": "49wIE1ns3ZGDU4NPMcKCSTC716IxujUeaynsUyflM5Qmb2WlF6M6m4pMcJ6UET1Ixmn027nZjMEc8J7pU4BLBg==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.components.forms/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.txt",
+        "lib/net8.0/Microsoft.AspNetCore.Components.Forms.dll",
+        "lib/net8.0/Microsoft.AspNetCore.Components.Forms.xml",
+        "microsoft.aspnetcore.components.forms.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.components.forms.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Components.Web/8.0.6": {
+      "sha512": "xxYlTpcTEWsxaWUscDLN32mM32ysslLFtNQBS6wJOxaKJ9LCvusXDyBVEKL2DPbB8PZdereNvyrVr0deHkuOEw==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.components.web/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.txt",
+        "lib/net8.0/Microsoft.AspNetCore.Components.Web.dll",
+        "lib/net8.0/Microsoft.AspNetCore.Components.Web.xml",
+        "microsoft.aspnetcore.components.web.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.components.web.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Metadata/8.0.6": {
+      "sha512": "3e7S/kz1MGds8zDA8SfQiutqifyVcULs5P/8Bxpes0WIkJRMGkU/l+XlMllj9KrDfCGwHW8bgjRy/zxfoILgfg==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.metadata/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net462/Microsoft.AspNetCore.Metadata.dll",
+        "lib/net462/Microsoft.AspNetCore.Metadata.xml",
+        "lib/net8.0/Microsoft.AspNetCore.Metadata.dll",
+        "lib/net8.0/Microsoft.AspNetCore.Metadata.xml",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Metadata.dll",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Metadata.xml",
+        "microsoft.aspnetcore.metadata.8.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.metadata.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/7.0.0": {
@@ -3503,6 +3734,21 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
+    "Microsoft.JSInterop/8.0.6": {
+      "sha512": "E1djWS3d41fcd++7sGlbYhOHde5Pb0oBpOcNvUbn+1ga/yCvsjzUfbd/tDRg1qacNKS0iwKWYOIqTZxJnh99dQ==",
+      "type": "package",
+      "path": "microsoft.jsinterop/8.0.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net8.0/Microsoft.JSInterop.dll",
+        "lib/net8.0/Microsoft.JSInterop.xml",
+        "microsoft.jsinterop.8.0.6.nupkg.sha512",
+        "microsoft.jsinterop.nuspec"
+      ]
+    },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
       "type": "package",
@@ -4914,6 +5160,7 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "Blazored.FluentValidation >= 2.2.0",
       "FluentValidation >= 12.0.0",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.6",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.6",
@@ -4925,23 +5172,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Petch\\.nuget\\packages\\": {},
+    "C:\\Users\\ati_ppi\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
+      "projectUniqueName": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
       "projectName": "Entities",
-      "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
-      "packagesPath": "C:\\Users\\Petch\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\obj\\",
+      "projectPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
+      "packagesPath": "C:\\Users\\ati_ppi\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Petch\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\ati_ppi\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4974,6 +5221,10 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
+          "Blazored.FluentValidation": {
+            "target": "Package",
+            "version": "[2.2.0, )"
+          },
           "FluentValidation": {
             "target": "Package",
             "version": "[12.0.0, )"

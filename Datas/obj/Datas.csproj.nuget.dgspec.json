@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj": {}
+    "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj": {
+    "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
+        "projectUniqueName": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
         "projectName": "Datas",
-        "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
-        "packagesPath": "C:\\Users\\Petch\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Datas\\obj\\",
+        "projectPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
+        "packagesPath": "C:\\Users\\ati_ppi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Petch\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ati_ppi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -33,8 +33,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
-                "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj"
+              "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
+                "projectPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj"
               }
             }
           }
@@ -54,6 +54,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Blazored.FluentValidation": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
             "FluentValidation": {
               "target": "Package",
               "version": "[12.0.0, )"
@@ -109,20 +113,20 @@
         }
       }
     },
-    "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
+    "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
+        "projectUniqueName": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
         "projectName": "Entities",
-        "projectPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
-        "packagesPath": "C:\\Users\\Petch\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Petch\\RiderProjects\\BudgetApp\\Entities\\obj\\",
+        "projectPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\Entities.csproj",
+        "packagesPath": "C:\\Users\\ati_ppi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Entities\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Petch\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ati_ppi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -155,6 +159,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Blazored.FluentValidation": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
             "FluentValidation": {
               "target": "Package",
               "version": "[12.0.0, )"
