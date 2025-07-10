@@ -1,4 +1,5 @@
-﻿using BudgetApp.Shared.Interfaces.Http;
+﻿using System.Text.Json;
+using BudgetApp.Shared.Interfaces.Http;
 using Entities.Dtos;
 using Entities.Forms;
 using Serilog;
@@ -32,7 +33,7 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
         }
     }
 
-    public async Task<bool> Add(CategorieForm categorieForm)
+    public async Task<CategorieDto?> Add(CategorieForm categorieForm)
     {
         try
         {
@@ -42,18 +43,33 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de l'ajout de la catégorie. Statut: {StatusCode}, Réponse: {Content}, Données: {@CategorieForm}",
-                            response.StatusCode, content, categorieForm);
-                return false;
+
+                // Lecture possible du message d'erreur JSON
+                string errorMessage;
+                try
+                {
+                    var errorObj = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+                    errorMessage = errorObj?["error"] + " | " + errorObj?["details"];
+                }
+                catch
+                {
+                    errorMessage = content;
+                }
+
+                Log.Warning("Échec de l'ajout de la catégorie. Statut: {StatusCode}, Erreur: {Error}, Données: {@CategorieForm}",
+                    response.StatusCode, errorMessage, categorieForm);
+                return null;
             }
 
-            Log.Information("Catégorie ajoutée avec succès : {@CategorieForm}", categorieForm);
-            return true;
+            var createdDto = await response.Content.ReadFromJsonAsync<CategorieDto>();
+
+            Log.Information("Catégorie ajoutée avec succès : {@CreatedDto}", createdDto);
+            return createdDto;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur inattendue lors de l'ajout de la catégorie : {@CategorieForm}", categorieForm);
-            return false;
+            Log.Error(ex, "Erreur inattendue lors de l'ajout de la catégorie : {@CategorieForm}", categorieForm);
+            return null;
         }
     }
 

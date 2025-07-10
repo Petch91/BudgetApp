@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
         <PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+        <PackageReference Include="FluentResults" Version="4.0.0" />
         <PackageReference Include="FluentValidation" Version="12.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
             <PrivateAssets>all</PrivateAssets>
@@ -47,5 +48,5 @@
       <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css" />
       <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css.map" />
     </ItemGroup>
-
+    
 </Project>

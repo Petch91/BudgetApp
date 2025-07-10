@@ -12,7 +12,7 @@ public interface IReadCategorie : IReadRepository<CategorieDto>
 {
     Task<IEnumerable<CategorieDto>> GetCategories();
 }
-public interface IWriteCategorie : IWriteRepository<CategorieForm>
+public interface IWriteCategorie : IWriteRepository<CategorieDto, CategorieForm>
 {
     
 }

@@ -13,7 +13,7 @@ public interface IReadTranscation : IReadRepository<TransactionVariableDto>
     Task<IEnumerable<TransactionVariableDto>> GetRevenuesByMonth(int month);
     Task<IEnumerable<TransactionVariableDto>> GetDepensesByMonth(int month);
 }
-public interface IWriteTranscation : IWriteRepository<TransactionVariableForm>
+public interface IWriteTranscation : IWriteRepository<TransactionVariableDto, TransactionVariableForm>
 {
-    Task<Result> ChangeCategorie(int transactionId, int categorieId);
+    Task<ResultEnum> ChangeCategorie(int transactionId, int categorieId);
 }

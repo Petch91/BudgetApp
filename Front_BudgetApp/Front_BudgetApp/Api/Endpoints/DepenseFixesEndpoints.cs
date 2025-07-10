@@ -22,21 +22,30 @@ public static class DepenseFixesEndpoints
             var result = await service.GetDepenseFixes();
             return Results.Ok(result);
         });
+
         group.MapPost("/", async (DepenseFixeForm form, IDepenseFixeService service) =>
         {
-            var success = await service.Add(form);
-            return success == Result.Success ? Results.Created($"/depensefixe", null) : Results.BadRequest("Échec lors de l'ajout");
+            var result = await service.Add(form);
+
+            if (result.IsSuccess)
+            {
+                var created = result.Value;
+                return Results.Created($"/depensefixe/{created.Id}", created); // renvoie DTO avec ID
+            }
+
+            // Regroupe les erreurs en un seul message
+            var errors = string.Join(" | ", result.Errors.Select(e => e.Message));
+            return Results.BadRequest(new { Error = "Échec lors de l'ajout", Details = errors });
         });
-        
         
         group.MapPut("/{id:int}", async (int id,DepenseFixeForm form, IDepenseFixeService service) =>
         {
             var result = await service.Update(id,form);
-            if (result == Result.NotFound)
+            if (result == ResultEnum.NotFound)
                 return Results.NotFound();
-            if (result == Result.BadRequest)
+            if (result == ResultEnum.BadRequest)
                 return Results.BadRequest("Categorie n'existe pas");
-            if (result == Result.Success) return Results.NoContent();
+            if (result == ResultEnum.Success) return Results.NoContent();
             return Results.NotFound();
         });
         
@@ -62,9 +71,9 @@ public static class DepenseFixesEndpoints
             var result = await service.ChangeCategorie(id, categorieId);
             return result switch
             {
-                Result.Success => Results.NoContent(),
-                Result.NotFound => Results.NotFound(),
-                Result.BadRequest => Results.BadRequest(),
+                ResultEnum.Success => Results.NoContent(),
+                ResultEnum.NotFound => Results.NotFound(),
+                ResultEnum.BadRequest => Results.BadRequest(),
                 _ => Results.StatusCode(500)
             };
         });

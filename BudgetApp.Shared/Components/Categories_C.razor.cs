@@ -16,19 +16,20 @@ public partial class Categories_C : ComponentBase
     private Grid<CategorieDto> grid;
     private HashSet<CategorieDto> selectedCategories = new HashSet<CategorieDto>();
     
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     _categories =  await HttpCategorie.GetCategories();
-    // }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            _categories = await HttpCategorie.GetCategories();
-            StateHasChanged();
-        }
+        _categories =  await HttpCategorie.GetCategories();
+        StateHasChanged();
     }
+    
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         _categories = await HttpCategorie.GetCategories();
+    //         StateHasChanged();
+    //     }
+    // }
     
     private Task OnSelectedItemsChanged(HashSet<CategorieDto> categories)
     {

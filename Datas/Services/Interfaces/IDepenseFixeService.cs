@@ -14,9 +14,9 @@ public interface IReadDepenseFixe : IReadRepository<DepenseFixeDto>
 {
     Task<IEnumerable<DepenseFixeDto>> GetDepenseFixes();
 }
-public interface IWriteDepenseFixe : IWriteRepository<DepenseFixeForm>
+public interface IWriteDepenseFixe : IWriteRepository<DepenseFixeDto, DepenseFixeForm>
 {
     Task<bool> ChangeVuRappel(int id);
-    Task<Result> ChangeCategorie(int depenseId, int categorieId);
+    Task<ResultEnum> ChangeCategorie(int depenseId, int categorieId);
     Task<bool> ChangeBeginDate(int id, DateTime beginDate);
 }

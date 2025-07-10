@@ -26,17 +26,27 @@ public static class TransactionVariableEndpoints
             var result = await service.GetDepensesByMonth(month);
             return result is not null ? Results.Ok(result) : Results.NotFound();
         });
+
         group.MapPost("/", async (TransactionVariableForm transaction, ITranscationService service) =>
         {
-            var success = await service.Add(transaction);
-            return success == Result.Success ? Results.Created($"/transaction", null) : Results.BadRequest("Échec lors de l'ajout");
+            var result = await service.Add(transaction);
+
+            if (result.IsSuccess)
+            {
+                var created = result.Value;
+                return Results.Created($"/transaction/{created.Id}", created); // Renvoie le DTO avec l'ID
+            }
+
+            var errorMessages = string.Join(" | ", result.Errors.Select(e => e.Message));
+            return Results.BadRequest(new { Error = "Échec lors de l'ajout", Details = errorMessages });
         });
+        
         group.MapPut("/{id:int}", async (int id,TransactionVariableForm form, ITranscationService service) =>
         {
             var result = await service.Update(id,form);
-            if (result == Result.NotFound)
+            if (result == ResultEnum.NotFound)
                 return Results.NotFound();
-            if (result == Result.Success) return Results.NoContent();
+            if (result == ResultEnum.Success) return Results.NoContent();
             return Results.NotFound();
         });
         
@@ -55,9 +65,9 @@ public static class TransactionVariableEndpoints
             var result = await service.ChangeCategorie(id, categorieId);
             return result switch
             {
-                Result.Success => Results.NoContent(),
-                Result.NotFound => Results.NotFound(),
-                Result.BadRequest => Results.BadRequest(),
+                ResultEnum.Success => Results.NoContent(),
+                ResultEnum.NotFound => Results.NotFound(),
+                ResultEnum.BadRequest => Results.BadRequest(),
                 _ => Results.StatusCode(500)
             };
         });

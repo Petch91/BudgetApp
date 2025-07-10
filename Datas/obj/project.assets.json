@@ -60,6 +60,23 @@
           "lib/net8.0/Blazored.FluentValidation.dll": {}
         }
       },
+      "FluentResults/4.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "2.1.1",
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        },
+        "compile": {
+          "lib/net8.0/FluentResults.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/FluentResults.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "FluentValidation/12.0.0": {
         "type": "package",
         "compile": {
@@ -1812,6 +1829,7 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Blazored.FluentValidation": "2.2.0",
+          "FluentResults": "4.0.0",
           "FluentValidation": "12.0.0",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.6",
           "Serilog": "4.3.1-dev-02373",
@@ -1881,6 +1899,27 @@
         "lib/net6.0/Blazored.FluentValidation.dll",
         "lib/net7.0/Blazored.FluentValidation.dll",
         "lib/net8.0/Blazored.FluentValidation.dll"
+      ]
+    },
+    "FluentResults/4.0.0": {
+      "sha512": "wKfdLvDnDVhXlSreU7u/NFNHH6EfoOhAloEID4ePAyk+ZliowKZJvX+aCL4hxhFc9Jj74t62amS4LyOYTjXGCg==",
+      "type": "package",
+      "path": "fluentresults/4.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "FluentResults-Icon-128.png",
+        "README.md",
+        "fluentresults.4.0.0.nupkg.sha512",
+        "fluentresults.nuspec",
+        "lib/net8.0/FluentResults.dll",
+        "lib/net8.0/FluentResults.xml",
+        "lib/net9.0/FluentResults.dll",
+        "lib/net9.0/FluentResults.xml",
+        "lib/netstandard2.0/FluentResults.dll",
+        "lib/netstandard2.0/FluentResults.xml",
+        "lib/netstandard2.1/FluentResults.dll",
+        "lib/netstandard2.1/FluentResults.xml"
       ]
     },
     "FluentValidation/12.0.0": {
@@ -5187,6 +5226,7 @@
     "net8.0": [
       "Blazored.FluentValidation >= 2.2.0",
       "Entities >= 1.0.0",
+      "FluentResults >= 4.0.0",
       "FluentValidation >= 12.0.0",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.6",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.6",
@@ -5254,6 +5294,10 @@
           "Blazored.FluentValidation": {
             "target": "Package",
             "version": "[2.2.0, )"
+          },
+          "FluentResults": {
+            "target": "Package",
+            "version": "[4.0.0, )"
           },
           "FluentValidation": {
             "target": "Package",

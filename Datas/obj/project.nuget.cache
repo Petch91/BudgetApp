@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "QNB4Wi8o2gE=",
+  "dgSpecHash": "xqo7MEvvFVc=",
   "success": true,
   "projectFilePath": "C:\\Users\\ati_ppi\\RiderProjects\\BudgetApp\\Datas\\Datas.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ati_ppi\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ati_ppi\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\ati_ppi\\.nuget\\packages\\blazored.fluentvalidation\\2.2.0\\blazored.fluentvalidation.2.2.0.nupkg.sha512",
+    "C:\\Users\\ati_ppi\\.nuget\\packages\\fluentresults\\4.0.0\\fluentresults.4.0.0.nupkg.sha512",
     "C:\\Users\\ati_ppi\\.nuget\\packages\\fluentvalidation\\12.0.0\\fluentvalidation.12.0.0.nupkg.sha512",
     "C:\\Users\\ati_ppi\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\ati_ppi\\.nuget\\packages\\microsoft.aspnetcore.authorization\\8.0.6\\microsoft.aspnetcore.authorization.8.0.6.nupkg.sha512",

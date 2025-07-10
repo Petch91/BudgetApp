@@ -1,6 +1,6 @@
 ﻿namespace Datas.Tools;
 
-public enum Result
+public enum ResultEnum
 {
     Success,
     Failure,

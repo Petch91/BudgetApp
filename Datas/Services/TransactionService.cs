@@ -7,7 +7,9 @@ using Entities.Dtos;
 using Entities.Forms;
 using Entities.Mappers;
 using Entities.Models;
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Datas.Services;
 
@@ -38,23 +40,51 @@ public class TransactionService(MyDbContext context) : ITranscationService
         return transactions;;
     }
 
-    public async Task<Result> Add(TransactionVariableForm entity)
+    public async Task<Result<TransactionVariableDto>> Add(TransactionVariableForm entity)
     {
-        var t = entity.ToDb();
-        context.TransactionsVariables.Add(t);
-        var result = await context.SaveChangesAsync();
-        return result > 0 ? Result.Success : Result.Failure;
+        Log.Information("Ajout d'une nouvelle transaction variable");
+
+        try
+        {
+            var transaction = entity.ToDb();
+            context.TransactionsVariables.Add(transaction);
+            var saved = await context.SaveChangesAsync();
+
+            if (saved > 0)
+            {
+                var dto = await GetById(transaction.Id);
+
+                Log.Information("Transaction variable ajoutée avec succès (ID: {Id})", transaction.Id);
+                return Result.Ok(dto);
+            }
+
+            Log.Warning("Aucune transaction variable n'a été ajoutée");
+            return Result.Fail<TransactionVariableDto>("Aucune ligne n’a été insérée en base.");
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Log.Error(dbEx, "Erreur base de données lors de l'ajout d'une transaction variable");
+            return Result.Fail<TransactionVariableDto>("Erreur base de données : " + dbEx.Message)
+                .WithError(dbEx.InnerException?.Message ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Erreur inattendue lors de l'ajout d'une transaction variable");
+            return Result.Fail<TransactionVariableDto>("Erreur inattendue.")
+                .WithError(ex.Message);
+        }
     }
 
-    public async Task<Result> Update(int id, TransactionVariableForm entity)
+
+    public async Task<ResultEnum> Update(int id, TransactionVariableForm entity)
     {
-        if(entity.CategorieId == 0 || !await context.Categories.AnyAsync(c => c.Id == entity.CategorieId)) return Result.BadRequest; //return Badrequest
+        if(entity.CategorieId == 0 || !await context.Categories.AnyAsync(c => c.Id == entity.CategorieId)) return ResultEnum.BadRequest; //return Badrequest
         var transaction = await context.TransactionsVariables.FindAsync(id);
-        if (transaction == null) return Result.NotFound; //return not found
+        if (transaction == null) return ResultEnum.NotFound; //return not found
       
         context.TransactionsVariables.Update(transaction.ToDb(entity));
         var result = await context.SaveChangesAsync();
-        return result > 0 ? Result.Success : Result.NotFound; 
+        return result > 0 ? ResultEnum.Success : ResultEnum.NotFound; 
     }
 
     public async Task<bool> Delete(int id)
@@ -63,20 +93,20 @@ public class TransactionService(MyDbContext context) : ITranscationService
         return result > 0;
     }
 
-    public async Task<Result> ChangeCategorie(int transactionId, int categorieId)
+    public async Task<ResultEnum> ChangeCategorie(int transactionId, int categorieId)
     {
         var transaction = await context.DepenseFixes.FindAsync(transactionId);
         if (transaction == null)
-            return Result.NotFound;
+            return ResultEnum.NotFound;
 
         var categorie = await context.Categories.FindAsync(categorieId);
         if (categorie == null)
-            return Result.BadRequest; 
+            return ResultEnum.BadRequest; 
 
         var result = await context.DepenseFixes
             .ExecuteUpdateAsync(p => 
                 p.SetProperty(f => f.CategorieId, categorieId));
 
-        return result > 0 ? Result.Success : Result.Failure;
+        return result > 0 ? ResultEnum.Success : ResultEnum.Failure;
     }
 }

@@ -5,6 +5,7 @@ using Entities.Dtos;
 using Entities.Forms;
 using Entities.Mappers;
 using Entities.Models;
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -37,26 +38,69 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         return depenses;
     }
 
-    public async Task<Result> Add(DepenseFixeForm entity)
+public async Task<Result<DepenseFixeDto>> Add(DepenseFixeForm entity)
+{
+    Log.Information("Tentative d'ajout d'une nouvelle dépense fixe : {@Entity}", entity);
+
+    // Validation
+    if (!await context.Categories.AnyAsync(c => c.Id == entity.Categorie.Id))
     {
-        Log.Information("Ajout d'une nouvelle dépense fixe");
-
-        if (!await context.Categories.AnyAsync(c =>
-                c.Id == entity.Categorie.Id) || entity.BeginDate == default || entity.ReminderDaysBefore < 0 ||
-            !Enum.IsDefined(typeof(Frequence), entity.Frequence))
-        {
-            Log.Warning("Échec de l'ajout : données invalides ou catégorie inexistante");
-            return Result.BadRequest;
-        }
-
-        var depense = SetDates(entity.ToDb(), entity.BeginDate);
-        context.DepenseFixes.Add(depense);
-        var result = await context.SaveChangesAsync();
-        Log.Information("Dépense fixe ajoutée : {Result}", result > 0);
-        return result > 0 ? Result.Success : Result.Failure;
+        Log.Warning("Ajout échoué : catégorie ID {CategorieId} inexistante", entity.Categorie.Id);
+        return Result.Fail<DepenseFixeDto>("Catégorie inexistante");
     }
 
-    public async Task<Result> Update(int id, DepenseFixeForm entity)
+    if (entity.BeginDate == default)
+    {
+        Log.Warning("Ajout échoué : BeginDate non défini");
+        return Result.Fail<DepenseFixeDto>("Date de début invalide");
+    }
+
+    if (entity.ReminderDaysBefore < 0)
+    {
+        Log.Warning("Ajout échoué : nombre de jours de rappel négatif ({Value})", entity.ReminderDaysBefore);
+        return Result.Fail<DepenseFixeDto>("Nombre de jours de rappel invalide");
+    }
+
+    if (!Enum.IsDefined(typeof(Frequence), entity.Frequence))
+    {
+        Log.Warning("Ajout échoué : fréquence invalide ({Frequence})", entity.Frequence);
+        return Result.Fail<DepenseFixeDto>("Fréquence invalide");
+    }
+
+    try
+    {
+        // Mapping & Sauvegarde
+        var depense = SetDates(entity.ToDb(), entity.BeginDate);
+        context.DepenseFixes.Add(depense);
+        var saved = await context.SaveChangesAsync();
+
+        if (saved > 0)
+        {
+            var dto = await GetById(depense.Id);
+
+            Log.Information("Dépense fixe ajoutée avec succès : ID {Id}", depense.Id);
+            return Result.Ok(dto);
+        }
+        else
+        {
+            Log.Warning("Aucune modification enregistrée lors de l'ajout de la dépense fixe");
+            return Result.Fail<DepenseFixeDto>("Échec de la sauvegarde");
+        }
+    }
+    catch (DbUpdateException dbEx)
+    {
+        Log.Error(dbEx, "Erreur base de données lors de l'ajout de la dépense fixe");
+        return Result.Fail<DepenseFixeDto>("Erreur base de données : " + dbEx.Message);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Erreur inattendue lors de l'ajout de la dépense fixe");
+        return Result.Fail<DepenseFixeDto>("Erreur inattendue : " + ex.Message);
+    }
+}
+
+
+    public async Task<ResultEnum> Update(int id, DepenseFixeForm entity)
     {
         Log.Information("Mise à jour de la dépense fixe ID {Id}", id);
 
@@ -64,7 +108,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             entity.ReminderDaysBefore < 0 || !Enum.IsDefined(typeof(Frequence), entity.Frequence))
         {
             Log.Warning("Échec de la mise à jour : données invalides pour la dépense fixe ID {Id}", id);
-            return Result.BadRequest;
+            return ResultEnum.BadRequest;
         }
 
         var depense = await context.DepenseFixes.Include(x => x.DueDates).Include(x => x.Rappels)
@@ -72,7 +116,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         if (depense == null)
         {
             Log.Warning("Dépense fixe non trouvée pour mise à jour (ID {Id})", id);
-            return Result.NotFound;
+            return ResultEnum.NotFound;
         }
 
         var newdepense = new DepenseFixe();
@@ -113,7 +157,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         var result = await context.SaveChangesAsync();
 
         Log.Information("Dépense fixe mise à jour : succès = {Success} (ID {Id})", result > 0, id);
-        return result > 0 ? Result.Success : Result.NotFound;
+        return result > 0 ? ResultEnum.Success : ResultEnum.NotFound;
     }
 
     public async Task<bool> Delete(int id)
@@ -141,7 +185,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         return result > 0;
     }
 
-    public async Task<Result> ChangeCategorie(int depenseId, int categorieId)
+    public async Task<ResultEnum> ChangeCategorie(int depenseId, int categorieId)
     {
         Log.Information("Changement de catégorie pour la dépense fixe ID {Id} vers la catégorie {CategorieId}",
             depenseId, categorieId);
@@ -149,14 +193,14 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         if (depense == null)
         {
             Log.Warning("Dépense fixe non trouvée pour changement de catégorie (ID {Id})", depenseId);
-            return Result.NotFound;
+            return ResultEnum.NotFound;
         }
 
         var categorie = await context.Categories.FindAsync(categorieId);
         if (categorie == null)
         {
             Log.Warning("Catégorie non trouvée (ID {Id})", categorieId);
-            return Result.BadRequest;
+            return ResultEnum.BadRequest;
         }
 
         var result = await context.DepenseFixes
@@ -165,7 +209,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
                 p.SetProperty(f => f.CategorieId, categorieId));
 
         Log.Information("Catégorie changée pour dépense ID {Id} : succès = {Success}", depenseId, result > 0);
-        return result > 0 ? Result.Success : Result.Failure;
+        return result > 0 ? ResultEnum.Success : ResultEnum.Failure;
     }
 
     public async Task<bool> ChangeBeginDate(int id, DateTime beginDate)
