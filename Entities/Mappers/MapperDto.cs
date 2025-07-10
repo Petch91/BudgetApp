@@ -13,7 +13,7 @@ public static class MapperDto
             Id = depenseFixe.Id,
             Intitule = depenseFixe.Intitule,
             Montant = depenseFixe.Montant,
-            EstDomiciliée = depenseFixe.EstDomiciliée,
+            EstDomiciliee = depenseFixe.EstDomiciliée,
             ReminderDaysBefore = depenseFixe.ReminderDaysBefore,
         };
     }
@@ -25,7 +25,7 @@ public static class MapperDto
             Id = depenseFixe.Id,
             Intitule = depenseFixe.Intitule,
             Montant = depenseFixe.Montant,
-            EstDomiciliée = depenseFixe.EstDomiciliée,
+            EstDomiciliée = depenseFixe.EstDomiciliee,
             ReminderDaysBefore = depenseFixe.ReminderDaysBefore,
             
         };

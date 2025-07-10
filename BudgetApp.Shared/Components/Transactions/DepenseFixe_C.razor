@@ -1,0 +1,59 @@
+﻿@using System.Net
+@using BudgetApp.Shared.Interfaces.Http
+@using Entities.Dtos
+<h3>DepenseFixe_C</h3>
+
+@if (loading)
+{
+    <p>Chargement en cours...</p>
+}
+else
+{
+    @foreach (var group in _depenses.GroupBy(d => d.Frequence))
+    {
+        <h4 class="mt-4">@group.Key</h4>
+
+        <Grid TItem="DepenseFixeDto"
+              Data="@group"
+              Class="table table-striped table-bordered"
+              Responsive="true"
+              RowStyleFunc="GetRowStyle">
+
+            <GridColumns>
+                <GridColumn TItem="DepenseFixeDto" HeaderText="Intitulé / Catégorie">
+                    <div class="d-flex flex-column">
+                        <span>@context.Intitule</span>
+                        <span class="badge bg-primary">@context.Categorie.Name</span>
+                    </div>
+                </GridColumn>
+
+                <GridColumn TItem="DepenseFixeDto" HeaderText="Montant">
+                    @context.Montant.ToString("0.00") €
+                </GridColumn>
+
+                <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
+                    @context.DueDates.Min().ToShortDateString()
+                </GridColumn>
+            </GridColumns>
+        </Grid>
+    }
+}
+
+@code {
+    [Inject] public IHttpDepenseFixe HttpDepense { get; set; }
+    
+    private List<DepenseFixeDto> _depenses = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var temp = await HttpDepense.GetDepenses();
+        _depenses = temp.ToList();
+        loading = false;
+    }
+
+    private string GetRowStyle(DepenseFixeDto item)
+    {
+        return item.EstDomiciliee  ? "background-color: #d4edda;" : "";
+    }
+}

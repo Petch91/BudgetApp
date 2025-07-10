@@ -94,7 +94,7 @@ public class CategorieService(MyDbContext context) : ICategorieService
     {
         Log.Information("Mise à jour de la catégorie ID {Id}", id);
 
-        var categorie = await context.TransactionsVariables.FindAsync(id);
+        var categorie = await context.Categories.FindAsync(id);
         if (categorie == null)
         {
             Log.Warning("Catégorie non trouvée pour mise à jour : ID {Id}", id);

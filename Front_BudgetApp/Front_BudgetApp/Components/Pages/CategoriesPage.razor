@@ -1,10 +1,11 @@
 ﻿@page "/Categories"
 @using BudgetApp.Shared.Components
+@using BudgetApp.Shared.Components.Catégories
 @rendermode InteractiveServer
 
-<h3>Categories</h3>
-<Button Type="ButtonType.Button" Color="ButtonColor.Primary" @onclick="Add">Ajouter</Button>
+<h3 class="mb-5">Gestion des catégories: </h3>
+
 
 <Categories_C></Categories_C>
 
-<Modal @ref="modal"></Modal>
+

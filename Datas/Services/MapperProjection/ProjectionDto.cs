@@ -13,7 +13,7 @@ public static class ProjectionDto
         Montant = d.Montant,
         Frequence = d.Frequence,
         Categorie = new CategorieDto{ Id = d.Categorie.Id, Name = d.Categorie.Name, Icon = d.Categorie.Icon },
-        EstDomiciliée = d.EstDomiciliée,
+        EstDomiciliee = d.EstDomiciliée,
         ReminderDaysBefore = d.ReminderDaysBefore,
         DueDates = d.DueDates.Select(date => date.Date).ToList(),
         Rappels = d.Rappels.Select(r => new RappelDto
