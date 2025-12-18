@@ -2,9 +2,22 @@
 bin/
 obj/
 
-# Logs
-*.log
-logs/
+*/bin/
+*/obj/
+
+# .NET SDK generated
+**/*.AssemblyAttributes.cs
+**/*.GlobalUsings.g.cs
+**/*.FileListAbsolute.txt
+**/*.assets.cache
+
+# NuGet generated
+**/*.nuget.g.props
+**/*.nuget.g.targets
+**/*.nuget.dgspec.json
+**/project.assets.json
+**/project.nuget.cache
+**/project.packagespec.json
 
 # Rider / JetBrains
 .idea/
@@ -16,13 +29,6 @@ logs/
 *.user
 *.suo
 
-# NuGet (generated)
-project.assets.json
-project.nuget.cache
-project.packagespec.json
-*.nuget.g.props
-*.nuget.dgspec.json
-
-# OS
-.DS_Store
-Thumbs.db
+# Logs
+*.log
+logs/
