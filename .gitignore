@@ -1,0 +1,28 @@
+﻿# Build
+bin/
+obj/
+
+# Logs
+*.log
+logs/
+
+# Rider / JetBrains
+.idea/
+.rider/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# NuGet (generated)
+project.assets.json
+project.nuget.cache
+project.packagespec.json
+*.nuget.g.props
+*.nuget.dgspec.json
+
+# OS
+.DS_Store
+Thumbs.db
