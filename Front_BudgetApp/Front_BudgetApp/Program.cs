@@ -42,6 +42,7 @@ builder.Services.AddHttpClient(
     "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
 
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
+builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
 
 var app = builder.Build();
 

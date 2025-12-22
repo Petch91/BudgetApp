@@ -69,7 +69,9 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             Frequence = form.Frequence,
             EstDomiciliee = form.EstDomiciliee,
             ReminderDaysBefore = form.ReminderDaysBefore,
-            CategorieId = form.Categorie.Id
+            CategorieId = form.Categorie.Id,
+            DueDates = [],
+            Rappels = []
         };
 
         SetDates(depense, form.BeginDate);

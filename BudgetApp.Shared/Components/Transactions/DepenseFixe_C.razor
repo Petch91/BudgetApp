@@ -1,7 +1,6 @@
 ﻿@using System.Net
 @using BudgetApp.Shared.Interfaces.Http
 @using Entities.Contracts.Dtos
-<h3>DepenseFixe_C</h3>
 
 @if (loading)
 {
@@ -13,7 +12,8 @@ else
     {
         <h4 class="mt-4">@group.Key</h4>
 
-        <Grid TItem="DepenseFixeDto"
+        <Grid @ref="grid"
+              TItem="DepenseFixeDto"
               Data="@group"
               Class="table table-striped table-bordered"
               Responsive="true"
@@ -32,7 +32,7 @@ else
                 </GridColumn>
 
                 <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
-                    @context.DueDates.Select(d=> d.date).Min().ToShortDateString()
+                    @context.DueDates.Select(d => d.date).Min().ToShortDateString()
                 </GridColumn>
             </GridColumns>
         </Grid>

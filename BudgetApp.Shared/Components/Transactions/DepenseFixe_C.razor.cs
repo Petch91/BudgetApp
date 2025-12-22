@@ -1,4 +1,5 @@
-﻿using BudgetApp.Shared.Interfaces.Http;
+﻿using BlazorBootstrap;
+using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Microsoft.AspNetCore.Components;
 
@@ -10,7 +11,10 @@ public partial class DepenseFixe_C : ComponentBase
 
     private List<DepenseFixeDto> _depenses = [];
     private bool loading = true;
+    private bool _gridInitialized;
     private string? errorMessage;
+
+    private Grid<DepenseFixeDto> grid = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -25,6 +29,14 @@ public partial class DepenseFixe_C : ComponentBase
 
         _depenses = result.Value.ToList();
         loading = false;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && grid is not null && !_gridInitialized)
+        {
+            _gridInitialized = true;
+            await grid.RefreshDataAsync();
+        }
     }
 
     private string GetRowStyle(DepenseFixeDto item)
