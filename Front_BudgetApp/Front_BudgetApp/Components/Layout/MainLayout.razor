@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
+@inject BlazorBootstrap.ToastService ToastService 
+
 <div class="page">
     <div class="sidebar">
         <NavMenu/>
@@ -21,3 +23,11 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@* 👇 Correction ici : "RenderMode.InteractiveServer" *@
+<Toasts class="p-3" 
+        Placement="ToastsPlacement.BottomRight"
+        AutoHide="true" 
+        Delay="4000"
+        @rendermode="RenderMode.InteractiveServer" />
+

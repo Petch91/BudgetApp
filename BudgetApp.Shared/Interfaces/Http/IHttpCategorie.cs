@@ -1,12 +1,14 @@
-﻿using Entities.Dtos;
-using Entities.Forms;
+﻿using Entities.Contracts.Dtos;
+using Entities.Contracts.Forms;
+using FluentResults;
 
 namespace BudgetApp.Shared.Interfaces.Http;
 
 public interface IHttpCategorie
 {
-    Task<IEnumerable<CategorieDto>> GetCategories();
-    Task<CategorieDto?> Add(CategorieForm categorieForm);
-    Task<bool> Update(int id, CategorieForm categorieForm);
-    Task<bool> Delete(int id);
+    Task<Result<IReadOnlyList<CategorieDto>>> GetCategories();
+    Task<Result<CategorieDto>> Add(CategorieForm form);
+    Task<Result> Update(int id, CategorieForm form);
+    Task<Result> Delete(int id);
+
 }

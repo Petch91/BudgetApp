@@ -1,125 +1,117 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
 using BudgetApp.Shared.Interfaces.Http;
-using Entities.Dtos;
-using Entities.Forms;
+using Entities.Contracts.Dtos;
+using Entities.Contracts.Forms;
+using FluentResults;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
 public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
 {
-    public async Task<IEnumerable<CategorieDto>> GetCategories()
+    private HttpClient Client => factory.CreateClient("Api");
+
+    public async Task<Result<IReadOnlyList<CategorieDto>>> GetCategories()
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.GetAsync("categorie");
+            var response = await Client.GetAsync("categorie");
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la récupération des catégories. Statut: {StatusCode}, Réponse: {Content}", response.StatusCode, content);
-                return [];
-            }
-            var json = await response.Content.ReadAsStringAsync();
-            var categories = await response.Content.ReadFromJsonAsync<IEnumerable<CategorieDto>>();
-            Log.Information("Catégories récupérées avec succès.");
-            return categories ?? [];
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Erreur inattendue lors de la récupération des catégories.");
-            return [];
-        }
-    }
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning("Erreur récupération catégories ({StatusCode}) : {Error}",
+                    response.StatusCode, error);
 
-    public async Task<CategorieDto?> Add(CategorieForm categorieForm)
-    {
-        try
-        {
-            var client = factory.CreateClient("Api");
-            var response = await client.PostAsJsonAsync("categorie", categorieForm);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Lecture possible du message d'erreur JSON
-                string errorMessage;
-                try
-                {
-                    var errorObj = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
-                    errorMessage = errorObj?["error"] + " | " + errorObj?["details"];
-                }
-                catch
-                {
-                    errorMessage = content;
-                }
-
-                Log.Warning("Échec de l'ajout de la catégorie. Statut: {StatusCode}, Erreur: {Error}, Données: {@CategorieForm}",
-                    response.StatusCode, errorMessage, categorieForm);
-                return null;
+                return Result.Fail("Impossible de récupérer les catégories");
             }
 
-            var createdDto = await response.Content.ReadFromJsonAsync<CategorieDto>();
+            var categories = await response.Content
+                .ReadFromJsonAsync<IReadOnlyList<CategorieDto>>();
 
-            Log.Information("Catégorie ajoutée avec succès : {@CreatedDto}", createdDto);
-            return createdDto;
+            return Result.Ok(categories ?? []);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Erreur inattendue lors de l'ajout de la catégorie : {@CategorieForm}", categorieForm);
-            return null;
+            Log.Error(ex, "Erreur inattendue lors de la récupération des catégories");
+            return Result.Fail("Erreur technique lors de la récupération des catégories");
         }
     }
 
-    public async Task<bool> Update(int id, CategorieForm categorieForm)
+    public async Task<Result<CategorieDto>> Add(CategorieForm form)
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.PutAsJsonAsync($"categorie/{id}", categorieForm);
+            var response = await Client.PostAsJsonAsync("categorie", form);
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la mise à jour de la catégorie. Statut: {StatusCode}, Réponse: {Content}, Id: {Id}, Données: {@CategorieForm}",
-                            response.StatusCode, content, id, categorieForm);
-                return false;
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning("Erreur ajout catégorie ({StatusCode}) : {Error}",
+                    response.StatusCode, error);
+
+                return Result.Fail("Impossible d'ajouter la catégorie");
             }
 
-            Log.Information("Catégorie mise à jour avec succès : Id={Id}, {@CategorieForm}", id, categorieForm);
-            return true;
+            var created = await response.Content.ReadFromJsonAsync<CategorieDto>();
+
+            if (created is null)
+                return Result.Fail("Réponse invalide du serveur");
+
+            return Result.Ok(created);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur inattendue lors de la mise à jour de la catégorie Id={Id} : {@CategorieForm}", id, categorieForm);
-            return false;
+            Log.Error(ex, "Erreur inattendue lors de l'ajout catégorie {@Form}", form);
+            return Result.Fail("Erreur technique lors de l'ajout de la catégorie");
         }
     }
 
-    public async Task<bool> Delete(int id)
+    public async Task<Result> Update(int id, CategorieForm form)
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.DeleteAsync($"categorie/{id}");
+            var response = await Client.PutAsJsonAsync($"categorie/{id}", form);
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la suppression de la catégorie. Statut: {StatusCode}, Réponse: {Content}, Id: {Id}",
-                            response.StatusCode, content, id);
-                return false;
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning("Erreur update catégorie {Id} ({StatusCode}) : {Error}",
+                    id, response.StatusCode, error);
+
+                return Result.Fail("Impossible de mettre à jour la catégorie");
             }
 
-            Log.Information("Catégorie supprimée avec succès (Id={Id})", id);
-            return true;
+            return Result.Ok();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur inattendue lors de la suppression de la catégorie Id={Id}", id);
-            return false;
+            Log.Error(ex, "Erreur inattendue lors de la mise à jour catégorie {Id}", id);
+            return Result.Fail("Erreur technique lors de la mise à jour de la catégorie");
+        }
+    }
+
+    public async Task<Result> Delete(int id)
+    {
+        try
+        {
+            var response = await Client.DeleteAsync($"categorie/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning("Erreur suppression catégorie {Id} ({StatusCode}) : {Error}",
+                    id, response.StatusCode, error);
+
+                return Result.Fail("Impossible de supprimer la catégorie");
+            }
+
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Erreur inattendue lors de la suppression catégorie {Id}", id);
+            return Result.Fail("Erreur technique lors de la suppression de la catégorie");
         }
     }
 }

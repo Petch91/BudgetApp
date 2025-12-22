@@ -1,6 +1,6 @@
 ﻿using BlazorBootstrap;
 using BudgetApp.Shared.Tools;
-using Entities.Forms;
+using Entities.Contracts.Forms;
 using Microsoft.AspNetCore.Components;
 
 namespace BudgetApp.Shared.Components.Catégories;

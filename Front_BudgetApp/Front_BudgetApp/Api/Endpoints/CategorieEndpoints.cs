@@ -1,8 +1,8 @@
-﻿using Datas.Services.Interfaces;
-using Datas.Tools;
-using Entities.Forms;
+﻿using Datas.Interfaces;
+using Entities.Contracts.Forms;
+using FluentResults;
 
-namespace API_BudgetApp.Endpoints;
+namespace Front_BudgetApp.Api.Endpoints;
 
 public static class CategorieEndpoints
 {
@@ -10,18 +10,36 @@ public static class CategorieEndpoints
     {
         var group = app.MapGroup("/api/categorie")
             .WithTags("Catégories");
-        
+
+        /* =======================
+         * GET BY ID
+         * ======================= */
+
         group.MapGet("/{id:int}", async (int id, ICategorieService service) =>
         {
             var result = await service.GetById(id);
-            return result is not null ? Results.Ok(result) : Results.NotFound();
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.NotFound(result.Errors);
         });
-        
+
+        /* =======================
+         * GET ALL
+         * ======================= */
+
         group.MapGet("/", async (ICategorieService service) =>
         {
             var result = await service.GetCategories();
-            return Results.Ok(result);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(result.Errors);
         });
+
+        /* =======================
+         * ADD
+         * ======================= */
 
         group.MapPost("/", async (CategorieForm form, ICategorieService service) =>
         {
@@ -30,27 +48,36 @@ public static class CategorieEndpoints
             if (result.IsSuccess)
             {
                 var created = result.Value;
-                return Results.Created($"/categorie/{created.Id}", created);
+                return Results.Created($"/api/categorie/{created.Id}", created);
             }
 
-            var errors = string.Join(" | ", result.Errors.Select(e => e.Message));
-            return Results.BadRequest(errors);
+            return Results.BadRequest(result.Errors);
         });
-        
-        group.MapPut("/{id:int}", async (int id,CategorieForm form, ICategorieService service) =>
+
+        /* =======================
+         * UPDATE
+         * ======================= */
+
+        group.MapPut("/{id:int}", async (int id, CategorieForm form, ICategorieService service) =>
         {
-            var result = await service.Update(id,form);
-            if (result == ResultEnum.NotFound)
-                return Results.NotFound();
-            if (result == ResultEnum.Success) return Results.NoContent();
-            return Results.NotFound();
+            var result = await service.Update(id, form);
+
+            return result.IsSuccess
+                ? Results.NoContent()
+                : Results.NotFound(result.Errors);
         });
-        
+
+        /* =======================
+         * DELETE
+         * ======================= */
+
         group.MapDelete("/{id:int}", async (int id, ICategorieService service) =>
         {
-            return await service.Delete(id)
+            var result = await service.Delete(id);
+
+            return result.IsSuccess
                 ? Results.NoContent()
-                : Results.NotFound();
+                : Results.NotFound(result.Errors);
         });
     }
 }

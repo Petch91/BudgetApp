@@ -1,149 +1,179 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
 using BudgetApp.Shared.Interfaces.Http;
-using Entities.Dtos;
-using Entities.Forms;
+using Entities.Contracts.Dtos;
+using Entities.Contracts.Forms;
+using FluentResults;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
 public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseFixe
 {
-    public async Task<IEnumerable<DepenseFixeDto>> GetDepenses()
+    private HttpClient Client => factory.CreateClient("Api");
+
+    /* =======================
+     * GET ALL
+     * ======================= */
+
+    public async Task<Result<IReadOnlyList<DepenseFixeDto>>> GetDepenses()
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.GetAsync("depenseFixe");
+            var response = await Client.GetAsync("depensefixe");
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la récupération des dépenses. Statut: {StatusCode}, Réponse: {Content}", response.StatusCode, content);
-                return [];
-            }
-            var json = await response.Content.ReadAsStringAsync();
-            var depenseFixes = await response.Content.ReadFromJsonAsync<IEnumerable<DepenseFixeDto>>();
-            Log.Information("Dépenses récupérées avec succès.");
-            return depenseFixes ?? [];
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Erreur inattendue lors de la récupération des Dépenses.");
-            return [];
-        };
-    }
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur récupération dépenses fixes ({StatusCode}) : {Error}",
+                    response.StatusCode, error);
 
-    public async Task<DepenseFixeDto?> Add(DepenseFixeForm depenseForm)
-    {
-        try
-        {
-            var client = factory.CreateClient("Api");
-            var response = await client.PostAsJsonAsync("depenseFixe", depenseForm);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Lecture possible du message d'erreur JSON
-                string errorMessage;
-                try
-                {
-                    var errorObj = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
-                    errorMessage = errorObj?["error"] + " | " + errorObj?["details"];
-                }
-                catch
-                {
-                    errorMessage = content;
-                }
-
-                Log.Warning("Échec de l'ajout de la depenseFixe. Statut: {StatusCode}, Erreur: {Error}, Données: {@DepenseFixeForm}",
-                    response.StatusCode, errorMessage, depenseForm);
-                return null;
+                return Result.Fail("Impossible de récupérer les dépenses fixes");
             }
 
-            var createdDto = await response.Content.ReadFromJsonAsync<DepenseFixeDto>();
+            var depenses = await response.Content
+                .ReadFromJsonAsync<IReadOnlyList<DepenseFixeDto>>();
 
-            Log.Information("depense ajoutée avec succès : {@CreatedDto}", createdDto);
-            return createdDto;
+            return Result.Ok(depenses ?? []);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Erreur inattendue lors de l'ajout de la depenseFixe : {@CategorieForm}", depenseForm);
-            return null;
+            Log.Error(ex, "Erreur inattendue lors de la récupération des dépenses fixes");
+            return Result.Fail("Erreur technique lors de la récupération des dépenses fixes");
         }
     }
 
-    public async Task<bool> Update(int id, DepenseFixeForm depenseForm)
+    /* =======================
+     * ADD
+     * ======================= */
+
+    public async Task<Result<DepenseFixeDto>> Add(DepenseFixeForm depenseForm)
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.PutAsJsonAsync($"depenseFixe/{id}", depenseForm);
+            var response = await Client.PostAsJsonAsync("depensefixe", depenseForm);
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la mise à jour de la depense. Statut: {StatusCode}, Réponse: {Content}, Id: {Id}, Données: {@DepenseForm}",
-                    response.StatusCode, content, id, depenseForm);
-                return false;
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur ajout dépense fixe ({StatusCode}) : {Error}",
+                    response.StatusCode, error);
+
+                return Result.Fail("Impossible d'ajouter la dépense fixe");
             }
 
-            Log.Information("depense mise à jour avec succès : Id={Id}, {@DepenseForm}", id, depenseForm);
-            return true;
+            var created = await response.Content
+                .ReadFromJsonAsync<DepenseFixeDto>();
+
+            if (created is null)
+                return Result.Fail("Réponse invalide du serveur");
+
+            return Result.Ok(created);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur inattendue lors de la mise à jour de la depense Id={Id} : {@DepenseForm}", id, depenseForm);
-            return false;
+            Log.Error(ex,
+                "Erreur inattendue lors de l'ajout de la dépense fixe {@Form}",
+                depenseForm);
+
+            return Result.Fail("Erreur technique lors de l'ajout de la dépense fixe");
         }
     }
 
-    public async Task<bool> Delete(int id)
+    /* =======================
+     * UPDATE
+     * ======================= */
+
+    public async Task<Result> Update(int id, DepenseFixeForm depenseForm)
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.DeleteAsync($"depensefixe/{id}");
+            var response = await Client.PutAsJsonAsync($"depensefixe/{id}", depenseForm);
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec de la suppression de la dépense. Statut: {StatusCode}, Réponse: {Content}, Id: {Id}",
-                    response.StatusCode, content, id);
-                return false;
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur update dépense fixe {Id} ({StatusCode}) : {Error}",
+                    id, response.StatusCode, error);
+
+                return Result.Fail("Impossible de mettre à jour la dépense fixe");
             }
 
-            Log.Information("Dépense supprimée avec succès (Id={Id})", id);
-            return true;
+            return Result.Ok();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur inattendue lors de la suppression de la dépense Id={Id}", id);
-            return false;
+            Log.Error(ex,
+                "Erreur inattendue lors de la mise à jour dépense fixe {Id}",
+                id);
+
+            return Result.Fail("Erreur technique lors de la mise à jour de la dépense fixe");
         }
     }
-    
-    public async Task<bool> ChangeVuRappel(int id)
+
+    /* =======================
+     * DELETE
+     * ======================= */
+
+    public async Task<Result> Delete(int id)
     {
         try
         {
-            var client = factory.CreateClient("Api");
-            var response = await client.PatchAsync($"rappels/{id}/vu", null);
+            var response = await Client.DeleteAsync($"depensefixe/{id}");
 
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                Log.Warning("Échec du PATCH /rappels/{Id}/vu - Status: {StatusCode}, Response: {Response}", id, response.StatusCode, content);
-                return false;
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur suppression dépense fixe {Id} ({StatusCode}) : {Error}",
+                    id, response.StatusCode, error);
+
+                return Result.Fail("Impossible de supprimer la dépense fixe");
             }
 
-            Log.Information("PATCH /rappels/{Id}/vu effectué avec succès", id);
-            return true;
+            return Result.Ok();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Error(e, "Erreur lors du PATCH /rappels/{Id}/vu", id);
-            return false;
+            Log.Error(ex,
+                "Erreur inattendue lors de la suppression dépense fixe {Id}",
+                id);
+
+            return Result.Fail("Erreur technique lors de la suppression de la dépense fixe");
+        }
+    }
+
+    /* =======================
+     * CHANGE RAPPEL VU
+     * ======================= */
+
+    public async Task<Result> ChangeVuRappel(int id)
+    {
+        try
+        {
+            var response = await Client.PatchAsync($"depensefixe/rappels/{id}/vu", null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur PATCH rappel vu {Id} ({StatusCode}) : {Error}",
+                    id, response.StatusCode, error);
+
+                return Result.Fail("Impossible de modifier l'état du rappel");
+            }
+
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex,
+                "Erreur inattendue lors du PATCH rappel vu {Id}",
+                id);
+
+            return Result.Fail("Erreur technique lors de la modification du rappel");
         }
     }
 }

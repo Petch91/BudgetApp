@@ -1,6 +1,6 @@
 ﻿@using System.Net
 @using BudgetApp.Shared.Interfaces.Http
-@using Entities.Dtos
+@using Entities.Contracts.Dtos
 <h3>DepenseFixe_C</h3>
 
 @if (loading)
@@ -32,28 +32,10 @@ else
                 </GridColumn>
 
                 <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
-                    @context.DueDates.Min().ToShortDateString()
+                    @context.DueDates.Select(d=> d.date).Min().ToShortDateString()
                 </GridColumn>
             </GridColumns>
         </Grid>
     }
 }
 
-@code {
-    [Inject] public IHttpDepenseFixe HttpDepense { get; set; }
-    
-    private List<DepenseFixeDto> _depenses = new();
-    private bool loading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var temp = await HttpDepense.GetDepenses();
-        _depenses = temp.ToList();
-        loading = false;
-    }
-
-    private string GetRowStyle(DepenseFixeDto item)
-    {
-        return item.EstDomiciliee  ? "background-color: #d4edda;" : "";
-    }
-}
