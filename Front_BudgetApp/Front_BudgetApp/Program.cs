@@ -1,8 +1,8 @@
 using BudgetApp.Shared.Interfaces.Http;
 using BudgetApp.Shared.Tools;
-using Datas.Interfaces;
-using Datas.Persistence;
-using Datas.Services;
+using Application.Interfaces;
+using Application.Persistence;
+using Application.Services;
 using Front_BudgetApp.Api.Endpoints;
 using Front_BudgetApp.Components;
 using Front_BudgetApp.Services;
@@ -33,6 +33,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHostedService<DepenseFixeScheduler>();
 
 builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>();
 builder.Services.AddScoped<ITranscationService, TransactionService>();

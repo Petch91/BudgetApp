@@ -1,6 +1,6 @@
-﻿using Datas.Interfaces;
-using Datas.Persistence;
-using Datas.Projections;
+﻿using Application.Interfaces;
+using Application.Persistence;
+using Application.Projections;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using Entities.Domain.Models;
@@ -8,7 +8,7 @@ using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace Datas.Services;
+namespace Application.Services;
 
 public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 {
@@ -192,6 +192,33 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         await context.SaveChangesAsync();
 
         return Result.Ok();
+    }
+    
+    public void GenerateNextDates(DepenseFixe depense, DateTime startDate)
+    {
+        var date = startDate;
+
+        for (int i = 0; i < 3; i++) // horizon de sécurité
+        {
+            date = depense.Frequence switch
+            {
+                Frequence.Mensuel => date.AddMonths(1),
+                Frequence.Trimestriel => date.AddMonths(3),
+                Frequence.Biannuel => date.AddMonths(6),
+                Frequence.Annuel => date.AddYears(1),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            depense.DueDates.Add(new DepenseDueDate { Date = date });
+
+            if (!depense.EstDomiciliee)
+            {
+                foreach (var rappel in SetRappels(date, depense.ReminderDaysBefore))
+                {
+                    depense.Rappels.Add(rappel);
+                }
+            }
+        }
     }
 
     /* =======================

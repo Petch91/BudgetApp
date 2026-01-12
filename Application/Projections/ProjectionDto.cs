@@ -2,7 +2,7 @@
 using Entities.Contracts.Dtos;
 using Entities.Domain.Models;
 
-namespace Datas.Projections;
+namespace Application.Projections;
 
 public static class ProjectionDto
 {

@@ -1,6 +1,6 @@
-﻿using Datas.Interfaces;
-using Datas.Persistence;
-using Datas.Projections;
+﻿using Application.Interfaces;
+using Application.Persistence;
+using Application.Projections;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using Entities.Domain.Models;
@@ -8,7 +8,7 @@ using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace Datas.Services;
+namespace Application.Services;
 
 public class CategorieService(MyDbContext context) : ICategorieService
 {

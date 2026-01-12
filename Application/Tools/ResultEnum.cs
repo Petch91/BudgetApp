@@ -1,4 +1,4 @@
-﻿namespace Datas.Tools;
+﻿namespace Application.Tools;
 
 public enum ResultEnum
 {

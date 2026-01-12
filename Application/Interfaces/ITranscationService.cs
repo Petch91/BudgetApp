@@ -1,9 +1,9 @@
-﻿using Datas.Tools;
+﻿using Application.Tools;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using FluentResults;
 
-namespace Datas.Interfaces;
+namespace Application.Interfaces;
 
 public interface ITranscationService : IReadTranscation, IWriteTranscation
 {

@@ -2,7 +2,7 @@
 using Entities.Contracts.Forms;
 using FluentResults;
 
-namespace Datas.Interfaces;
+namespace Application.Interfaces;
 
 public interface ICategorieService : IReadCategorie, IWriteCategorie
 {

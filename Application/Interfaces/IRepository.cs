@@ -1,7 +1,7 @@
-﻿using Datas.Tools;
+﻿using Application.Tools;
 using FluentResults;
 
-namespace Datas.Interfaces;
+namespace Application.Interfaces;
 
 public interface IReadRepository<TDto> where TDto : class
 {

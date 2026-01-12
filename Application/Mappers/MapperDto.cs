@@ -1,7 +1,7 @@
 ﻿using Entities.Contracts.Dtos;
 using Entities.Domain.Models;
 
-namespace Datas.Mappers;
+namespace Application.Mappers;
 
 public static class MapperDto
 {

@@ -2,40 +2,108 @@
 @using BudgetApp.Shared.Interfaces.Http
 @using Entities.Contracts.Dtos
 
-@if (loading)
-{
-    <p>Chargement en cours...</p>
-}
-else
-{
-    @foreach (var group in _depenses.GroupBy(d => d.Frequence))
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <Icon Name="IconName.CashStack" class="me-2" />
+            Dépenses Fixes
+        </h2>
+        <Button Color="ButtonColor.Primary" @onclick="OnAjouterDepense">
+            <Icon Name="IconName.PlusCircle" class="me-1" />
+            Nouvelle dépense
+        </Button>
+    </div>
+    @if (IsLoading)
     {
-        <h4 class="mt-4">@group.Key</h4>
-
-        <Grid @ref="grid"
-              TItem="DepenseFixeDto"
-              Data="@group"
-              Class="table table-striped table-bordered"
-              Responsive="true"
-              RowStyleFunc="GetRowStyle">
-
-            <GridColumns>
-                <GridColumn TItem="DepenseFixeDto" HeaderText="Intitulé / Catégorie">
-                    <div class="d-flex flex-column">
-                        <span>@context.Intitule</span>
-                        <span class="badge bg-primary">@context.Categorie.Name</span>
-                    </div>
-                </GridColumn>
-
-                <GridColumn TItem="DepenseFixeDto" HeaderText="Montant">
-                    @context.Montant.ToString("0.00") €
-                </GridColumn>
-
-                <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
-                    @context.DueDates.Select(d => d.date).Min().ToShortDateString()
-                </GridColumn>
-            </GridColumns>
-        </Grid>
+        <div class="text-center py-5">
+            <Spinner Color="SpinnerColor.Primary" />
+            <p class="mt-3 text-muted">Chargement en cours...</p>
+        </div>
     }
-}
+    else if (!_depenses.Any())
+    {
+        <Alert Color="AlertColor.Info">
+            <Icon Name="IconName.InfoCircle" class="me-2" />
+            Aucune dépense fixe enregistrée. Commencez par en ajouter une !
+        </Alert>
+    }
+    else
+    {
+                <!-- Statistiques rapides -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <Card>
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.CurrencyEuro" Size="IconSize.x2" Color="IconColor.Primary" />
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">Total à payer le mois prochain</h6>
+                                <h4 class="mb-0">@CalculerTotalMensuel().ToString("0.00") €</h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+            <div class="col-md-4">
+                <Card>
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.Bell" Size="IconSize.x2" Color="IconColor.Warning" />
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">Rappels actifs</h6>
+                                <h4 class="mb-0">@CompterRappelsActifs()</h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        </div>
+
+        <!-- Rappels urgents -->
+        @if (ObtenirDepensesAvecRappelUrgent().Any())
+        {
+            <Alert Color="AlertColor.Warning" Dismissable="true" class="mb-4">
+                <Icon Name="IconName.BellFill" class="me-2" />
+                <strong>Attention !</strong> Vous avez @ObtenirDepensesAvecRappelUrgent().Count() dépense(s) à payer prochainement.
+            </Alert>
+        }
+        @foreach (var group in _depenses.GroupBy(d => d.Frequence))
+        {
+            <h4 class="mt-4">@group.Key</h4>
+
+            <Grid @ref="grid"
+                  TItem="DepenseFixeDto"
+                  Data="@group"
+                  Class="table table-striped table-bordered"
+                  Responsive="true"
+                  RowStyleFunc="GetRowStyle">
+
+                <GridColumns>
+                    <GridColumn TItem="DepenseFixeDto" HeaderText="Intitulé / Catégorie">
+                        <div class="d-flex flex-column">
+                            <span>@context.Intitule</span>
+                            <span class="badge bg-primary">@context.Categorie.Name</span>
+                        </div>
+                    </GridColumn>
+
+                    <GridColumn TItem="DepenseFixeDto" HeaderText="Montant">
+                        @context.Montant.ToString("0.00") €
+                    </GridColumn>
+
+                    <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
+                        @context.DueDates.Select(d => d.date).Min().ToShortDateString()
+                    </GridColumn>
+                </GridColumns>
+            </Grid>
+        }
+    }
+</div>
 
