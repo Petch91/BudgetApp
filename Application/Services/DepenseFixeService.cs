@@ -209,7 +209,11 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            depense.DueDates.Add(new DepenseDueDate { Date = date });
+            depense.DueDates.Add(new DepenseDueDate
+            {
+                Date = date,
+                MontantEffectif = depense.Montant
+            });
 
             if (!depense.EstDomiciliee)
             {
@@ -234,7 +238,11 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 
         for (int i = 0; i < (int)depense.Frequence; i++)
         {
-            depense.DueDates.Add(new DepenseDueDate { Date = date });
+            depense.DueDates.Add(new DepenseDueDate
+            {
+                Date = date,
+                MontantEffectif = depense.Montant
+            });
 
             if (!depense.EstDomiciliee)
             {

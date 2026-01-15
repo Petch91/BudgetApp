@@ -19,7 +19,7 @@ public static class ProjectionDto
             d.Frequence,
             d.EstDomiciliee,
             d.DueDates
-                .Select(dd => new DepenseDueDateDto(dd.Date))
+                .Select(dd => new DepenseDueDateDto(dd.Id, dd.Date, dd.MontantEffectif))
                 .ToList(),
             d.ReminderDaysBefore,
             d.Rappels

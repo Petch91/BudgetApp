@@ -1,65 +1,92 @@
-﻿@using System.Net
-@using BudgetApp.Shared.Interfaces.Http
-@using Entities.Contracts.Dtos
+﻿@using Entities.Contracts.Dtos
+@using Entities.Domain.Models
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="container-fluid py-4">
+    @* ===== HEADER ===== *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">
-            <Icon Name="IconName.CashStack" class="me-2" />
-            Dépenses Fixes
+            <Icon Name="IconName.CashStack" class="me-2"/>
+            Depenses Fixes
         </h2>
-        <Button Color="ButtonColor.Primary" @onclick="OnAjouterDepense">
-            <Icon Name="IconName.PlusCircle" class="me-1" />
-            Nouvelle dépense
+        <Button Color="ButtonColor.Primary" @onclick="() => OuvrirModal(null)">
+            <Icon Name="IconName.PlusCircle" class="me-1"/>
+            Nouvelle depense
         </Button>
     </div>
+
+    @* ===== LOADING ===== *@
     @if (IsLoading)
     {
         <div class="text-center py-5">
-            <Spinner Color="SpinnerColor.Primary" />
+            <Spinner Color="SpinnerColor.Primary"/>
             <p class="mt-3 text-muted">Chargement en cours...</p>
         </div>
+    }
+    else if (_errorMessage is not null)
+    {
+        <Alert Color="AlertColor.Danger">
+            <Icon Name="IconName.ExclamationTriangle" class="me-2"/>
+            @_errorMessage
+        </Alert>
     }
     else if (!_depenses.Any())
     {
         <Alert Color="AlertColor.Info">
-            <Icon Name="IconName.InfoCircle" class="me-2" />
-            Aucune dépense fixe enregistrée. Commencez par en ajouter une !
+            <Icon Name="IconName.InfoCircle" class="me-2"/>
+            Aucune depense fixe enregistree. Commencez par en ajouter une !
         </Alert>
     }
     else
     {
-                <!-- Statistiques rapides -->
-        <div class="row mb-4">
+        @* ===== STATISTIQUES ===== *@
+        <div class="row mb-4 g-3">
             <div class="col-md-4">
-                <Card>
+                <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
                                 <div class="bg-primary bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.CurrencyEuro" Size="IconSize.x2" Color="IconColor.Primary" />
+                                    <Icon Name="IconName.CurrencyEuro" Size="IconSize.x2" Color="IconColor.Primary"/>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Total à payer le mois prochain</h6>
-                                <h4 class="mb-0">@CalculerTotalMensuel().ToString("0.00") €</h4>
+                                <h6 class="text-muted mb-1">Total mois prochain</h6>
+                                <h4 class="mb-0 text-primary">@CalculerTotalMensuel().ToString("N2") &euro;</h4>
                             </div>
                         </div>
                     </CardBody>
                 </Card>
             </div>
             <div class="col-md-4">
-                <Card>
+                <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
                                 <div class="bg-warning bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.Bell" Size="IconSize.x2" Color="IconColor.Warning" />
+                                    <Icon Name="IconName.Bell" Size="IconSize.x2" Color="IconColor.Warning"/>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="text-muted mb-1">Rappels actifs</h6>
-                                <h4 class="mb-0">@CompterRappelsActifs()</h4>
+                                <h4 class="mb-0 text-warning">@CompterRappelsActifs()</h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+            <div class="col-md-4">
+                <Card Class="h-100 border-0 shadow-sm">
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.CheckCircle" Size="IconSize.x2" Color="IconColor.Success"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">Domiciliees</h6>
+                                <h4 class="mb-0 text-success">@_depenses.Count(d => d.EstDomiciliee) / @_depenses.Count</h4>
                             </div>
                         </div>
                     </CardBody>
@@ -67,43 +94,235 @@
             </div>
         </div>
 
-        <!-- Rappels urgents -->
+        @* ===== ALERTE RAPPELS URGENTS ===== *@
         @if (ObtenirDepensesAvecRappelUrgent().Any())
         {
-            <Alert Color="AlertColor.Warning" Dismissable="true" class="mb-4">
-                <Icon Name="IconName.BellFill" class="me-2" />
-                <strong>Attention !</strong> Vous avez @ObtenirDepensesAvecRappelUrgent().Count() dépense(s) à payer prochainement.
+            <Alert Color="AlertColor.Warning" class="mb-4">
+                <div class="d-flex align-items-center">
+                    <Icon Name="IconName.ExclamationTriangleFill" class="me-2 fs-4"/>
+                    <div>
+                        <strong>Attention !</strong> @ObtenirDepensesAvecRappelUrgent().Count depense(s) a payer dans les 3 prochains jours :
+                        <ul class="mb-0 mt-2">
+                            @foreach (var dep in ObtenirDepensesAvecRappelUrgent().Take(3))
+                            {
+                                <li>
+                                    <strong>@dep.Intitule</strong> - @dep.Montant.ToString("N2") &euro;
+                                    (le @ObtenirProchainPaiement(dep).ToString("dd/MM/yyyy"))
+                                </li>
+                            }
+                            @if (ObtenirDepensesAvecRappelUrgent().Count > 3)
+                            {
+                                <li>... et @(ObtenirDepensesAvecRappelUrgent().Count - 3) autre(s)</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
             </Alert>
         }
-        @foreach (var group in _depenses.GroupBy(d => d.Frequence))
+
+        @* ===== GRILLES PAR FREQUENCE ===== *@
+        @foreach (var group in _depenses.GroupBy(d => d.Frequence).OrderByDescending(g => (int)g.Key))
         {
-            <h4 class="mt-4">@group.Key</h4>
+            <Card Class="mb-4 border-0 shadow-sm">
+                <CardHeader Class="bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <Badge Color="@GetFrequenceBadgeColor(group.Key)" Class="me-2">@GetFrequenceLabel(group.Key)</Badge>
+                            <span class="text-muted fs-6">(@group.Count() depense(s))</span>
+                        </h5>
+                        <span class="fw-bold">@group.Sum(d => d.Montant).ToString("N2") &euro; / periode</span>
+                    </div>
+                </CardHeader>
+                <CardBody Class="p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30%">Intitule</th>
+                                    <th style="width: 15%">Categorie</th>
+                                    <th style="width: 12%" class="text-end">Montant</th>
+                                    <th style="width: 15%">Prochaine echeance</th>
+                                    <th style="width: 10%" class="text-center">Statut</th>
+                                    <th style="width: 18%" class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var depense in group.OrderBy(d => ObtenirProchainPaiement(d)))
+                                {
+                                    var prochainPaiement = ObtenirProchainPaiement(depense);
+                                    var joursRestants = (prochainPaiement - DateTime.Today).Days;
+                                    var estUrgent = joursRestants <= 3 && !depense.EstDomiciliee;
+                                    var rappelNonVu = depense.Rappels.Any(r => !r.Vu && r.RappelDate <= DateTime.Today);
 
-            <Grid @ref="grid"
-                  TItem="DepenseFixeDto"
-                  Data="@group"
-                  Class="table table-striped table-bordered"
-                  Responsive="true"
-                  RowStyleFunc="GetRowStyle">
-
-                <GridColumns>
-                    <GridColumn TItem="DepenseFixeDto" HeaderText="Intitulé / Catégorie">
-                        <div class="d-flex flex-column">
-                            <span>@context.Intitule</span>
-                            <span class="badge bg-primary">@context.Categorie.Name</span>
-                        </div>
-                    </GridColumn>
-
-                    <GridColumn TItem="DepenseFixeDto" HeaderText="Montant">
-                        @context.Montant.ToString("0.00") €
-                    </GridColumn>
-
-                    <GridColumn TItem="DepenseFixeDto" HeaderText="Date">
-                        @context.DueDates.Select(d => d.date).Min().ToShortDateString()
-                    </GridColumn>
-                </GridColumns>
-            </Grid>
+                                    <tr class="@(depense.EstDomiciliee ? "table-success" : estUrgent ? "table-warning" : "")">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                @if (rappelNonVu)
+                                                {
+                                                    <Icon Name="IconName.BellFill" Color="IconColor.Warning" class="me-2" title="Rappel non lu"/>
+                                                }
+                                                <strong>@depense.Intitule</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <Badge Color="BadgeColor.Primary">
+                                                @if (!string.IsNullOrEmpty(depense.Categorie.Icon))
+                                                {
+                                                    <Icon CustomIconName="@depense.Categorie.Icon" Class="me-1 mt-1"></Icon>
+                                                }
+                                                @depense.Categorie.Name
+                                            </Badge>
+                                        </td>
+                                        <td class="text-end fw-bold">@depense.Montant.ToString("N2") &euro;</td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
+                                                <small class="@(estUrgent ? "text-danger fw-bold" : "text-muted")">
+                                                    @if (joursRestants == 0)
+                                                    {
+                                                        <text>Aujourd'hui</text>
+                                                    }
+                                                    else if (joursRestants == 1)
+                                                    {
+                                                        <text>Demain</text>
+                                                    }
+                                                    else if (joursRestants < 0)
+                                                    {
+                                                        <text>En retard de @Math.Abs(joursRestants) jour(s)</text>
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>Dans @joursRestants jours</text>
+                                                    }
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (depense.EstDomiciliee)
+                                            {
+                                                <Badge Color="BadgeColor.Success">
+                                                    <Icon Name="IconName.CheckCircle" class="me-1"/>
+                                                    Domiciliee
+                                                </Badge>
+                                            }
+                                            else
+                                            {
+                                                <Badge Color="BadgeColor.Secondary">
+                                                    <Icon Name="IconName.Clock" class="me-1"/>
+                                                    Manuelle
+                                                </Badge>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                @if (rappelNonVu)
+                                                {
+                                                    <Button Color="ButtonColor.Warning" Size="ButtonSize.Small"
+                                                            @onclick="() => MarquerRappelVu(depense)" title="Marquer comme lu">
+                                                        <Icon Name="IconName.BellSlash"/>
+                                                    </Button>
+                                                }
+                                                <Button Color="ButtonColor.Info" Size="ButtonSize.Small" Outline="true"
+                                                        @onclick="() => OuvrirModal(depense)" title="Modifier">
+                                                    <Icon Name="IconName.Pencil"/>
+                                                </Button>
+                                                <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" Outline="true"
+                                                        @onclick="() => ConfirmerSuppression(depense)" title="Supprimer">
+                                                    <Icon Name="IconName.Trash"/>
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </CardBody>
+            </Card>
         }
     }
 </div>
 
+@* ===== MODAL AJOUT/EDITION ===== *@
+<Modal @ref="_modalForm" Title="@(_depenseEnEdition is null ? "Nouvelle depense fixe" : "Modifier la depense")" Size="ModalSize.Large">
+    <BodyTemplate>
+        <EditForm Model="_form" OnValidSubmit="SauvegarderDepense">
+            <DataAnnotationsValidator/>
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Intitule *</label>
+                    <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Loyer, Electricite..."/>
+                    <ValidationMessage For="() => _form.Intitule"/>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Montant *</label>
+                    <div class="input-group">
+                        <InputNumber @bind-Value="_form.Montant" class="form-control" placeholder="0.00"/>
+                        <span class="input-group-text">&euro;</span>
+                    </div>
+                    <ValidationMessage For="() => _form.Montant"/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Categorie *</label>
+                    <InputSelect @bind-Value="_selectedCategorieId" class="form-select">
+                        <option value="0">-- Choisir une categorie --</option>
+                        @foreach (var cat in _categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Frequence *</label>
+                    <InputSelect @bind-Value="_form.Frequence" class="form-select">
+                        <option value="@Frequence.Mensuel">Mensuel</option>
+                        <option value="@Frequence.Trimestriel">Trimestriel</option>
+                        <option value="@Frequence.Biannuel">Biannuel</option>
+                        <option value="@Frequence.Annuel">Annuel</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Date de debut *</label>
+                    <InputDate @bind-Value="_form.BeginDate" class="form-control"/>
+                    <ValidationMessage For="() => _form.BeginDate"/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Rappel (jours avant)</label>
+                    <InputNumber @bind-Value="_form.ReminderDaysBefore" class="form-control" min="0" max="30"/>
+                    <small class="text-muted">0 = pas de rappel</small>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <InputCheckbox @bind-Value="_form.EstDomiciliee" class="form-check-input" id="estDomiciliee"/>
+                        <label class="form-check-label" for="estDomiciliee">
+                            <Icon Name="IconName.CheckCircle" Color="IconColor.Success" class="me-1"/>
+                            Prelevement automatique (domiciliee)
+                        </label>
+                    </div>
+                    <small class="text-muted">Les depenses domiciliees n'affichent pas de rappels</small>
+                </div>
+            </div>
+        </EditForm>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="FermerModal">Annuler</Button>
+        <Button Color="ButtonColor.Primary" @onclick="SauvegarderDepense" Disabled="_isSaving">
+            @if (_isSaving)
+            {
+                <Spinner Size="SpinnerSize.Small" class="me-1"/>
+            }
+            <Icon Name="IconName.CheckLg" class="me-1"/>
+            @(_depenseEnEdition is null ? "Ajouter" : "Enregistrer")
+        </Button>
+    </FooterTemplate>
+</Modal>
+
+@* ===== MODAL CONFIRMATION SUPPRESSION ===== *@
+<ConfirmDialog @ref="_confirmDialog"/>

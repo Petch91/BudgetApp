@@ -1,6 +1,25 @@
-﻿@page "/DepenseFixe"
+@page "/depenses"
+@page "/DepenseFixe"
 @rendermode InteractiveServer
 @using BudgetApp.Shared.Components.Transactions
+@using BudgetApp.Shared.Components.Rapport
 
-<DepenseFixe_C></DepenseFixe_C>
-
+<div class="container-fluid">
+    <Tabs EnableFadeEffect="true" NavStyle="NavStyle.Underline">
+        <Tab Title="Depenses Fixes" Name="fixes" IsActive="true">
+            <Content>
+                <DepenseFixe_C />
+            </Content>
+        </Tab>
+        <Tab Title="Transactions Variables" Name="variables">
+            <Content>
+                <TransactionVariable_C />
+            </Content>
+        </Tab>
+        <Tab Title="Rapport" Name="rapport">
+            <Content>
+                <Rapport_C />
+            </Content>
+        </Tab>
+    </Tabs>
+</div>

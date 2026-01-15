@@ -89,6 +89,9 @@ namespace Application.Persistence.Migrations
                     b.Property<int>("DepenseId")
                         .HasColumnType("int");
 
+                    b.Property<decimal?>("MontantEffectif")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")

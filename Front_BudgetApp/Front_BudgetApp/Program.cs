@@ -39,12 +39,15 @@ builder.Services.AddHostedService<DepenseFixeScheduler>();
 builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>();
 builder.Services.AddScoped<ITranscationService, TransactionService>();
 builder.Services.AddScoped<ICategorieService, CategorieService>();
+builder.Services.AddScoped<IRapportService, RapportService>();
 
 builder.Services.AddHttpClient(
     "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
 
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
+builder.Services.AddScoped<IHttpTransaction, TransactionFrontService>();
+builder.Services.AddScoped<IHttpRapport, RapportFrontService>();
 
 var app = builder.Build();
 
@@ -73,6 +76,7 @@ app.UseAntiforgery();
 app.MapDepenseFixe();
 app.MapTransactionVariable();
 app.MapCategorie();
+app.MapRapport();
 
 /* BLAZOR */
 app.MapRazorComponents<App>()

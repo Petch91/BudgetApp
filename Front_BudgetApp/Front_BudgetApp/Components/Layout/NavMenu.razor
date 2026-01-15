@@ -1,6 +1,8 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Front_BudgetApp</a>
+        <a class="navbar-brand" href="">
+            <span class="bi bi-wallet2" aria-hidden="true"></span> BudgetApp
+        </a>
     </div>
 </div>
 
@@ -10,18 +12,19 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill ms-1" aria-hidden="true"></span> Accueil
             </NavLink>
         </div>
-        
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="depenses">
+                <span class="bi bi-cash-stack ms-1" aria-hidden="true"></span> Depenses
+            </NavLink>
+        </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="categories">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Catégories
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="depensefixe">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Dépenses
+                <span class="bi bi-tags ms-1" aria-hidden="true"></span> Categories
             </NavLink>
         </div>
     </nav>

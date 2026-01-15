@@ -24,8 +24,8 @@ public class DepenseFixeScheduler(
         var context = scope.ServiceProvider.GetRequiredService<MyDbContext>();
 
         var today = DateTime.Today;
-        var retentionDays = 4;
-        var deleteBefore = today.AddDays(-retentionDays);
+        var rappelRetentionDays = 5;
+        var deleteRappelsBefore = today.AddDays(-rappelRetentionDays);
 
         var depenses = await context.DepenseFixes
             .Include(d => d.DueDates)
@@ -34,20 +34,14 @@ public class DepenseFixeScheduler(
 
         foreach (var depense in depenses)
         {
-            // 1️⃣ Supprimer les dates échues
-            var expiredDates = depense.DueDates
-                .Where(d => d.Date < deleteBefore)
-                .ToList();
-
-            context.depenseDueDates.RemoveRange(expiredDates);
-
+            // 1️⃣ Supprimer les rappels vus et expirés (5 jours après la date)
             var expiredRappels = depense.Rappels
-                .Where(r => r.RappelDate < deleteBefore)
+                .Where(r => r.Vu && r.RappelDate < deleteRappelsBefore)
                 .ToList();
 
             context.Rappels.RemoveRange(expiredRappels);
 
-            // 2️⃣ Vérifier s’il reste des dates futures
+            // 2️⃣ Vérifier s'il faut générer de nouvelles dates (horizon 2 mois)
             var lastDate = depense.DueDates
                 .OrderByDescending(d => d.Date)
                 .Select(d => d.Date)
@@ -77,7 +71,11 @@ public class DepenseFixeScheduler(
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            depense.DueDates.Add(new DepenseDueDate { Date = date });
+            depense.DueDates.Add(new DepenseDueDate
+            {
+                Date = date,
+                MontantEffectif = depense.Montant
+            });
 
             if (!depense.EstDomiciliee)
             {

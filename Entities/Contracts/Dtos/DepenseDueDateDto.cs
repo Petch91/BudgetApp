@@ -1,3 +1,3 @@
 ﻿namespace Entities.Contracts.Dtos;
 
-public record DepenseDueDateDto(DateTime date);
+public record DepenseDueDateDto(int Id, DateTime Date, decimal? MontantEffectif);
