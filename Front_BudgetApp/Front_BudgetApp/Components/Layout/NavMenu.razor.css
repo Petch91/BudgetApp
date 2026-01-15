@@ -7,17 +7,25 @@
     position: absolute;
     top: 0.5rem;
     right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.navbar-toggler:hover {
+    background-color: rgba(255, 140, 66, 0.1);
+    border-color: var(--accent-primary);
 }
 
 .navbar-toggler:checked {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
 }
 
 .top-row {
     height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0,0,0,0.3);
 }
 
 .navbar-brand {
@@ -60,25 +68,31 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #d7d7d7;
+        color: var(--text-secondary);
         background: none;
         border: none;
-        border-radius: 4px;
+        border-radius: var(--radius-md);
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 1.5rem;
         width: 100%;
+        transition: all 0.2s ease;
+        font-weight: 500;
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    background: linear-gradient(90deg, rgba(255, 140, 66, 0.2) 0%, rgba(255, 140, 66, 0.1) 100%);
+    color: var(--accent-primary);
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--accent-primary);
+    padding-left: calc(1rem - 3px);
 }
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    transform: translateX(4px);
 }
 
 .nav-scrollable {

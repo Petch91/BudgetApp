@@ -30,18 +30,9 @@
 
     <ItemGroup>
       <Compile Remove="wwwroot\bootstrap\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Remove="wwwroot\bootstrap\**" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Remove="wwwroot\bootstrap\**" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="wwwroot\bootstrap\**" />
+      <EmbeddedResource Remove="**\*.resx" />
     </ItemGroup>
 
     <ItemGroup>
