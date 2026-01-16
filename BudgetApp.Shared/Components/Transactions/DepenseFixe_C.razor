@@ -154,7 +154,7 @@
                                     var estUrgent = joursRestants <= 3 && !depense.EstDomiciliee;
                                     var rappelNonVu = depense.Rappels.Any(r => !r.Vu && r.RappelDate <= DateTime.Today);
 
-                                    <tr class="@(depense.EstDomiciliee ? "table-success" : estUrgent ? "table-warning" : "")">
+                                    <tr class="@GetRowClass(depense, rappelNonVu, estUrgent)">
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 @if (rappelNonVu)
@@ -177,7 +177,7 @@
                                         <td>
                                             <div class="d-flex flex-column">
                                                 <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
-                                                <small class="@(estUrgent ? "text-danger fw-bold" : "text-muted")">
+                                                <small class="@(estUrgent ? "text-danger fw-bold blink" : "text-muted")">
                                                     @if (joursRestants == 0)
                                                     {
                                                         <text>Aujourd'hui</text>
@@ -326,3 +326,4 @@
 
 @* ===== MODAL CONFIRMATION SUPPRESSION ===== *@
 <ConfirmDialog @ref="_confirmDialog"/>
+

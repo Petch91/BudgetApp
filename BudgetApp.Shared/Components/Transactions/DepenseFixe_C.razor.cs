@@ -3,6 +3,7 @@ using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using Entities.Domain.Models;
+using Front_BudgetApp.Services.Notifications;
 using Microsoft.AspNetCore.Components;
 
 namespace BudgetApp.Shared.Components.Transactions;
@@ -11,6 +12,7 @@ public partial class DepenseFixe_C : ComponentBase
 {
     [Inject] public IHttpDepenseFixe HttpDepense { get; set; } = default!;
     [Inject] public IHttpCategorie HttpCategorie { get; set; } = default!;
+    [Inject] public IAppToastService ToastService { get; set; } = default!;
 
     private bool IsLoading = true;
     private bool _isSaving;
@@ -30,6 +32,7 @@ public partial class DepenseFixe_C : ComponentBase
     {
         if (firstRender)
         {
+            ToastService.ExecuteQueue();
             await LoadAsync();
         }
     }
@@ -140,6 +143,16 @@ public partial class DepenseFixe_C : ComponentBase
         _ => BadgeColor.Secondary
     };
 
+    private static string GetRowClass(DepenseFixeDto depense, bool rappelNonVu, bool estUrgent)
+    {
+        // Priorité: rappel non vu > urgent
+        if (rappelNonVu)
+            return "row-rappel";
+        if (estUrgent)
+            return "table-warning";
+        return "";
+    }
+
     private async Task OuvrirModal(DepenseFixeDto? depense)
     {
         _depenseEnEdition = depense;
@@ -198,8 +211,12 @@ public partial class DepenseFixe_C : ComponentBase
                 if (result.IsFailed)
                 {
                     _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    ToastService.Error("Erreur lors de l'ajout de la depense", "Ajout");
+                    ToastService.ExecuteQueue();
                     return;
                 }
+
+                ToastService.Success($"Depense \"{_form.Intitule}\" ajoutee", "Ajout");
             }
             else
             {
@@ -207,10 +224,15 @@ public partial class DepenseFixe_C : ComponentBase
                 if (result.IsFailed)
                 {
                     _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    ToastService.Error("Erreur lors de la modification", "Modification");
+                    ToastService.ExecuteQueue();
                     return;
                 }
+
+                ToastService.Success($"Depense \"{_form.Intitule}\" modifiee", "Modification");
             }
 
+            ToastService.ExecuteQueue();
             await FermerModal();
             await LoadAsync();
         }
@@ -241,9 +263,13 @@ public partial class DepenseFixe_C : ComponentBase
             if (result.IsFailed)
             {
                 _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                ToastService.Error("Erreur lors de la suppression", "Suppression");
+                ToastService.ExecuteQueue();
             }
             else
             {
+                ToastService.Success($"Depense \"{depense.Intitule}\" supprimee", "Suppression");
+                ToastService.ExecuteQueue();
                 await LoadAsync();
             }
         }
@@ -261,6 +287,8 @@ public partial class DepenseFixe_C : ComponentBase
             var result = await HttpDepense.ChangeVuRappel(rappelNonVu.Id);
             if (result.IsSuccess)
             {
+                ToastService.Info("Rappel marque comme lu", "Rappel");
+                ToastService.ExecuteQueue();
                 await LoadAsync();
             }
         }
