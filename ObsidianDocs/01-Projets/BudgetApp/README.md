@@ -10,9 +10,12 @@
 ### Frontend
 - **Blazor Server** (.NET 10.0)
 - **Blazor.Bootstrap** 3.5.0 - Composants UI Bootstrap pour Blazor
+- **Theme Dark Mode** personnalise (bleu-gris et orange)
 - Composants principaux :
+  - `Home.razor` - Tableau de bord avec totaux du mois en cours
   - `DepenseFixe_C.razor` - Grille des depenses fixes avec statistiques
   - `TransactionVariable_C.razor` - Gestion des transactions variables
+  - `Rapport_C.razor` - Rapport mensuel avec filtres par categorie
   - `Categories_C.razor` - Gestion des categories
   - `CategorieForm_C.razor` - Formulaire de categorie
 
@@ -22,6 +25,7 @@
   - `DepenseFixeService` - CRUD + generation echeances
   - `TransactionService` - CRUD transactions variables
   - `CategorieService` - CRUD categories
+  - `RapportService` - Generation des rapports mensuels
   - `DepenseFixeScheduler` - Service de maintenance planifie (BackgroundService)
 
 ### Base de donnees
@@ -179,6 +183,10 @@ erDiagram
 - [x] Alertes rappels urgents (< 3 jours)
 - [x] Navigation par mois pour transactions
 - [x] Scheduler de maintenance automatique
+- [x] **Tableau de bord** - Totaux revenus/depenses/solde du mois en cours + 5 dernieres transactions
+- [x] **Rapport mensuel** - Liste des transactions avec filtres par categorie, couleurs rouge/vert
+- [x] **Theme Dark Mode** - Design moderne bleu-gris et orange
+- [x] **Categories en cartes** - Layout 2 colonnes avec pagination
 
 **Points d'attention detectes** :
 - `Application.csproj` contient encore `<RootNamespace>Datas</RootNamespace>` (inconsistant avec le namespace reel)

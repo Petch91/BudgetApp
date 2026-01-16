@@ -79,6 +79,7 @@ builder.Services.AddScoped<ICategorieService, CategorieService>();
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
 builder.Services.AddScoped<IHttpTransaction, TransactionFrontService>();
+builder.Services.AddScoped<IHttpRapport, RapportFrontService>();
 
 // Services UI (Scoped)
 builder.Services.AddScoped<IAppToastService, AppToastService>();

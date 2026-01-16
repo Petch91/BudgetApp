@@ -14,11 +14,14 @@ public partial class Categories_C : ComponentBase
     [Inject] public IAppToastService ToastService { get; set; } = default!;
 
     private List<CategorieDto> _categories = [];
-    private Grid<CategorieDto> grid = default!;
-    private HashSet<CategorieDto> selectedCategories = [];
     private CategorieDto? selectedCategory;
 
     private Modal modal = default!;
+
+    // Pagination
+    private const int PageSize = 10;
+    private int CurrentPage { get; set; } = 1;
+    private int TotalPages => (int)Math.Ceiling(_categories.Count / (double)PageSize);
 
     /* =======================
      * INIT
@@ -37,7 +40,6 @@ public partial class Categories_C : ComponentBase
         }
 
         _categories = result.Value.ToList();
-        await grid.RefreshDataAsync();
         ToastService.Success("Recuperation des catégories reussie");
     }
 
@@ -49,23 +51,35 @@ public partial class Categories_C : ComponentBase
         }
     }
 
+    /* =======================
+     * SELECTION & PAGINATION
+     * ======================= */
 
-/* =======================
- * GRID
- * ======================= */
-
-    private Task<GridDataProviderResult<CategorieDto>> CategorieDataProvider(
-        GridDataProviderRequest<CategorieDto> request)
-        => Task.FromResult(request.ApplyTo(_categories));
-
-    private Task OnSelectedItemsChanged(HashSet<CategorieDto> categories)
+    private void SelectCategory(CategorieDto categorie)
     {
-        selectedCategories = categories ?? [];
-        selectedCategory = selectedCategories.Count == 1
-            ? selectedCategories.First()
-            : null;
+        selectedCategory = selectedCategory?.Id == categorie.Id ? null : categorie;
+    }
 
-        return Task.CompletedTask;
+    private IEnumerable<CategorieDto> GetPagedCategories()
+    {
+        return _categories
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize);
+    }
+
+    private void GoToPage(int page)
+    {
+        CurrentPage = page;
+    }
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1) CurrentPage--;
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages) CurrentPage++;
     }
 
     /* =======================
@@ -100,7 +114,6 @@ public partial class Categories_C : ComponentBase
 
         _categories.Add(result.Value);
         ToastService.Success("L'ajout de la catégorie à reussi", "Ajout en DB");
-        await grid.RefreshDataAsync();
         ToastService.ExecuteQueue();
         await modal.HideAsync();
     }
@@ -155,7 +168,8 @@ public partial class Categories_C : ComponentBase
         _categories[index] = updated;
 
         selectedCategory = updated;
-        await grid.RefreshDataAsync();
+        ToastService.Success("La catégorie a été mise à jour", "Mise à jour en DB");
+        ToastService.ExecuteQueue();
         await modal.HideAsync();
     }
 
@@ -179,8 +193,8 @@ public partial class Categories_C : ComponentBase
 
         _categories.Remove(selectedCategory);
         selectedCategory = null;
-        selectedCategories.Clear();
 
-        await grid.RefreshDataAsync();
+        ToastService.Success("La catégorie a été supprimée", "Suppression en DB");
+        ToastService.ExecuteQueue();
     }
 }

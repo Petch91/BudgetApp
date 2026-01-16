@@ -68,6 +68,7 @@ BudgetApp/
   - `DepenseFixeService` : Operations CRUD + generation echeances
   - `TransactionService` : Transactions variables
   - `CategorieService` : Gestion des categories
+  - `RapportService` : Generation des rapports mensuels
 
 - `Interfaces/` :
   - `IRepository<TDto>` : Interface generique lecture/ecriture

@@ -1,39 +1,76 @@
 ﻿@using Entities.Contracts.Dtos
 @using Microsoft.AspNetCore.Components.Forms
 
-
-<div class="d-flex justify-content-center">
-    <div class="d-flex flex-column ">
-        <div>
-            <Button Class="m-1" Type="ButtonType.Button" Color="ButtonColor.Primary" @onclick="Add">Ajouter</Button>
-            @if (selectedCategories.Count > 0)
-            {
-                <Button Type="ButtonType.Button" Color="ButtonColor.Secondary" @onclick="Update">Editer</Button>
-                <Button Type="ButtonType.Button" Color="ButtonColor.Danger" @onclick="Delete">Supprimer</Button>
-            }
-        </div>
-        <div class=""> <!-- ou w-50 pour plus étroit -->
-            <Grid @ref="grid"
-                  TItem="CategorieDto"
-                  Class="table table-hover table-bordered table-striped"
-                  DataProvider="CategorieDataProvider"
-                  AllowFiltering="true"
-                  AllowSelection="true"
-                  SelectedItemsChanged="OnSelectedItemsChanged"
-                  SelectedItems="selectedCategories"
-                  Responsive="true">
-
-                <GridColumns>
-                    <GridColumn TItem="CategorieDto" HeaderText="Nom" PropertyName="Name">
-                        @context.Name
-                    </GridColumn>
-                    <GridColumn TItem="CategorieDto" HeaderText="Icone" PropertyName="Icon" Filterable="false" TextAlignment="Alignment.Center">
-                        <Icon CustomIconName="@context.Icon" Size="IconSize.x4"></Icon>
-                    </GridColumn>
-                </GridColumns>
-            </Grid>
-        </div>
+<div class="container-fluid">
+    <!-- Boutons d'action -->
+    <div class="mb-3">
+        <Button Class="me-2" Type="ButtonType.Button" Color="ButtonColor.Primary" @onclick="Add">
+            <Icon Name="IconName.PlusLg" /> Ajouter
+        </Button>
+        @if (selectedCategory is not null)
+        {
+            <Button Class="me-2" Type="ButtonType.Button" Color="ButtonColor.Secondary" @onclick="Update">
+                <Icon Name="IconName.PencilSquare" /> Editer
+            </Button>
+            <Button Type="ButtonType.Button" Color="ButtonColor.Danger" @onclick="Delete">
+                <Icon Name="IconName.Trash" /> Supprimer
+            </Button>
+        }
     </div>
+
+    <!-- Grille de catégories sur 2 colonnes -->
+    <div class="row g-3">
+        @foreach (var categorie in GetPagedCategories())
+        {
+            var isSelected = selectedCategory?.Id == categorie.Id;
+            <div class="col-md-6 col-lg-6">
+                <div class="@($"card h-100 category-card {(isSelected ? "selected" : "")}")"
+                     @onclick="() => SelectCategory(categorie)"
+                     style="cursor: pointer;">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="category-icon me-3">
+                            <Icon CustomIconName="@categorie.Icon" Size="IconSize.x3"></Icon>
+                        </div>
+                        <div class="category-name flex-grow-1">
+                            <h6 class="mb-0">@categorie.Name</h6>
+                        </div>
+                        @if (isSelected)
+                        {
+                            <Icon Name="IconName.CheckCircleFill" Color="IconColor.Success" />
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (TotalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination">
+                    <li class="@($"page-item {(CurrentPage == 1 ? "disabled" : "")}")">
+                        <button class="page-link" @onclick="PreviousPage" disabled="@(CurrentPage == 1)">
+                            <Icon Name="IconName.ChevronLeft" />
+                        </button>
+                    </li>
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        var pageNum = i;
+                        <li class="@($"page-item {(CurrentPage == pageNum ? "active" : "")}")">
+                            <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                        </li>
+                    }
+                    <li class="@($"page-item {(CurrentPage == TotalPages ? "disabled" : "")}")">
+                        <button class="page-link" @onclick="NextPage" disabled="@(CurrentPage == TotalPages)">
+                            <Icon Name="IconName.ChevronRight" />
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 </div>
 
 <Modal @ref="modal"></Modal>

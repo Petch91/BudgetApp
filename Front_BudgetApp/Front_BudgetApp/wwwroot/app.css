@@ -414,3 +414,70 @@ h1:focus {
     border-color: var(--success);
     color: var(--success);
 }
+
+/* Category Cards */
+.category-card {
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.category-card:hover {
+    border-color: var(--accent-secondary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.category-card.selected {
+    border-color: var(--accent-primary);
+    background-color: rgba(255, 140, 66, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2);
+}
+
+.category-card .category-icon {
+    color: var(--accent-secondary);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+}
+
+.category-card .category-name h6 {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Pagination Dark Mode */
+.pagination {
+    gap: 0.25rem;
+}
+
+.page-link {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm) !important;
+}
+
+.page-link:hover {
+    background-color: var(--bg-elevated);
+    border-color: var(--accent-secondary);
+    color: var(--text-primary);
+}
+
+.page-item.active .page-link {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--bg-elevated);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    opacity: 0.5;
+}

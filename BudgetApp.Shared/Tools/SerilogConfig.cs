@@ -7,7 +7,18 @@ public static class SerilogConfiguration
 {
     public static void Configure(string serviceName)
     {
-        var logDirectory = @"C:\logs\" + serviceName;
+        // ✅ Chemin multiplateforme qui fonctionne sur Windows ET macOS
+        var baseLogDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "BudgetApp",
+            "logs"
+        );
+        
+        var logDirectory = Path.Combine(baseLogDirectory, serviceName);
+        
+        // Créer le dossier s'il n'existe pas
+        Directory.CreateDirectory(logDirectory);
+        
         var outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss};{Level};{Message}{NewLine}";
         var rollingInterval = RollingInterval.Day;
         var flushInterval = TimeSpan.FromSeconds(1);
@@ -102,5 +113,8 @@ public static class SerilogConfiguration
                     rollOnFileSizeLimit: true,
                     retainedFileCountLimit: retainedFileCountLimit))
             .CreateLogger();
+        
+        // Log où les fichiers sont sauvegardés (utile pour debug)
+        Log.Information("📁 Logs sauvegardés dans : {LogDirectory}", logDirectory);
     }
 }

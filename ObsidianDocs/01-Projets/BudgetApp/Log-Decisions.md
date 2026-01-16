@@ -108,6 +108,93 @@ Chaque decision est documentee ainsi :
 
 ---
 
+### 2025-01-16 - Theme Dark Mode et améliorations UI
+
+**Contexte** : L'interface utilisateur nécessitait des améliorations visuelles pour le mode sombre
+
+**Decisions** :
+
+1. **Theme Dark Mode personnalisé**
+   - Variables CSS dans `app.css` : `--bg-primary`, `--bg-secondary`, `--accent-primary`, etc.
+   - Couleurs : Bleu-gris (#1a1d29) + Orange (#ff8c42)
+   - Override des classes Bootstrap pour le dark mode
+
+2. **Couleurs semantiques pour les montants**
+   - Revenus en vert vif (#22c55e)
+   - Depenses en rouge vif (#ef4444)
+   - Applique dans le Rapport et le Tableau de bord
+
+3. **Onglets (Tabs) ameliores**
+   - Style `.nav-underline` pour Blazor Bootstrap
+   - Onglet actif en orange, inactifs en blanc
+   - Hover avec effet bleu subtil
+
+4. **Correction hauteur des lignes de table**
+   - Padding reduit de `1rem` a `0.5rem 0.75rem`
+   - Meilleure densite d'information
+
+---
+
+### 2025-01-16 - Tableau de bord (Home.razor)
+
+**Contexte** : La page d'accueil etait vide ("Hello World")
+
+**Decision** : Creer un dashboard avec les totaux du mois en cours
+
+**Implementation** :
+- 3 cartes : Revenus, Depenses, Solde du mois
+- Couleurs dynamiques selon le solde (vert positif, rouge negatif)
+- Liste des 5 dernieres transactions
+- Injection de `IHttpRapport` pour recuperer les donnees
+
+---
+
+### 2025-01-16 - Service Rapport
+
+**Contexte** : Besoin d'un endpoint pour obtenir le rapport mensuel
+
+**Decisions** :
+- Nouveau DTO `RapportMoisDto` (TotalRevenus, TotalDepenses, Solde, Lignes)
+- Nouveau DTO `RapportLigneDto` (Date, Intitule, Montant, Categorie, IsRevenu, IsDepenseFixe)
+- Service `RapportService` dans Application
+- Service HTTP `RapportFrontService` dans Frontend
+- Endpoint `/api/rapport/{annee}/{mois}`
+
+---
+
+### 2025-01-16 - Refonte composant Categories
+
+**Contexte** : Le composant Categories utilisait une grille (Grid) qui n'affichait qu'une colonne, limitant la visibilite
+
+**Decisions** :
+
+1. **Layout en cartes sur 2 colonnes**
+   - Options : Grid vs Cards
+   - Decision : Cartes Bootstrap avec `col-md-6`
+   - Raison : Meilleure utilisation de l'espace, plus visuel
+
+2. **Selection par clic**
+   - Remplacement de la selection Grid par clic sur carte
+   - Effet visuel : bordure orange + fond transparent orange
+   - Icone check pour la carte selectionnee
+
+3. **Pagination integree**
+   - 10 categories par page
+   - Navigation < 1 2 3 > stylee dark mode
+   - Affichee uniquement si > 10 categories
+
+4. **Styles CSS dedies**
+   - `.category-card` avec hover (bordure bleue, elevation)
+   - `.category-card.selected` (bordure orange, fond orange transparent)
+   - `.category-icon` (fond eleve, icone bleue)
+
+**Fichiers modifies** :
+- `Categories_C.razor` - Nouveau template avec cartes
+- `Categories_C.razor.cs` - Logique pagination et selection
+- `app.css` - Styles category-card et pagination
+
+---
+
 ## Decisions techniques a documenter
 
 ### [A venir] - Tests unitaires
