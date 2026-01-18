@@ -415,42 +415,6 @@ h1:focus {
     color: var(--success);
 }
 
-/* Category Cards */
-.category-card {
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    transition: all 0.2s ease;
-}
-
-.category-card:hover {
-    border-color: var(--accent-secondary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.category-card.selected {
-    border-color: var(--accent-primary);
-    background-color: rgba(255, 140, 66, 0.1);
-    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2);
-}
-
-.category-card .category-icon {
-    color: var(--accent-secondary);
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-elevated);
-    border-radius: var(--radius-sm);
-}
-
-.category-card .category-name h6 {
-    color: var(--text-primary);
-    font-weight: 500;
-}
-
 /* Pagination Dark Mode */
 .pagination {
     gap: 0.25rem;
@@ -557,18 +521,4 @@ h1:focus {
 
 .toast.bg-info .toast-body {
     color: var(--text-primary);
-}
-
-/* =============================================
-   Dépenses - Styles spéciaux pour les lignes
-   ============================================= */
-
-/* Style pour les dépenses en rappel */
-.row-rappel {
-    background-color: rgba(220, 53, 69, 0.2) !important;
-    border-left: 3px solid #dc3545 !important;
-}
-
-.row-rappel td {
-    color: #ff9999 !important;
 }

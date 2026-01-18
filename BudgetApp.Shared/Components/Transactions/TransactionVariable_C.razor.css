@@ -1,0 +1,16 @@
+/* TransactionVariable_C - Styles specifiques au composant */
+
+/* Selecteur de mois */
+.month-selector {
+    background-color: var(--bg-secondary);
+}
+
+/* Style pour les lignes de revenus */
+.row-revenu {
+    background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* Style pour les lignes de depenses */
+.row-depense {
+    background-color: rgba(239, 68, 68, 0.05) !important;
+}

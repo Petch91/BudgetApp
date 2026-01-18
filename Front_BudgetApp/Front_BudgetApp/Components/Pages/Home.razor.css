@@ -1,0 +1,26 @@
+/* Home.razor - Styles specifiques au tableau de bord */
+
+/* Cartes de statistiques */
+.stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Icones dans les cartes */
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Liste des dernieres transactions */
+.recent-transactions {
+    max-height: 400px;
+    overflow-y: auto;
+}
