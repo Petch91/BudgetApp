@@ -23,7 +23,9 @@ public static class MapperDto
             d.ReminderDaysBefore,
             d.Rappels
                 .Select(r => r.ToDto())
-                .ToList()
+                .ToList(),
+            d.DateFin,
+            d.IsActive
         );
 
     public static RappelDto ToDto(this Rappel r)

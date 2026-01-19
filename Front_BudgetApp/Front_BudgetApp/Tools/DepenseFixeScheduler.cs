@@ -42,6 +42,10 @@ public class DepenseFixeScheduler(
             context.Rappels.RemoveRange(expiredRappels);
 
             // 2️⃣ Vérifier s'il faut générer de nouvelles dates (horizon 2 mois)
+            // Ne pas générer si la dépense a une date de fin dépassée
+            if (depense.DateFin.HasValue && depense.DateFin.Value < today)
+                continue;
+
             var lastDate = depense.DueDates
                 .OrderByDescending(d => d.Date)
                 .Select(d => d.Date)
@@ -70,6 +74,10 @@ public class DepenseFixeScheduler(
                 Frequence.Annuel => date.AddYears(1),
                 _ => throw new ArgumentOutOfRangeException()
             };
+
+            // Ne pas générer de dates au-delà de DateFin
+            if (depense.DateFin.HasValue && date > depense.DateFin.Value)
+                break;
 
             depense.DueDates.Add(new DepenseDueDate
             {

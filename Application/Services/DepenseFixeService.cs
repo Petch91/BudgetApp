@@ -62,6 +62,9 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         if (form.ReminderDaysBefore < 0)
             return Result.Fail("Nombre de jours de rappel invalide");
 
+        if (form.DateFin.HasValue && form.DateFin.Value <= form.BeginDate)
+            return Result.Fail("La date de fin doit être postérieure à la date de début");
+
         var depense = new DepenseFixe
         {
             Intitule = form.Intitule,
@@ -70,6 +73,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             EstDomiciliee = form.EstDomiciliee,
             ReminderDaysBefore = form.ReminderDaysBefore,
             CategorieId = form.Categorie.Id,
+            DateFin = form.DateFin,
             DueDates = [],
             Rappels = []
         };
@@ -104,6 +108,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         depense.EstDomiciliee = form.EstDomiciliee;
         depense.ReminderDaysBefore = form.ReminderDaysBefore;
         depense.CategorieId = form.Categorie.Id;
+        depense.DateFin = form.DateFin;
 
         SetDates(depense, form.BeginDate);
 
@@ -196,6 +201,10 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
     
     public void GenerateNextDates(DepenseFixe depense, DateTime startDate)
     {
+        // Ne pas générer si la dépense a une date de fin dépassée
+        if (depense.DateFin.HasValue && depense.DateFin.Value < DateTime.Today)
+            return;
+
         var date = startDate;
 
         for (int i = 0; i < 3; i++) // horizon de sécurité
@@ -208,6 +217,10 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
                 Frequence.Annuel => date.AddYears(1),
                 _ => throw new ArgumentOutOfRangeException()
             };
+
+            // Ne pas générer de dates au-delà de DateFin
+            if (depense.DateFin.HasValue && date > depense.DateFin.Value)
+                break;
 
             depense.DueDates.Add(new DepenseDueDate
             {
@@ -238,6 +251,10 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 
         for (int i = 0; i < (int)depense.Frequence; i++)
         {
+            // Ne pas générer de dates au-delà de DateFin
+            if (depense.DateFin.HasValue && date > depense.DateFin.Value)
+                break;
+
             depense.DueDates.Add(new DepenseDueDate
             {
                 Date = date,

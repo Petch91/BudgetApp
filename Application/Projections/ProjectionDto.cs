@@ -28,7 +28,9 @@ public static class ProjectionDto
                     r.RappelDate,
                     r.Vu
                 ))
-                .ToList()
+                .ToList(),
+            d.DateFin,
+            d.DateFin == null || d.DateFin.Value >= DateTime.Today
         );
     
     public static Expression<Func<TransactionVariable, TransactionVariableDto>> TransactionAsDto =>

@@ -12,4 +12,10 @@ public class DepenseFixeForm
     public bool EstDomiciliee { get; set; }
     public DateTime BeginDate { get; set; }
     public int ReminderDaysBefore { get; set; } = 3;
+
+    /// <summary>
+    /// Date de fin optionnelle pour les dépenses temporaires (crédits, abonnements limités).
+    /// Null = dépense permanente.
+    /// </summary>
+    public DateTime? DateFin { get; set; }
 }

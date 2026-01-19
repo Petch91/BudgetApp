@@ -4,13 +4,15 @@ namespace Entities.Contracts.Dtos;
 
 public record DepenseFixeDto
 (
-    int Id ,
+    int Id,
     string Intitule,
-    decimal Montant, 
-    CategorieDto Categorie, 
-    Frequence Frequence ,
-    bool EstDomiciliee ,
-    IReadOnlyList<DepenseDueDateDto> DueDates, 
+    decimal Montant,
+    CategorieDto Categorie,
+    Frequence Frequence,
+    bool EstDomiciliee,
+    IReadOnlyList<DepenseDueDateDto> DueDates,
     int ReminderDaysBefore,
-    IReadOnlyList<RappelDto> Rappels  
+    IReadOnlyList<RappelDto> Rappels,
+    DateTime? DateFin,
+    bool IsActive
 );
