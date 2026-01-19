@@ -124,23 +124,46 @@
             </Alert>
         }
 
-        @* ===== GRILLES PAR FREQUENCE ===== *@
-        @foreach (var group in _depenses.GroupBy(d => d.Frequence).OrderByDescending(g => (int)g.Key))
+        @* ===== TABS FREQUENCE ===== *@
+        <div class="frequence-tabs mb-4">
+            @foreach (var freq in GetAvailableFrequences())
+            {
+                var count = _depenses.Count(d => d.Frequence == freq);
+                var isActive = _selectedFrequence == freq;
+                <button class="frequence-tab @(isActive ? "active" : "")" @onclick="() => SelectFrequence(freq)">
+                    <span class="tab-label">@GetFrequenceLabel(freq)</span>
+                    <span class="tab-count">@count</span>
+                </button>
+            }
+        </div>
+
+        @* ===== TABLE POUR LA FREQUENCE SELECTIONNEE ===== *@
+        @if (!GetDepensesForSelectedFrequence().Any())
         {
-            <Card Class="mb-4 border-0 shadow-sm">
-                <CardHeader Class="bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <Badge Color="@GetFrequenceBadgeColor(group.Key)" Class="me-2">@GetFrequenceLabel(group.Key)</Badge>
-                            <span class="text-muted fs-6">(@group.Count() depense(s))</span>
-                        </h5>
-                        <span class="fw-bold">@group.Sum(d => d.Montant).ToString("N2") &euro; / periode</span>
-                    </div>
-                </CardHeader>
-                <CardBody Class="p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+            <Alert Color="AlertColor.Light" Class="text-center">
+                <Icon Name="IconName.Inbox" class="me-2"/>
+                Aucune depense @GetFrequenceLabel(_selectedFrequence).ToLower()
+            </Alert>
+        }
+        else
+        {
+            var depensesFiltered = GetDepensesForSelectedFrequence();
+                <Card Class="border-0 shadow-sm">
+                    <CardHeader Class="bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <Badge Color="@GetFrequenceBadgeColor(_selectedFrequence)"
+                                       Class="me-2">@GetFrequenceLabel(_selectedFrequence)</Badge>
+                                <span class="text-muted fs-6">(@depensesFiltered.Count depense(s))</span>
+                            </h5>
+                            <span
+                                class="fw-bold">@depensesFiltered.Sum(d => d.Montant).ToString("N2") &euro; / periode</span>
+                        </div>
+                    </CardHeader>
+                    <CardBody Class="p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
                                 <tr>
                                     <th style="width: 30%">Intitule</th>
                                     <th style="width: 15%">Categorie</th>
@@ -149,9 +172,9 @@
                                     <th style="width: 10%" class="text-center">Statut</th>
                                     <th style="width: 18%" class="text-center">Actions</th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var depense in group.OrderBy(d => ObtenirProchainPaiement(d)))
+                                </thead>
+                                <tbody>
+                                @foreach (var depense in depensesFiltered)
                                 {
                                     var prochainPaiement = ObtenirProchainPaiement(depense);
                                     var joursRestants = (prochainPaiement - DateTime.Today).Days;
@@ -163,7 +186,8 @@
                                             <div class="d-flex align-items-center">
                                                 @if (rappelNonVu)
                                                 {
-                                                    <Icon Name="IconName.BellFill" Color="IconColor.Warning" class="me-2" title="Rappel non lu"/>
+                                                    <Icon Name="IconName.BellFill" Color="IconColor.Warning"
+                                                          class="me-2" title="Rappel non lu"/>
                                                 }
                                                 <strong>@depense.Intitule</strong>
                                             </div>
@@ -172,7 +196,8 @@
                                             <Badge Color="BadgeColor.Primary">
                                                 @if (!string.IsNullOrEmpty(depense.Categorie.Icon))
                                                 {
-                                                    <Icon CustomIconName="@depense.Categorie.Icon" Class="me-1 mt-1"></Icon>
+                                                    <Icon CustomIconName="@depense.Categorie.Icon"
+                                                          Class="me-1 mt-1"></Icon>
                                                 }
                                                 @depense.Categorie.Name
                                             </Badge>
@@ -181,7 +206,8 @@
                                         <td>
                                             <div class="d-flex flex-column">
                                                 <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
-                                                <small class="@(estUrgent ? "text-danger fw-bold blink" : "text-muted")">
+                                                <small
+                                                    class="@(estUrgent ? "text-danger fw-bold blink" : "text-muted")">
                                                     @if (joursRestants == 0)
                                                     {
                                                         <text>Aujourd'hui</text>
@@ -238,7 +264,8 @@
                                                 @if (rappelNonVu)
                                                 {
                                                     <Button Color="ButtonColor.Warning" Size="ButtonSize.Small"
-                                                            @onclick="() => MarquerRappelVu(depense)" title="Marquer comme lu">
+                                                            @onclick="() => MarquerRappelVu(depense)"
+                                                            title="Marquer comme lu">
                                                         <Icon Name="IconName.BellSlash"/>
                                                     </Button>
                                                 }
@@ -246,19 +273,21 @@
                                                         @onclick="() => OuvrirModal(depense)" title="Modifier">
                                                     <Icon Name="IconName.Pencil"/>
                                                 </Button>
-                                                <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" Outline="true"
-                                                        @onclick="() => ConfirmerSuppression(depense)" title="Supprimer">
+                                                <Button Color="ButtonColor.Danger" Size="ButtonSize.Small"
+                                                        Outline="true"
+                                                        @onclick="() => ConfirmerSuppression(depense)"
+                                                        title="Supprimer">
                                                     <Icon Name="IconName.Trash"/>
                                                 </Button>
                                             </div>
                                         </td>
                                     </tr>
                                 }
-                            </tbody>
-                        </table>
-                    </div>
-                </CardBody>
-            </Card>
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardBody>
+                </Card>
         }
     }
 </div>

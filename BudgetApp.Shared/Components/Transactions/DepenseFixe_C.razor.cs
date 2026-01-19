@@ -27,6 +27,7 @@ public partial class DepenseFixe_C : ComponentBase
     private DepenseFixeDto? _depenseEnEdition;
     private DepenseFixeForm _form = new();
     private int _selectedCategorieId;
+    private Frequence _selectedFrequence = Frequence.Mensuel;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -149,6 +150,17 @@ public partial class DepenseFixe_C : ComponentBase
         Frequence.Annuel => BadgeColor.Success,
         _ => BadgeColor.Secondary
     };
+
+    private static IEnumerable<Frequence> GetAvailableFrequences()
+        => new[] { Frequence.Mensuel, Frequence.Trimestriel, Frequence.Biannuel, Frequence.Annuel };
+
+    private void SelectFrequence(Frequence frequence)
+    {
+        _selectedFrequence = frequence;
+    }
+
+    private List<DepenseFixeDto> GetDepensesForSelectedFrequence()
+        => _depenses.Where(d => d.Frequence == _selectedFrequence).OrderBy(d => ObtenirProchainPaiement(d)).ToList();
 
     private static string GetRowClass(DepenseFixeDto depense, bool rappelNonVu, bool estUrgent)
     {

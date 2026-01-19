@@ -1,5 +1,88 @@
 /* DepenseFixe_C - Styles specifiques au composant */
 
+/* ===== TABS FREQUENCE ===== */
+/* TODO: Ajouter swipe gesture entre frequences sur mobile */
+.frequence-tabs {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.frequence-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--bs-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.frequence-tab:hover {
+    background: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+}
+
+.frequence-tab.active {
+    background: var(--bs-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.tab-label {
+    font-size: 0.95rem;
+}
+
+.tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.frequence-tab.active .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+    .frequence-tabs {
+        padding: 0.375rem;
+        gap: 0.5rem;
+    }
+
+    .frequence-tab {
+        padding: 0.625rem 1rem;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .tab-label {
+        font-size: 0.8rem;
+    }
+
+    .tab-count {
+        min-width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+    }
+}
+
 /* Animation clignotante pour les echeances urgentes */
 @keyframes blink {
     0%, 50% { opacity: 1; }
