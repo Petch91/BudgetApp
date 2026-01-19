@@ -107,15 +107,16 @@ public partial class DepenseFixe_C : ComponentBase
     }
 
     private List<DepenseFixeDto> ObtenirDepensesAvecRappelUrgent()
-        => _depenses.Where(EstRappelUrgent).ToList();
+        => _depenses.Where(d => d.IsActive && EstRappelUrgent(d)).ToList();
 
     private int CompterRappelsActifs()
-        => _depenses.Count(d => EstRappelActif(d) || EstRappelUrgent(d));
+        => _depenses.Count(d => d.IsActive && (EstRappelActif(d) || EstRappelUrgent(d)));
 
     private decimal CalculerTotalMensuel()
     {
         var dateMoisProchain = DateTime.Today.AddMonths(1);
         return _depenses
+            .Where(d => d.IsActive)
             .Where(d =>
             {
                 var prochainPaiement = ObtenirProchainPaiement(d);
@@ -124,6 +125,12 @@ public partial class DepenseFixe_C : ComponentBase
             })
             .Sum(d => d.Montant);
     }
+
+    private int CompterDepensesActives()
+        => _depenses.Count(d => d.IsActive);
+
+    private int CompterDepensesTerminees()
+        => _depenses.Count(d => !d.IsActive);
 
     private static string GetFrequenceLabel(Frequence frequence) => frequence switch
     {
@@ -145,7 +152,9 @@ public partial class DepenseFixe_C : ComponentBase
 
     private static string GetRowClass(DepenseFixeDto depense, bool rappelNonVu, bool estUrgent)
     {
-        // Priorité: rappel non vu > urgent
+        // Priorité: inactif > rappel non vu > urgent
+        if (!depense.IsActive)
+            return "table-secondary opacity-75";
         if (rappelNonVu)
             return "row-rappel";
         if (estUrgent)
@@ -177,7 +186,8 @@ public partial class DepenseFixe_C : ComponentBase
                 EstDomiciliee = depense.EstDomiciliee,
                 ReminderDaysBefore = depense.ReminderDaysBefore,
                 BeginDate = depense.DueDates.Select(d => d.Date).Min(),
-                Categorie = depense.Categorie
+                Categorie = depense.Categorie,
+                DateFin = depense.DateFin
             };
             _selectedCategorieId = depense.Categorie.Id;
         }

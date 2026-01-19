@@ -85,8 +85,12 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Domiciliees</h6>
-                                <h4 class="mb-0 text-success">@_depenses.Count(d => d.EstDomiciliee) / @_depenses.Count</h4>
+                                <h6 class="text-muted mb-1">Actives / Terminees</h6>
+                                <h4 class="mb-0">
+                                    <span class="text-success">@CompterDepensesActives()</span>
+                                    <span class="text-muted mx-1">/</span>
+                                    <span class="text-secondary">@CompterDepensesTerminees()</span>
+                                </h4>
                             </div>
                         </div>
                     </CardBody>
@@ -198,20 +202,36 @@
                                             </div>
                                         </td>
                                         <td class="text-center">
-                                            @if (depense.EstDomiciliee)
-                                            {
-                                                <Badge Color="BadgeColor.Success">
-                                                    <Icon Name="IconName.CheckCircle" class="me-1"/>
-                                                    Domiciliee
-                                                </Badge>
-                                            }
-                                            else
-                                            {
-                                                <Badge Color="BadgeColor.Secondary">
-                                                    <Icon Name="IconName.Clock" class="me-1"/>
-                                                    Manuelle
-                                                </Badge>
-                                            }
+                                            <div class="d-flex flex-column gap-1 align-items-center">
+                                                @if (!depense.IsActive)
+                                                {
+                                                    <Badge Color="BadgeColor.Dark">
+                                                        <Icon Name="IconName.XCircle" class="me-1"/>
+                                                        Terminee
+                                                    </Badge>
+                                                }
+                                                else if (depense.DateFin.HasValue)
+                                                {
+                                                    <Badge Color="BadgeColor.Info">
+                                                        <Icon Name="IconName.CalendarEvent" class="me-1"/>
+                                                        Fin: @depense.DateFin.Value.ToString("dd/MM/yy")
+                                                    </Badge>
+                                                }
+                                                @if (depense.EstDomiciliee)
+                                                {
+                                                    <Badge Color="BadgeColor.Success">
+                                                        <Icon Name="IconName.CheckCircle" class="me-1"/>
+                                                        Domiciliee
+                                                    </Badge>
+                                                }
+                                                else
+                                                {
+                                                    <Badge Color="BadgeColor.Secondary">
+                                                        <Icon Name="IconName.Clock" class="me-1"/>
+                                                        Manuelle
+                                                    </Badge>
+                                                }
+                                            </div>
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group btn-group-sm">
@@ -307,6 +327,12 @@
                         </label>
                     </div>
                     <small class="text-muted">Les depenses domiciliees n'affichent pas de rappels</small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Date de fin (optionnel)</label>
+                    <InputDate @bind-Value="_form.DateFin" class="form-control"/>
+                    <small class="text-muted">Laisser vide pour une depense permanente</small>
                 </div>
             </div>
         </EditForm>
