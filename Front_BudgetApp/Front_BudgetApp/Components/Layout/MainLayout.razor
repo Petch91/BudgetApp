@@ -3,9 +3,13 @@
 @inject BlazorBootstrap.ToastService ToastService
 
 <div class="app-container">
+    @* ===== MOBILE MENU TOGGLE (CSS-only) ===== *@
+    <input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-input" />
+    <label for="sidebar-toggle" class="sidebar-backdrop"></label>
+
     @* ===== SIDEBAR GLASSMORPHISM ===== *@
     <aside class="sidebar glass-sidebar">
-        <NavMenu/>
+        <NavMenu />
     </aside>
 
     @* ===== MAIN CONTENT ===== *@
@@ -13,6 +17,11 @@
         @* ===== HEADER GLASSMORPHISM ===== *@
         <header class="app-header glass-header">
             <div class="header-content">
+                @* Mobile menu toggle button *@
+                <label for="sidebar-toggle" class="mobile-menu-toggle">
+                    <Icon Name="IconName.List" />
+                </label>
+
                 <div class="header-title">
                     <Icon Name="IconName.Wallet2" Size="IconSize.x4" Class="header-icon" />
                     <span>BudgetApp</span>

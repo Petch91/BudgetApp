@@ -13,21 +13,21 @@
     <nav class="nav-menu">
         <div class="nav-section-title">Menu</div>
 
-        <NavLink class="nav-item-glass" href="" Match="NavLinkMatch.All" @onclick="HandleNavClick">
+        <NavLink class="nav-item-glass" href="" Match="NavLinkMatch.All">
             <div class="nav-icon">
                 <Icon Name="IconName.HouseDoor" />
             </div>
             <span class="nav-text">Tableau de bord</span>
         </NavLink>
 
-        <NavLink class="nav-item-glass" href="depenses" @onclick="HandleNavClick">
+        <NavLink class="nav-item-glass" href="depenses">
             <div class="nav-icon">
                 <Icon Name="IconName.CashStack" />
             </div>
             <span class="nav-text">Budget</span>
         </NavLink>
 
-        <NavLink class="nav-item-glass" href="categories" @onclick="HandleNavClick">
+        <NavLink class="nav-item-glass" href="categories">
             <div class="nav-icon">
                 <Icon Name="IconName.Tags" />
             </div>
@@ -35,13 +35,3 @@
         </NavLink>
     </nav>
 </div>
-
-@code {
-    [Parameter]
-    public EventCallback OnNavClick { get; set; }
-
-    private async Task HandleNavClick()
-    {
-        await OnNavClick.InvokeAsync();
-    }
-}
