@@ -415,42 +415,6 @@ h1:focus {
     color: var(--success);
 }
 
-/* Category Cards */
-.category-card {
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    transition: all 0.2s ease;
-}
-
-.category-card:hover {
-    border-color: var(--accent-secondary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.category-card.selected {
-    border-color: var(--accent-primary);
-    background-color: rgba(255, 140, 66, 0.1);
-    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2);
-}
-
-.category-card .category-icon {
-    color: var(--accent-secondary);
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-elevated);
-    border-radius: var(--radius-sm);
-}
-
-.category-card .category-name h6 {
-    color: var(--text-primary);
-    font-weight: 500;
-}
-
 /* Pagination Dark Mode */
 .pagination {
     gap: 0.25rem;
@@ -560,15 +524,149 @@ h1:focus {
 }
 
 /* =============================================
-   Dépenses - Styles spéciaux pour les lignes
+   NAV MENU - Glass Pills Style (iOS 26)
    ============================================= */
 
-/* Style pour les dépenses en rappel */
-.row-rappel {
-    background-color: rgba(220, 53, 69, 0.2) !important;
-    border-left: 3px solid #dc3545 !important;
+/* Base state - subtle glass background on ALL items */
+.nav-item-glass {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 10px;
+    padding: 0.7rem 0.85rem;
+    margin: 0 0.25rem;
+    border-radius: 14px;
+    text-decoration: none !important;
+    color: var(--text-secondary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+
+    /* Glass background on ALL items */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.row-rappel td {
-    color: #ff9999 !important;
+/* Hover state */
+.nav-item-glass:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+}
+
+/* Active state - Orange glass glow */
+.nav-item-glass.active {
+    color: var(--text-primary);
+    background: linear-gradient(135deg,
+        rgba(255, 140, 66, 0.18) 0%,
+        rgba(255, 140, 66, 0.08) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    box-shadow:
+        0 0 20px rgba(255, 140, 66, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Active indicator bar */
+.nav-item-glass.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 50%;
+    background: var(--accent-primary);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
+}
+
+/* Hover icon */
+.nav-item-glass:hover .nav-icon {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item-glass:hover .nav-icon svg {
+    color: var(--text-primary);
+}
+
+/* Active icon - orange glow */
+.nav-item-glass.active .nav-icon {
+    background: rgba(255, 140, 66, 0.2);
+    border-color: rgba(255, 140, 66, 0.35);
+    box-shadow: 0 0 12px rgba(255, 140, 66, 0.3);
+}
+
+.nav-item-glass.active .nav-icon svg {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 4px rgba(255, 140, 66, 0.6));
+}
+
+/* Active text */
+.nav-item-glass.active .nav-text {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* =============================================
+   MOBILE MENU - CSS-only Toggle
+   ============================================= */
+
+/* Hidden checkbox input */
+.sidebar-toggle-input {
+    display: none;
+}
+
+/* Sidebar backdrop - hidden by default */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 150;
+    cursor: pointer;
+}
+
+/* Mobile menu toggle button */
+.mobile-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    /* Show mobile menu toggle button */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    /* When checkbox is checked: show sidebar */
+    .sidebar-toggle-input:checked ~ .glass-sidebar {
+        left: 0 !important;
+    }
+
+    /* When checkbox is checked: show backdrop */
+    .sidebar-toggle-input:checked ~ .sidebar-backdrop {
+        display: block;
+    }
 }

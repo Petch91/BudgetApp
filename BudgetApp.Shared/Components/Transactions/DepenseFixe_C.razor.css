@@ -1,0 +1,31 @@
+/* DepenseFixe_C - Styles specifiques au composant */
+
+/* Animation clignotante pour les echeances urgentes */
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.5; }
+}
+
+.blink {
+    animation: blink 1s ease-in-out infinite;
+}
+
+/* Style pour les depenses avec rappel non lu */
+.row-rappel {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    border-left: 3px solid #dc3545 !important;
+}
+
+.row-rappel td {
+    color: #ff9999 !important;
+}
+
+/* Style pour les depenses urgentes (non domiciliees) */
+.row-urgent {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+}
+
+/* Style pour les depenses domiciliees */
+.row-domiciliee {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}

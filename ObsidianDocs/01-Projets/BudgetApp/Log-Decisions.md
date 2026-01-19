@@ -114,7 +114,13 @@ Chaque decision est documentee ainsi :
 
 **Decisions** :
 
-1. **Theme Dark Mode personnalisé**
+1. **Organisation des styles CSS**
+   - Styles globaux (theme, Bootstrap overrides) → `wwwroot/app.css`
+   - Styles specifiques aux composants → `Composant.razor.css` (CSS isolation)
+   - Pas de balises `<style>` inline dans les fichiers `.razor`
+   - Raison : Separation des responsabilites, encapsulation, maintenance simplifiee
+
+2. **Theme Dark Mode personnalisé**
    - Variables CSS dans `app.css` : `--bg-primary`, `--bg-secondary`, `--accent-primary`, etc.
    - Couleurs : Bleu-gris (#1a1d29) + Orange (#ff8c42)
    - Override des classes Bootstrap pour le dark mode

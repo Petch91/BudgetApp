@@ -1,17 +1,44 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@inject BlazorBootstrap.ToastService ToastService 
+@inject BlazorBootstrap.ToastService ToastService
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
+<div class="app-container">
+    @* ===== MOBILE MENU TOGGLE (CSS-only) ===== *@
+    <input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-input" />
+    <label for="sidebar-toggle" class="sidebar-backdrop"></label>
+
+    @* ===== SIDEBAR GLASSMORPHISM ===== *@
+    <aside class="sidebar glass-sidebar">
+        <NavMenu />
+    </aside>
+
+    @* ===== MAIN CONTENT ===== *@
+    <div class="main-wrapper">
+        @* ===== HEADER GLASSMORPHISM ===== *@
+        <header class="app-header glass-header">
+            <div class="header-content">
+                @* Mobile menu toggle button *@
+                <label for="sidebar-toggle" class="mobile-menu-toggle">
+                    <Icon Name="IconName.List" />
+                </label>
+
+                <div class="header-title">
+                    <Icon Name="IconName.Wallet2" Size="IconSize.x4" Class="header-icon" />
+                    <span>BudgetApp</span>
+                </div>
+                <div class="header-info">
+                    <span class="current-date">@DateTime.Today.ToString("dddd dd MMMM yyyy")</span>
+                </div>
+            </div>
+        </header>
+
+        @* ===== PAGE CONTENT ===== *@
+        <main class="main-content">
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
     </div>
-
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
 </div>
 
 <div id="blazor-error-ui">
@@ -20,10 +47,8 @@
     <a class="dismiss">🗙</a>
 </div>
 
-@* 👇 Correction ici : "RenderMode.InteractiveServer" *@
-<Toasts class="p-3" 
+<Toasts class="p-3"
         Placement="ToastsPlacement.BottomRight"
-        AutoHide="true" 
+        AutoHide="true"
         Delay="4000"
         @rendermode="RenderMode.InteractiveServer" />
-
