@@ -522,3 +522,91 @@ h1:focus {
 .toast.bg-info .toast-body {
     color: var(--text-primary);
 }
+
+/* =============================================
+   NAV MENU - Glass Pills Style (iOS 26)
+   ============================================= */
+
+/* Base state - subtle glass background on ALL items */
+.nav-item-glass {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 10px;
+    padding: 0.7rem 0.85rem;
+    margin: 0 0.25rem;
+    border-radius: 14px;
+    text-decoration: none !important;
+    color: var(--text-secondary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+
+    /* Glass background on ALL items */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Hover state */
+.nav-item-glass:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+}
+
+/* Active state - Orange glass glow */
+.nav-item-glass.active {
+    color: var(--text-primary);
+    background: linear-gradient(135deg,
+        rgba(255, 140, 66, 0.18) 0%,
+        rgba(255, 140, 66, 0.08) 100%);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    box-shadow:
+        0 0 20px rgba(255, 140, 66, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Active indicator bar */
+.nav-item-glass.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 50%;
+    background: var(--accent-primary);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 10px rgba(255, 140, 66, 0.8);
+}
+
+/* Hover icon */
+.nav-item-glass:hover .nav-icon {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item-glass:hover .nav-icon svg {
+    color: var(--text-primary);
+}
+
+/* Active icon - orange glow */
+.nav-item-glass.active .nav-icon {
+    background: rgba(255, 140, 66, 0.2);
+    border-color: rgba(255, 140, 66, 0.35);
+    box-shadow: 0 0 12px rgba(255, 140, 66, 0.3);
+}
+
+.nav-item-glass.active .nav-icon svg {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 4px rgba(255, 140, 66, 0.6));
+}
+
+/* Active text */
+.nav-item-glass.active .nav-text {
+    font-weight: 600;
+    color: var(--text-primary);
+}

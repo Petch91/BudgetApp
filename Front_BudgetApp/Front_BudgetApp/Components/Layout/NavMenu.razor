@@ -1,31 +1,47 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">
-            <span class="bi bi-wallet2" aria-hidden="true"></span> BudgetApp
-        </a>
+@* ===== SIDEBAR HEADER ===== *@
+<div class="sidebar-header">
+    <div class="brand">
+        <div class="brand-icon">
+            <Icon Name="IconName.Wallet2" Size="IconSize.x3" />
+        </div>
+        <span class="brand-text">BudgetApp</span>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
+@* ===== NAVIGATION ===== *@
+<div class="nav-scrollable">
+    <nav class="nav-menu">
+        <div class="nav-section-title">Menu</div>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill ms-1" aria-hidden="true"></span> Tableau de bord
-            </NavLink>
-        </div>
+        <NavLink class="nav-item-glass" href="" Match="NavLinkMatch.All" @onclick="HandleNavClick">
+            <div class="nav-icon">
+                <Icon Name="IconName.HouseDoor" />
+            </div>
+            <span class="nav-text">Tableau de bord</span>
+        </NavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="depenses">
-                <span class="bi bi-cash-stack ms-1" aria-hidden="true"></span> Budget
-            </NavLink>
-        </div>
+        <NavLink class="nav-item-glass" href="depenses" @onclick="HandleNavClick">
+            <div class="nav-icon">
+                <Icon Name="IconName.CashStack" />
+            </div>
+            <span class="nav-text">Budget</span>
+        </NavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="categories">
-                <span class="bi bi-tags ms-1" aria-hidden="true"></span> Catégories
-            </NavLink>
-        </div>
+        <NavLink class="nav-item-glass" href="categories" @onclick="HandleNavClick">
+            <div class="nav-icon">
+                <Icon Name="IconName.Tags" />
+            </div>
+            <span class="nav-text">Catégories</span>
+        </NavLink>
     </nav>
 </div>
+
+@code {
+    [Parameter]
+    public EventCallback OnNavClick { get; set; }
+
+    private async Task HandleNavClick()
+    {
+        await OnNavClick.InvokeAsync();
+    }
+}
