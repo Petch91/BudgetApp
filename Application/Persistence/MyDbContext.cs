@@ -11,6 +11,10 @@ public class MyDbContext : DbContext
     public DbSet<Categorie> Categories => Set<Categorie>();
     public DbSet<DepenseMois> DepensesMois => Set<DepenseMois>();
     public DbSet<DepenseDueDate> depenseDueDates => Set<DepenseDueDate>();
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
 
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
@@ -62,16 +66,31 @@ public class MyDbContext : DbContext
         entityRappel.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
         entityRappel.HasOne(r => r.DepenseFixe)
             .WithMany(d => d.Rappels);
-        
+
         var entityDepenseMois = modelBuilder.Entity<DepenseMois>();
         entityDepenseMois.ToTable("DepenseMois", tb => tb.HasTrigger("TG_UpdateDepenseMois"));
         entityDepenseMois.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseMois.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
-        
+
         var entityDepenseDueDates = modelBuilder.Entity<DepenseDueDate>();
         entityDepenseDueDates.ToTable("DepenseDueDates", tb => tb.HasTrigger("TG_UpdateDepenseDueDates"));
         entityDepenseDueDates.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseDueDates.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseDueDates.HasOne(p => p.Depense).WithMany(x => x.DueDates);
+
+        var entityUser = modelBuilder.Entity<User>();
+        entityUser.ToTable("Users", tb => tb.HasTrigger("TG_UpdateUser"));
+        entityUser.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
+        entityUser.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+        entityUser.Property(p => p.PasswordHash).IsRequired();
+        entityUser.Property(p => p.Email).IsRequired();
+        entityUser.HasIndex(p => p.Email).IsUnique();
+        entityUser.Property(p => p.Username).IsRequired().HasMaxLength(30);
+        entityUser.Property(p => p.IsActive).HasDefaultValue(true);
+        
+        var entityRefreshToken = modelBuilder.Entity<RefreshToken>();
+        entityRefreshToken.HasOne(rt => rt.User)
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(rt => rt.UserId);
     }
 }

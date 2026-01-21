@@ -59,4 +59,11 @@ public static class ProjectionDto
             r.RappelDate,
             r.Vu
         );
+    public static Expression<Func<User, UserDto>> UserAsDto =>
+        u => new UserDto(
+            u.Id,
+            u.Username,
+            u.Email,
+            u.PasswordHash
+        );
 }
