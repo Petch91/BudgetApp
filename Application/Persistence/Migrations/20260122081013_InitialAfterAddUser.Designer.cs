@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Application.Persistence.Migrations
+namespace Datas.Persistence.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20260115085335_AddMontantEffectifToDueDate")]
-    partial class AddMontantEffectifToDueDate
+    [Migration("20260122081013_InitialAfterAddUser")]
+    partial class InitialAfterAddUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,6 +191,34 @@ namespace Application.Persistence.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("Entities.Domain.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Entities.Domain.Models.Transaction", b =>
                 {
                     b.Property<int>("Id")
@@ -243,9 +271,64 @@ namespace Application.Persistence.Migrations
                         .HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("Entities.Domain.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users", null, t =>
+                        {
+                            t.HasTrigger("TG_UpdateUser");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("Entities.Domain.Models.DepenseFixe", b =>
                 {
                     b.HasBaseType("Entities.Domain.Models.Transaction");
+
+                    b.Property<DateTime?>("DateFin")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("EstDomiciliee")
                         .HasColumnType("bit");
@@ -294,6 +377,17 @@ namespace Application.Persistence.Migrations
                     b.Navigation("DepenseFixe");
                 });
 
+            modelBuilder.Entity("Entities.Domain.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Entities.Domain.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Entities.Domain.Models.Transaction", b =>
                 {
                     b.HasOne("Entities.Domain.Models.Categorie", "Categorie")
@@ -308,6 +402,11 @@ namespace Application.Persistence.Migrations
             modelBuilder.Entity("Entities.Domain.Models.Categorie", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Entities.Domain.Models.User", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("Entities.Domain.Models.DepenseFixe", b =>

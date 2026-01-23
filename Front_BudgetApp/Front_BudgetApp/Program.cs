@@ -10,9 +10,13 @@ using Front_BudgetApp.Api.Endpoints;
 using Front_BudgetApp.Components;
 using Front_BudgetApp.Services;
 using Front_BudgetApp.Services.Notifications;
+using Front_BudgetApp.Services.Sécurité;
+using Front_BudgetApp.Services.Sécurité.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Serilog;
 using AppToastService = Front_BudgetApp.Services.Notifications.AppToastService;
 
@@ -34,7 +38,35 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<IAppToastService, AppToastService>();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "Budget App API", 
+        Version = "v1",
+        Description = "API de gestion de budget"
+    });
+    
+    // Définir le schéma de sécurité JWT
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header en utilisant le schéma Bearer. Exemple: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    // Utiliser OpenApiSecuritySchemeReference pour la nouvelle API OpenAPI 2.x
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -53,14 +85,24 @@ builder.Services.AddScoped<IPasswordHasher, PasswordManager>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddSingleton<JwtOptions>();
 
+// Services d'authentification
+builder.Services.AddScoped<ProtectedLocalStorage>();
+builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<JwtAuthorizationHandler>();
+
 
 builder.Services.AddHttpClient(
-    "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
+    "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"))
+    .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
 builder.Services.AddScoped<IHttpTransaction, TransactionFrontService>();
 builder.Services.AddScoped<IHttpRapport, RapportFrontService>();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Connected", policy =>
+        policy.RequireAuthenticatedUser());
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -87,8 +129,6 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
 /* =======================
@@ -111,12 +151,16 @@ app.UseHttpsRedirection();
 /* 🔥 OBLIGATOIRE AVANT TOUT */
 app.UseStaticFiles();
 app.UseAntiforgery();
+// Auth
+app.UseAuthentication();
+app.UseAuthorization();
 
 /* API */
 app.MapDepenseFixe();
 app.MapTransactionVariable();
 app.MapCategorie();
 app.MapRapport();
+app.MapAuth();
 
 /* BLAZOR */
 app.MapRazorComponents<App>()

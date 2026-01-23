@@ -8,7 +8,7 @@ public static class TransactionVariableEndpoints
     public static void MapTransactionVariable(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/transaction")
-            .WithTags("Transactions");
+            .WithTags("Transactions").RequireAuthorization("Connected");
 
         /* =======================
          * GET BY ID

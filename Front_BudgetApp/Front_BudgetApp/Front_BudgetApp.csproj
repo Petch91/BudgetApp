@@ -25,7 +25,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
         <ProjectReference Include="..\..\BudgetApp.Shared\BudgetApp.Shared.csproj" />
         <ProjectReference Include="..\..\Application\Application.csproj" />
-        <ProjectReference Include="..\Front_BudgetApp.Client\Front_BudgetApp.Client.csproj"/>
+        <ProjectReference Include="..\Front_BudgetApp.Client\Front_BudgetApp.Client.csproj" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.1" />
     </ItemGroup>
 

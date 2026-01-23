@@ -7,7 +7,7 @@ public static class RapportEndpoints
     public static void MapRapport(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/rapport")
-            .WithTags("Rapport");
+            .WithTags("Rapport").RequireAuthorization("Connected");
 
         /* =======================
          * GET RAPPORT BY MONTH

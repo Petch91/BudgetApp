@@ -8,7 +8,7 @@ public static class DepenseFixesEndpoints
     public static void MapDepenseFixe(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/depensefixe")
-            .WithTags("DepenseFixes");
+            .WithTags("DepenseFixes").RequireAuthorization("Connected");
 
         /* =======================
          * GET BY ID
