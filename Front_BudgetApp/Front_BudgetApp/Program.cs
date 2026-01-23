@@ -13,6 +13,7 @@ using Front_BudgetApp.Services.Notifications;
 using Front_BudgetApp.Services.Sécurité;
 using Front_BudgetApp.Services.Sécurité.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -86,8 +87,10 @@ builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddSingleton<JwtOptions>();
 
 // Services d'authentification
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ProtectedLocalStorage>();
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<JwtAuthorizationHandler>();
 
 
