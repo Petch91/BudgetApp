@@ -1,7 +1,9 @@
 @page "/"
 @using BudgetApp.Shared.Interfaces.Http
 @using Entities.Contracts.Dtos
+@using Front_BudgetApp.Services.Sécurité
 @inject IHttpRapport RapportService
+@inject AuthStateService AuthState
 
 <PageTitle>Tableau de bord</PageTitle>
 
@@ -151,10 +153,21 @@
     private RapportMoisDto? _rapport;
     private bool _isLoading = true;
     private string? _errorMessage;
+    private bool _initialized;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await ChargerRapport();
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+
+            // Pré-charger la session dans le cache mémoire
+            await AuthState.GetSessionAsync();
+
+            // Maintenant le handler utilisera _currentSession
+            await ChargerRapport();
+            StateHasChanged();
+        }
     }
 
     private async Task ChargerRapport()

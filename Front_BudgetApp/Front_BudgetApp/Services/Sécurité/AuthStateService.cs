@@ -45,14 +45,28 @@ public class AuthStateService
     public async Task SaveSessionAsync(AuthSession session)
     {
         _currentSession = session;
-        await _localStorage.SetAsync(AUTH_KEY, session);
+        try
+        {
+            await _localStorage.SetAsync(AUTH_KEY, session);
+        }
+        catch
+        {
+            // JS interop not available during static rendering
+        }
         OnAuthStateChanged?.Invoke();
     }
-    
+
     public async Task LogoutAsync()
     {
         _currentSession = null;
-        await _localStorage.DeleteAsync(AUTH_KEY);
+        try
+        {
+            await _localStorage.DeleteAsync(AUTH_KEY);
+        }
+        catch
+        {
+            // JS interop not available during static rendering
+        }
         OnAuthStateChanged?.Invoke();
     }
     

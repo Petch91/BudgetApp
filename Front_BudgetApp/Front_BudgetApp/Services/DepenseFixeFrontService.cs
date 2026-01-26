@@ -3,13 +3,26 @@ using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using FluentResults;
+using Front_BudgetApp.Services.Sécurité;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
-public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseFixe
+public class DepenseFixeFrontService(IHttpClientFactory factory, AuthStateService authState) : IHttpDepenseFixe
 {
-    private HttpClient Client => factory.CreateClient("Api");
+    
+    private async Task<HttpClient> GetClientAsync()
+    {
+        var client = factory.CreateClient("Api");
+        var token = await authState.GetAccessTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+        return client;
+    }
+
 
     /* =======================
      * GET ALL
@@ -19,6 +32,7 @@ public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseF
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.GetAsync("depensefixe");
 
             if (!response.IsSuccessStatusCode)
@@ -51,6 +65,7 @@ public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseF
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.PostAsJsonAsync("depensefixe", depenseForm);
 
             if (!response.IsSuccessStatusCode)
@@ -89,6 +104,7 @@ public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseF
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.PutAsJsonAsync($"depensefixe/{id}", depenseForm);
 
             if (!response.IsSuccessStatusCode)
@@ -121,6 +137,7 @@ public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseF
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.DeleteAsync($"depensefixe/{id}");
 
             if (!response.IsSuccessStatusCode)
@@ -153,6 +170,7 @@ public class DepenseFixeFrontService(IHttpClientFactory factory) : IHttpDepenseF
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.PatchAsync($"depensefixe/rappels/{id}/vu", null);
 
             if (!response.IsSuccessStatusCode)

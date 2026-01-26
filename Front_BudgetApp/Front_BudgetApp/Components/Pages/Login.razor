@@ -1,0 +1,163 @@
+@page "/login"
+@layout LoginLayout
+@using System.Text.Json
+@using Entities.Contracts.Dtos
+@using Entities.Contracts.Forms
+@using Entities.Domain.Models.Front
+@using Front_BudgetApp.Services.Sécurité
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject AuthStateService AuthState
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IHttpClientFactory Http
+@rendermode InteractiveServer
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <Icon Name="IconName.Wallet2" Size="IconSize.x5" class="login-icon" />
+            <h2>BudgetApp</h2>
+            <p class="text-muted">Connectez-vous pour continuer</p>
+        </div>
+
+        <EditForm Model="_form" OnValidSubmit="HandleLogin" class="login-form" FormName="loginForm">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <Alert Color="AlertColor.Danger" class="mb-3">
+                    <Icon Name="IconName.ExclamationTriangle" class="me-2" />
+                    @_errorMessage
+                </Alert>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <InputText @bind-Value="_form.Email"
+                           class="form-control"
+                           placeholder="votre@email.com"
+                           disabled="@_isLoading" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Mot de passe</label>
+                <InputText @bind-Value="_form.Password"
+                           type="password"
+                           class="form-control"
+                           placeholder="Votre mot de passe"
+                           disabled="@_isLoading" />
+            </div>
+
+            <Button Type="ButtonType.Submit"
+                    Color="ButtonColor.Primary"
+                    Class="w-100 login-btn"
+                    Loading="@_isLoading"
+                    LoadingText="Connexion...">
+                <Icon Name="IconName.BoxArrowInRight" class="me-2" />
+                Se connecter
+            </Button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginForm _form = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        var client = Http.CreateClient("Api");
+        try
+        {
+            var response = await client.PostAsJsonAsync("/api/auth/login", _form);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var authUser = await response.Content.ReadFromJsonAsync<AuthenticatedUserDto>(JsonOptions);
+
+                if (authUser != null)
+                {
+                    var session = new AuthSession
+                    {
+                        AccessToken = authUser.Token,
+                        RefreshToken = authUser.RefreshToken,
+                        ExpiresAt = authUser.ExpiresAt,
+                        UserId = authUser.Id,
+                        Username = authUser.Username,
+                        Email = authUser.Email
+                    };
+
+                    await AuthState.SaveSessionAsync(session);
+
+                    // Notifier le changement d'état d'auth
+                    if (AuthStateProvider is CustomAuthStateProvider customProvider)
+                    {
+                        customProvider.NotifyAuthStateChanged();
+                    }
+
+                    Navigation.NavigateTo("/", forceLoad: true);
+                }
+            }
+            else
+            {
+                _errorMessage = "Email ou mot de passe incorrect";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur de connexion: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-icon {
+        color: var(--accent-primary);
+        margin-bottom: 1rem;
+    }
+
+    .login-header h2 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .login-btn {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+</style>

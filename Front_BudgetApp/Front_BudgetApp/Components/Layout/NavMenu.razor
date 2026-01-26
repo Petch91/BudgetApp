@@ -1,3 +1,9 @@
+@using Front_BudgetApp.Services.Sécurité
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthStateService AuthState
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
 @* ===== SIDEBAR HEADER ===== *@
 <div class="sidebar-header">
     <div class="brand">
@@ -35,3 +41,82 @@
         </NavLink>
     </nav>
 </div>
+
+@* ===== USER SECTION ===== *@
+<AuthorizeView>
+    <Authorized>
+        <div class="sidebar-footer">
+            <div class="user-section">
+                <div class="user-info">
+                    <Icon Name="IconName.PersonCircle" Size="IconSize.x3" />
+                    <span class="user-name">@context.User.Identity?.Name</span>
+                </div>
+                <button class="logout-btn" @onclick="HandleLogout">
+                    <Icon Name="IconName.BoxArrowRight" />
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthState.LogoutAsync();
+
+        if (AuthStateProvider is CustomAuthStateProvider customProvider)
+        {
+            customProvider.NotifyAuthStateChanged();
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}
+
+<style>
+    .sidebar-footer {
+        margin-top: auto;
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .user-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .user-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        border-radius: var(--radius-md);
+        color: #dc3545;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+    }
+
+    .logout-btn:hover {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+</style>

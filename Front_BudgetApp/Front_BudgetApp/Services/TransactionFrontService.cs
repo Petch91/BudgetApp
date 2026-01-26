@@ -3,13 +3,26 @@ using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using FluentResults;
+using Front_BudgetApp.Services.Sécurité;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
-public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransaction
+public class TransactionFrontService(IHttpClientFactory factory, AuthStateService authState) : IHttpTransaction
 {
-    private HttpClient Client => factory.CreateClient("Api");
+
+    private async Task<HttpClient> GetClientAsync()
+    {
+        var client = factory.CreateClient("Api");
+        var token = await authState.GetAccessTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+        return client;
+    }
+
 
     public async Task<Result<IReadOnlyList<TransactionVariableDto>>> GetByMonth(int month, int year)
     {
@@ -45,6 +58,7 @@ public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransact
     {
         try
         {
+            var Client = await GetClientAsync();    
             var response = await Client.GetAsync($"transaction/revenubymonth/{month}");
 
             if (!response.IsSuccessStatusCode)
@@ -78,6 +92,7 @@ public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransact
     {
         try
         {
+            var Client = await GetClientAsync();   
             var response = await Client.GetAsync($"transaction/depensebymonth/{month}");
 
             if (!response.IsSuccessStatusCode)
@@ -111,6 +126,7 @@ public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransact
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.PostAsJsonAsync("transaction", form);
 
             if (!response.IsSuccessStatusCode)
@@ -142,6 +158,7 @@ public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransact
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.PutAsJsonAsync($"transaction/{id}", form);
 
             if (!response.IsSuccessStatusCode)
@@ -167,6 +184,7 @@ public class TransactionFrontService(IHttpClientFactory factory) : IHttpTransact
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.DeleteAsync($"transaction/{id}");
 
             if (!response.IsSuccessStatusCode)

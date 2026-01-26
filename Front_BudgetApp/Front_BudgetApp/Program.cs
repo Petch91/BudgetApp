@@ -13,6 +13,7 @@ using Front_BudgetApp.Services.Notifications;
 using Front_BudgetApp.Services.Sécurité;
 using Front_BudgetApp.Services.Sécurité.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -85,15 +86,17 @@ builder.Services.AddScoped<IPasswordHasher, PasswordManager>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddSingleton<JwtOptions>();
 
-// Services d'authentification
+// Services d'authentification Blazor
 builder.Services.AddScoped<ProtectedLocalStorage>();
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<AuthenticationStateProvider,CustomAuthStateProvider>();
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<JwtAuthorizationHandler>();
 
 
 builder.Services.AddHttpClient(
-    "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"))
-    .AddHttpMessageHandler<JwtAuthorizationHandler>();
+    "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
+    //.AddHttpMessageHandler<JwtAuthorizationHandler>();
 
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
@@ -164,6 +167,6 @@ app.MapAuth();
 
 /* BLAZOR */
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode().AllowAnonymous();
 
 app.Run();

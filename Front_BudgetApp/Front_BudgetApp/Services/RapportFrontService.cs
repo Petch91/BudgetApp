@@ -3,23 +3,37 @@ using System.Text.Json;
 using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using FluentResults;
+using Front_BudgetApp.Services.Sécurité;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
-public class RapportFrontService(IHttpClientFactory factory) : IHttpRapport
+public class RapportFrontService(IHttpClientFactory factory,AuthStateService authState) : IHttpRapport
 {
-    private HttpClient Client => factory.CreateClient("Api");
+    
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
+    private async Task<HttpClient> GetClientAsync()
+    {
+        var client = factory.CreateClient("Api");
+        var token = await authState.GetAccessTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+        return client;
+    }
+
 
     public async Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois)
     {
         try
         {
+            var Client = await GetClientAsync();
             var response = await Client.GetAsync($"rapport/{annee}/{mois}");
 
             if (!response.IsSuccessStatusCode)
