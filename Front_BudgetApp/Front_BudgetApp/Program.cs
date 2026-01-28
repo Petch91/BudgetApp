@@ -22,7 +22,7 @@ using Serilog;
 using AppToastService = Front_BudgetApp.Services.Notifications.AppToastService;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseStaticWebAssets();
+//builder.WebHost.UseStaticWebAssets();
 
 SerilogConfiguration.Configure("ServerSide");
 
