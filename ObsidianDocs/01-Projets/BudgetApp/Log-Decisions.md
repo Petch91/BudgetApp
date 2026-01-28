@@ -201,6 +201,102 @@ Chaque decision est documentee ainsi :
 
 ---
 
+### 2025-01 - Authentification JWT + Blazor AuthorizeView
+
+**Contexte** : Application sans authentification, besoin de proteger l'acces
+
+**Decisions** :
+
+#### 1. JWT Bearer pour l'API
+- **Options** : Cookie auth vs JWT vs ASP.NET Identity
+- **Decision** : JWT Bearer
+- **Raison** :
+  - Stateless, adapte a une API REST
+  - AccessToken + RefreshToken
+  - Separation frontend/API claire
+
+#### 2. ProtectedLocalStorage pour la session frontend
+- **Options** : Cookies vs LocalStorage vs ProtectedLocalStorage
+- **Decision** : ProtectedLocalStorage
+- **Raison** :
+  - Chiffrement automatique cote serveur
+  - Integration native Blazor Server
+  - Pas de transmission automatique au serveur (contrairement aux cookies)
+
+#### 3. AuthorizeView dans MainLayout (pas AuthorizeRouteView)
+- **Options** : `[Authorize]` sur les pages vs `AuthorizeRouteView` dans Routes.razor vs `AuthorizeView` dans MainLayout
+- **Decision** : `AuthorizeView` dans MainLayout
+- **Raison** :
+  - Protege TOUTES les pages utilisant MainLayout sans attribut individuel
+  - Pages publiques utilisent LoginLayout (pas d'auth)
+  - `AuthorizeRouteView` dans Routes.razor causait des boucles de redirection infinies quand combine avec MainLayout
+
+#### 4. Token JWT ajoute dans les FrontServices (pas DelegatingHandler)
+- **Options** : `JwtAuthorizationHandler` (DelegatingHandler) vs Token dans chaque FrontService
+- **Decision** : Token dans les FrontServices via `GetClientAsync()`
+- **Raison** :
+  - Le DelegatingHandler s'execute dans un contexte HTTP different du circuit Blazor
+  - ProtectedLocalStorage (JS interop) n'est pas accessible dans le handler
+  - Erreur `InvalidOperationException: JavaScript interop calls cannot be issued at this time`
+  - Le pattern `GetClientAsync()` fonctionne car il est appele dans le contexte du composant Blazor
+
+#### 5. Prerendering desactive
+- **Options** : Prerender true vs false
+- **Decision** : `InteractiveServerRenderMode(prerender: false)` dans App.razor
+- **Raison** :
+  - ProtectedLocalStorage necessite JS interop
+  - JS interop non disponible pendant le rendu statique
+  - Desactiver le prerendering evite toutes les erreurs JS interop
+
+#### 6. Chargement des donnees dans OnAfterRenderAsync
+- **Options** : `OnInitializedAsync` vs `OnAfterRenderAsync`
+- **Decision** : `OnAfterRenderAsync(firstRender)` pour les pages protegees
+- **Raison** :
+  - Garantit que JS interop est disponible
+  - Permet de pre-charger la session avant les appels HTTP
+  - Evite les erreurs de rendu statique
+
+**Fichiers crees/modifies** :
+- `Services/Securite/AuthStateService.cs` - Gestion session
+- `Services/Securite/CustomAuthStateProvider.cs` - AuthenticationStateProvider
+- `Services/Securite/Handlers/JwtAuthorizationHandler.cs` - Desactive
+- `Components/Layout/MainLayout.razor` - AuthorizeView + bouton deconnexion
+- `Components/Layout/LoginLayout.razor` - Layout public
+- `Components/Layout/RedirectToLogin.razor` - Redirection
+- `Components/Pages/Login.razor` - Page de connexion
+- `Components/Routes.razor` - CascadingAuthenticationState + RouteView
+- `App.razor` - prerender: false
+
+---
+
+### 2025-01 - Deploiement Docker et suppression HTTPS
+
+**Contexte** : Deploiement de l'app derriere Traefik (reverse proxy) qui gere le SSL
+
+**Decisions** :
+
+#### 1. Suppression de UseHttpsRedirection et UseHsts
+- **Options** : Garder HTTPS dans l'app vs deleguer a Traefik
+- **Decision** : Supprimer `UseHttpsRedirection()` et `UseHsts()`
+- **Raison** :
+  - Traefik gere le SSL termination
+  - L'app recoit du HTTP de Traefik, pas du HTTPS du client
+  - Ces middlewares causaient des 404 sur les fichiers statiques en Production
+
+#### 2. Port 5201 fixe
+- **Decision** : Forcer le port 5201 via `ASPNETCORE_URLS=http://+:5201`
+- **Raison** : Coherence entre environnements, configuration Traefik simplifiee
+
+#### 3. Dockerfile multi-stage
+- **Decision** : SDK pour build, aspnet pour runtime
+- **Raison** : Image finale legere (runtime only)
+
+**Fichiers crees/modifies :**
+- `Dockerfile` - Nouveau fichier a la racine
+- `Program.cs` - Suppression UseHttpsRedirection/UseHsts
+
+---
+
 ## Decisions techniques a documenter
 
 ### [A venir] - Tests unitaires
@@ -208,19 +304,13 @@ Chaque decision est documentee ainsi :
 - **Options a evaluer** : xUnit vs NUnit, Moq vs NSubstitute
 - **Decision** : [A prendre]
 
-### [A venir] - Authentification
-- **Contexte** : Application actuellement sans auth
-- **Options a evaluer** : Cookie auth vs JWT vs Identity
-- **Decision** : [A prendre]
-
 ---
 
 ## Prochaines decisions a prendre
 
 1. [ ] Ajouter projet de tests - quel framework ?
-2. [ ] Gestion multi-utilisateurs - necessaire ?
-3. [ ] Export donnees (CSV, PDF) - quelle lib ?
-4. [ ] Graphiques/Dashboard - Chart.js ou autre ?
+2. [ ] Export donnees (CSV, PDF) - quelle lib ?
+3. [ ] Graphiques/Dashboard - Chart.js ou autre ?
 
 ---
 

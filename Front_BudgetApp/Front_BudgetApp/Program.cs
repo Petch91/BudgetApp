@@ -82,7 +82,12 @@ builder.Services.AddScoped<IRapportService, RapportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Sécurité
 builder.Services.AddScoped<IPasswordHasher, PasswordManager>();
+
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection("Jwt"));
+
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddSingleton<JwtOptions>();
 
@@ -146,10 +151,7 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
 }
-
-app.UseHttpsRedirection();
 
 /* 🔥 OBLIGATOIRE AVANT TOUT */
 app.UseStaticFiles();

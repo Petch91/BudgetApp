@@ -19,6 +19,16 @@
           "ASPNETCORE_ENVIRONMENT": "Development"
         }
       },
+      "http Prod": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+        "applicationUrl": "http://localhost:5201;http://0.0.0.0:5201",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Production"
+        }
+      },
       "https": {
         "commandName": "Project",
         "dotnetRunMessages": true,

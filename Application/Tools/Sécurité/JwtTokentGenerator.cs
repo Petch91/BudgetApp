@@ -3,16 +3,17 @@ using System.Security.Claims;
 using System.Text;
 using Application.Interfaces.Sécurité;
 using Entities.Domain.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Tools.Sécurité;
 
 public class JwtOptions
 {
-    public string Secret { get; set; } = "kjnbdsfqjhfuhsqioFJHIOHFZEHFBIJHBVIDSBJHVBDJHSBVHD76786!ç'yfy9TTtsdètcsdgyçé!é98656";
-    public string Issuer { get; set; } = "BudgetApp";
-    public string Audience { get; set; } = "BudgetAppUsers";
-    public int ExpirationMinutes { get; set; } = 60 * 24 * 7; // 7 jours
+    public string Secret { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public int ExpirationMinutes { get; set; } 
 }
 
 public class JwtTokenGenerator : IJwtTokenGenerator
@@ -20,9 +21,9 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     private readonly JwtOptions _options;
     private readonly byte[] _key;
 
-    public JwtTokenGenerator(JwtOptions options)
+    public JwtTokenGenerator(IOptions<JwtOptions> options)
     {
-        _options = options;
+        _options = options.Value;
         _key = Encoding.UTF8.GetBytes(_options.Secret);
     }
 

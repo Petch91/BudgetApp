@@ -41,9 +41,10 @@
   - Pages Blazor
   - API REST (Minimal APIs)
   - Services HTTP frontend
+  - Authentification frontend (JWT + AuthorizeView)
   - Background services
 - **Dependances** : `Application`, `BudgetApp.Shared`, `Front_BudgetApp.Client`
-- **Packages** : Blazor.Bootstrap, EF Core, Swashbuckle
+- **Packages** : Blazor.Bootstrap, EF Core, Swashbuckle, JWT Bearer
 
 **Projet Front_BudgetApp.Client** (`Front_BudgetApp.Client.csproj`)
 - **Role** : Client WebAssembly (si besoin d'interactivite cote client)
@@ -75,6 +76,18 @@ builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>();
 builder.Services.AddScoped<ITranscationService, TransactionService>();
 builder.Services.AddScoped<ICategorieService, CategorieService>();
 
+// Securite
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordManager>();
+builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+
+// Authentification Blazor
+builder.Services.AddScoped<ProtectedLocalStorage>();
+builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddCascadingAuthenticationState();
+
 // Services HTTP frontend (Scoped)
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
@@ -87,14 +100,14 @@ builder.Services.AddScoped<IAppToastService, AppToastService>();
 // Background Service (Singleton implicite)
 builder.Services.AddHostedService<DepenseFixeScheduler>();
 
-// HttpClient pour appels API internes
+// HttpClient pour appels API internes (sans DelegatingHandler)
 builder.Services.AddHttpClient("Api", x =>
     x.BaseAddress = new Uri("http://localhost:5201/api/"));
 ```
 
 **Analyse des lifetimes** :
-- **Scoped** : Services metier et HTTP - une instance par requete HTTP, permet l'injection du DbContext
-- **Singleton** : DepenseFixeScheduler - tourne en permanence en arriere-plan
+- **Scoped** : Services metier, HTTP et auth - une instance par requete HTTP, permet l'injection du DbContext
+- **Singleton** : DepenseFixeScheduler, JwtTokenGenerator - tourne en permanence en arriere-plan
 - **Transient** : Aucun - pas necessaire pour ce projet
 
 ## Architecture Base de donnees
@@ -125,6 +138,13 @@ public class MyDbContext : DbContext
 - `TG_UpdateRappel` - MAJ automatique UpdatedAt
 - `TG_UpdateDepenseMois` - MAJ automatique UpdatedAt
 
+### Tables supplementaires (Securite)
+
+```csharp
+public DbSet<User> Users => Set<User>();
+public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+```
+
 ### Seed Data
 - Categorie par defaut "NoCategory" (Id=1)
 
@@ -137,6 +157,8 @@ public class MyDbContext : DbContext
 app.MapDepenseFixe();        // /api/depensefixe
 app.MapTransactionVariable(); // /api/transaction
 app.MapCategorie();          // /api/categorie
+app.MapRapport();            // /api/rapport
+app.MapAuth();               // /api/auth
 ```
 
 ### Endpoints disponibles
@@ -173,6 +195,73 @@ app.MapCategorie();          // /api/categorie
 | PUT | `/{id}` | Met a jour |
 | DELETE | `/{id}` | Supprime |
 
+**Rapport** (`/api/rapport`)
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET | `/{annee}/{mois}` | Rapport mensuel |
+
+**Authentification** (`/api/auth`)
+| Methode | Route | Description |
+|---------|-------|-------------|
+| POST | `/login` | Connexion (retourne JWT + RefreshToken) |
+| POST | `/refresh` | Rafraichir le token |
+
+## Authentification & Securite
+
+### Architecture
+
+L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** cote frontend.
+
+### Flux
+
+```
+Login → POST /api/auth/login → JWT AccessToken + RefreshToken
+     → AuthStateService.SaveSessionAsync() → ProtectedLocalStorage
+     → CustomAuthStateProvider.NotifyAuthStateChanged()
+     → AuthorizeView → Authorized → MainLayout affiche le contenu
+```
+
+### Composants frontend
+
+| Composant | Fichier | Role |
+|-----------|---------|------|
+| `AuthStateService` | `Services/Securite/` | Session via ProtectedLocalStorage + cache memoire |
+| `CustomAuthStateProvider` | `Services/Securite/` | Fournit l'etat auth a Blazor |
+| `MainLayout` | `Components/Layout/` | `AuthorizeView` protege les pages |
+| `LoginLayout` | `Components/Layout/` | Layout public (login, error) |
+| `RedirectToLogin` | `Components/Layout/` | Redirige vers `/login` si non authentifie |
+
+### Layouts et protection
+
+| Layout | Protection | Pages |
+|--------|-----------|-------|
+| `MainLayout` | `AuthorizeView` (auth requise) | Home, DepenseFixe, Categories |
+| `LoginLayout` | Aucune (public) | Login, Error |
+
+### Token JWT dans les FrontServices
+
+Les FrontServices injectent `AuthStateService` et ajoutent le token via `GetClientAsync()` :
+
+```csharp
+private async Task<HttpClient> GetClientAsync()
+{
+    var client = factory.CreateClient("Api");
+    var token = await authState.GetAccessTokenAsync();
+    if (!string.IsNullOrEmpty(token))
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+    return client;
+}
+```
+
+> **Decision** : Le `JwtAuthorizationHandler` (DelegatingHandler) est desactive car ProtectedLocalStorage (JS interop) n'est pas accessible dans le contexte du handler HTTP. Le token est ajoute directement dans chaque FrontService.
+
+### Configuration Blazor
+
+- `App.razor` : `InteractiveServerRenderMode(prerender: false)`
+- `Routes.razor` : `CascadingAuthenticationState` + `RouteView` (pas AuthorizeRouteView)
+- Pages protegees : chargent les donnees dans `OnAfterRenderAsync(firstRender)` pour garantir la disponibilite de JS interop
+
 ## Background Services
 
 ### DepenseFixeScheduler
@@ -195,6 +284,44 @@ app.MapCategorie();          // /api/categorie
 4. **Pas de tests** : Aucun projet de tests unitaires ou d'integration
 
 5. **Validation cote serveur** : Ajouter validation FluentValidation dans les endpoints API
+
+## Deploiement
+
+### Docker
+
+Dockerfile multi-stage a la racine du projet :
+
+```bash
+docker build -t budgetapp .
+docker run -p 5201:5201 budgetapp
+```
+
+**Images utilisees :**
+- Build : `mcr.microsoft.com/dotnet/sdk:10.0`
+- Runtime : `mcr.microsoft.com/dotnet/aspnet:10.0`
+
+**Variables d'environnement :**
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `ASPNETCORE_URLS=http://+:5201`
+
+### Reverse Proxy (Traefik)
+
+Architecture avec SSL termination :
+
+```
+Client → HTTPS → Traefik → HTTP:5201 → BudgetApp
+```
+
+`UseHttpsRedirection()` et `UseHsts()` sont desactives car Traefik gere HTTPS.
+
+### Static Web Assets
+
+| Mode | Comportement |
+|------|-------------|
+| `dotnet run` (Dev) | Assets mappes dynamiquement depuis packages NuGet |
+| `dotnet publish` / Docker | Assets copies physiquement dans le build |
+
+> **Attention** : `dotnet run --launch-profile "http Prod"` ne fonctionne pas pour les static assets car ils ne sont mappes qu'en Development. Utiliser `dotnet publish` ou Docker pour tester Production.
 
 ## References
 - [[README]] - Vue d'ensemble du projet
