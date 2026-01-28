@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vs
+.vscode
+*.user
+*.suo
+
+# Build outputs
+**/bin
+**/obj
+**/out
+
+# Publish output
+**/publish
+
+# NuGet
+**/packages
+
+# Logs
+**/logs
+*.log
+
+# Test results
+**/TestResults
+
+# Temporary files
+**/*.tmp
+**/tmp
+tmpclaude-*
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+*.md
+ObsidianDocs
+
+# Claude
+.claude
+.claude-context.md
+
+# Misc
+*.sql
+script.sql
