@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Security.Claims;
+using Application.Interfaces;
 using Entities.Contracts.Forms;
 
 namespace Front_BudgetApp.Api.Endpoints;
@@ -14,9 +15,10 @@ public static class DepenseFixesEndpoints
          * GET BY ID
          * ======================= */
 
-        group.MapGet("/{id:int}", async (int id, IDepenseFixeService service) =>
+        group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, IDepenseFixeService service) =>
         {
-            var result = await service.GetById(id);
+            var userId = GetUserId(user);
+            var result = await service.GetById(id, userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -27,9 +29,10 @@ public static class DepenseFixesEndpoints
          * GET ALL
          * ======================= */
 
-        group.MapGet("/", async (IDepenseFixeService service) =>
+        group.MapGet("/", async (ClaimsPrincipal user, IDepenseFixeService service) =>
         {
-            var result = await service.GetDepenseFixes();
+            var userId = GetUserId(user);
+            var result = await service.GetDepenseFixes(userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -40,9 +43,10 @@ public static class DepenseFixesEndpoints
          * ADD
          * ======================= */
 
-        group.MapPost("/", async (DepenseFixeForm form, IDepenseFixeService service) =>
+        group.MapPost("/", async (DepenseFixeForm form, ClaimsPrincipal user, IDepenseFixeService service) =>
         {
-            var result = await service.Add(form);
+            var userId = GetUserId(user);
+            var result = await service.Add(form, userId);
 
             if (result.IsSuccess)
             {
@@ -57,9 +61,10 @@ public static class DepenseFixesEndpoints
          * UPDATE
          * ======================= */
 
-        group.MapPut("/{id:int}", async (int id, DepenseFixeForm form, IDepenseFixeService service) =>
+        group.MapPut("/{id:int}", async (int id, DepenseFixeForm form, ClaimsPrincipal user, IDepenseFixeService service) =>
         {
-            var result = await service.Update(id, form);
+            var userId = GetUserId(user);
+            var result = await service.Update(id, form, userId);
 
             return result.IsSuccess
                 ? Results.NoContent()
@@ -70,9 +75,10 @@ public static class DepenseFixesEndpoints
          * DELETE
          * ======================= */
 
-        group.MapDelete("/{id:int}", async (int id, IDepenseFixeService service) =>
+        group.MapDelete("/{id:int}", async (int id, ClaimsPrincipal user, IDepenseFixeService service) =>
         {
-            var result = await service.Delete(id);
+            var userId = GetUserId(user);
+            var result = await service.Delete(id, userId);
 
             return result.IsSuccess
                 ? Results.NoContent()
@@ -124,4 +130,7 @@ public static class DepenseFixesEndpoints
                 : Results.NotFound(result.Errors);
         });
     }
+
+    private static int GetUserId(ClaimsPrincipal user)
+        => int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 }

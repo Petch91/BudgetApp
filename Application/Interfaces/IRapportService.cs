@@ -5,5 +5,5 @@ namespace Application.Interfaces;
 
 public interface IRapportService
 {
-    Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois);
+    Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois, int userId);
 }

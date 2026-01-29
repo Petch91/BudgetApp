@@ -16,12 +16,12 @@ public class TransactionService(MyDbContext context) : ITranscationService
      * READ
      * ======================= */
 
-    public async Task<Result<TransactionVariableDto>> GetById(int id)
+    public async Task<Result<TransactionVariableDto>> GetById(int id, int userId)
     {
         Log.Information("Récupération transaction variable ID {Id}", id);
 
         var transaction = await context.TransactionsVariables
-            .Where(t => t.Id == id)
+            .Where(t => t.Id == id && t.UserId == userId)
             .Select(ProjectionDto.TransactionAsDto)
             .SingleOrDefaultAsync();
 
@@ -31,10 +31,11 @@ public class TransactionService(MyDbContext context) : ITranscationService
         return Result.Ok(transaction);
     }
 
-    public async Task<Result<IReadOnlyList<TransactionVariableDto>>> GetRevenuesByMonth(int month)
+    public async Task<Result<IReadOnlyList<TransactionVariableDto>>> GetRevenuesByMonth(int month, int userId)
     {
         var transactions = await context.TransactionsVariables
             .Where(t =>
+                t.UserId == userId &&
                 t.TransactionType == TransactionType.Revenu &&
                 t.Date.Month == month)
             .Select(ProjectionDto.TransactionAsDto)
@@ -43,10 +44,11 @@ public class TransactionService(MyDbContext context) : ITranscationService
         return Result.Ok<IReadOnlyList<TransactionVariableDto>>(transactions);
     }
 
-    public async Task<Result<IReadOnlyList<TransactionVariableDto>>> GetDepensesByMonth(int month)
+    public async Task<Result<IReadOnlyList<TransactionVariableDto>>> GetDepensesByMonth(int month, int userId)
     {
         var transactions = await context.TransactionsVariables
             .Where(t =>
+                t.UserId == userId &&
                 t.TransactionType == TransactionType.Depense &&
                 t.Date.Month == month)
             .Select(ProjectionDto.TransactionAsDto)
@@ -59,7 +61,7 @@ public class TransactionService(MyDbContext context) : ITranscationService
      * ADD
      * ======================= */
 
-    public async Task<Result<TransactionVariableDto>> Add(TransactionVariableForm form)
+    public async Task<Result<TransactionVariableDto>> Add(TransactionVariableForm form, int userId)
     {
         Log.Information("Ajout transaction variable {@Form}", form);
 
@@ -72,20 +74,21 @@ public class TransactionService(MyDbContext context) : ITranscationService
             Montant = form.Montant,
             Date = form.Date,
             TransactionType = form.TransactionType,
-            CategorieId = form.CategorieId
+            CategorieId = form.CategorieId,
+            UserId = userId
         };
 
         context.TransactionsVariables.Add(transaction);
         await context.SaveChangesAsync();
 
-        return await GetById(transaction.Id);
+        return await GetById(transaction.Id, userId);
     }
 
     /* =======================
      * UPDATE
      * ======================= */
 
-    public async Task<Result> Update(int id, TransactionVariableForm form)
+    public async Task<Result> Update(int id, TransactionVariableForm form, int userId)
     {
         Log.Information("Mise à jour transaction variable ID {Id}", id);
 
@@ -93,7 +96,7 @@ public class TransactionService(MyDbContext context) : ITranscationService
             return Result.Fail("Catégorie inexistante");
 
         var result = await context.TransactionsVariables
-            .Where(t => t.Id == id)
+            .Where(t => t.Id == id && t.UserId == userId)
             .ExecuteUpdateAsync(u => u
                 .SetProperty(t => t.Intitule, form.Intitule)
                 .SetProperty(t => t.Montant, form.Montant)
@@ -110,12 +113,12 @@ public class TransactionService(MyDbContext context) : ITranscationService
      * DELETE
      * ======================= */
 
-    public async Task<Result> Delete(int id)
+    public async Task<Result> Delete(int id, int userId)
     {
         Log.Information("Suppression transaction variable ID {Id}", id);
 
         var result = await context.TransactionsVariables
-            .Where(t => t.Id == id)
+            .Where(t => t.Id == id && t.UserId == userId)
             .ExecuteDeleteAsync();
 
         return result > 0

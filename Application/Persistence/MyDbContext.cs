@@ -78,6 +78,14 @@ public class MyDbContext : DbContext
         entityDepenseDueDates.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseDueDates.HasOne(p => p.Depense).WithMany(x => x.DueDates);
 
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.Transactions)
+            .HasForeignKey(t => t.UserId);
+        modelBuilder.Entity<Transaction>()
+            .Property(t => t.UserId)
+            .HasDefaultValue(1);
+
         var entityUser = modelBuilder.Entity<User>();
         entityUser.ToTable("Users", tb => tb.HasTrigger("TG_UpdateUser"));
         entityUser.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");

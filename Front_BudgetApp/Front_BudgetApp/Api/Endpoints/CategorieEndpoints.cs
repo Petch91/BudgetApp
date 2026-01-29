@@ -17,7 +17,7 @@ public static class CategorieEndpoints
 
         group.MapGet("/{id:int}", async (int id, ICategorieService service) =>
         {
-            var result = await service.GetById(id);
+            var result = await service.GetById(id, 0);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -43,7 +43,7 @@ public static class CategorieEndpoints
 
         group.MapPost("/", async (CategorieForm form, ICategorieService service) =>
         {
-            var result = await service.Add(form);
+            var result = await service.Add(form, 0);
 
             if (result.IsSuccess)
             {
@@ -60,7 +60,7 @@ public static class CategorieEndpoints
 
         group.MapPut("/{id:int}", async (int id, CategorieForm form, ICategorieService service) =>
         {
-            var result = await service.Update(id, form);
+            var result = await service.Update(id, form, 0);
 
             return result.IsSuccess
                 ? Results.NoContent()
@@ -73,7 +73,7 @@ public static class CategorieEndpoints
 
         group.MapDelete("/{id:int}", async (int id, ICategorieService service) =>
         {
-            var result = await service.Delete(id);
+            var result = await service.Delete(id, 0);
 
             return result.IsSuccess
                 ? Results.NoContent()

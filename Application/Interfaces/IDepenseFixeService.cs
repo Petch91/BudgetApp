@@ -13,7 +13,7 @@ public interface IDepenseFixeService : IReadDepenseFixe, IWriteDepenseFixe
 
 public interface IReadDepenseFixe : IReadRepository<DepenseFixeDto>
 {
-    Task<Result<IReadOnlyList<DepenseFixeDto>>> GetDepenseFixes();
+    Task<Result<IReadOnlyList<DepenseFixeDto>>> GetDepenseFixes(int userId);
 }
 public interface IWriteDepenseFixe : IWriteRepository<DepenseFixeDto, DepenseFixeForm>
 {
