@@ -183,6 +183,7 @@ app.MapAuth();               // /api/auth
 | PATCH | `/rappels/{id}/vu` | Marque rappel comme lu |
 | PATCH | `/{id}/categorie` | Change la categorie |
 | PATCH | `/{id}/duedate` | Change l'echeance |
+| PATCH | `/{id}/echelonnement` | Active l'echelonnement |
 
 **Transactions** (`/api/transaction`)
 | Methode | Route | Description |
@@ -279,8 +280,9 @@ private async Task<HttpClient> GetClientAsync()
 **Role** : Maintenance automatique des echeances et rappels
 
 **Operations** :
-1. **Nettoyage** : Suppression des echeances et rappels expires (> 4 jours)
-2. **Generation** : Creation des prochaines echeances si horizon < 2 mois
+1. **Nettoyage** : Suppression des rappels vus et expires (> 5 jours)
+2. **Echelonnement** : Pour les depenses echelonnees (`IsEchelonne && EcheancesRestantes > 0`), cree une TransactionVariable mensuelle automatique avec la date de paiement calculee depuis la premiere DueDate. Decremente `EcheancesRestantes` et cree un rappel. La derniere echeance est ajustee pour correspondre au montant total.
+3. **Generation** : Creation des prochaines echeances si horizon < 2 mois (depenses non echelonnees uniquement)
 
 ## Points d'amelioration potentiels
 
