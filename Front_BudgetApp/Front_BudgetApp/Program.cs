@@ -11,7 +11,6 @@ using Front_BudgetApp.Components;
 using Front_BudgetApp.Services;
 using Front_BudgetApp.Services.Notifications;
 using Front_BudgetApp.Services.Sécurité;
-using Front_BudgetApp.Services.Sécurité.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
@@ -97,12 +96,8 @@ builder.Services.AddScoped<ProtectedLocalStorage>();
 builder.Services.AddScoped<AuthStateService>();
 builder.Services.AddScoped<AuthenticationStateProvider,CustomAuthStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<JwtAuthorizationHandler>();
-
-
 builder.Services.AddHttpClient(
     "Api", x => x.BaseAddress = new Uri("http://localhost:5201/api/"));
-    //.AddHttpMessageHandler<JwtAuthorizationHandler>();
 
 builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
