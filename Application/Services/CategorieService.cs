@@ -12,7 +12,7 @@ namespace Application.Services;
 
 public class CategorieService(MyDbContext context) : ICategorieService
 {
-    public async Task<Result<CategorieDto>> GetById(int id)
+    public async Task<Result<CategorieDto>> GetById(int id, int userId)
     {
         Log.Information("Récupération de la catégorie avec l'ID {Id}", id);
 
@@ -43,7 +43,7 @@ public class CategorieService(MyDbContext context) : ICategorieService
         return Result.Ok<IReadOnlyList<CategorieDto>>(categories);
     }
 
-    public async Task<Result<CategorieDto>> Add(CategorieForm form)
+    public async Task<Result<CategorieDto>> Add(CategorieForm form, int userId)
     {
         Log.Information("Tentative d'ajout d'une catégorie : {Name}", form.Name);
 
@@ -88,7 +88,7 @@ public class CategorieService(MyDbContext context) : ICategorieService
         }
     }
 
-    public async Task<Result> Update(int id, CategorieForm form)
+    public async Task<Result> Update(int id, CategorieForm form, int userId)
     {
         Log.Information("Mise à jour de la catégorie ID {Id}", id);
 
@@ -108,7 +108,7 @@ public class CategorieService(MyDbContext context) : ICategorieService
         return Result.Ok();
     }
 
-    public async Task<Result> Delete(int id)
+    public async Task<Result> Delete(int id, int userId)
     {
         Log.Information("Suppression de la catégorie ID {Id}", id);
 

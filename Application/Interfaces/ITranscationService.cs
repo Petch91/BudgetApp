@@ -11,8 +11,8 @@ public interface ITranscationService : IReadTranscation, IWriteTranscation
 }
 public interface IReadTranscation : IReadRepository<TransactionVariableDto>
 {
-    Task<Result<IReadOnlyList<TransactionVariableDto>>> GetRevenuesByMonth(int month);
-    Task<Result<IReadOnlyList<TransactionVariableDto>>> GetDepensesByMonth(int month);
+    Task<Result<IReadOnlyList<TransactionVariableDto>>> GetRevenuesByMonth(int month, int userId);
+    Task<Result<IReadOnlyList<TransactionVariableDto>>> GetDepensesByMonth(int month, int userId);
 }
 public interface IWriteTranscation : IWriteRepository<TransactionVariableDto, TransactionVariableForm>
 {

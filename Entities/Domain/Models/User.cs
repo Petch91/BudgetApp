@@ -10,6 +10,7 @@ public class User : IModel
     public string PasswordHash { get; set; }
     public bool IsActive { get; set; }
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
     public DateTime? LastLoginAt { get; set; }
     public DateTime CreatedAt { get; set; }

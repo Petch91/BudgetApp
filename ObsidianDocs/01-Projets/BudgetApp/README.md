@@ -105,6 +105,7 @@ BudgetApp/
 
 ```mermaid
 erDiagram
+    User ||--o{ Transaction : possede
     Categorie ||--o{ Transaction : contient
     Transaction ||--|| DepenseFixe : "herite (TPH)"
     Transaction ||--|| TransactionVariable : "herite (TPH)"
@@ -124,6 +125,7 @@ erDiagram
         string Intitule
         decimal Montant
         int CategorieId FK
+        int UserId FK
         datetime CreatedAt
         datetime UpdatedAt
         string TransactionTable "Discriminateur TPH"
@@ -187,6 +189,7 @@ erDiagram
 - [x] **Rapport mensuel** - Liste des transactions avec filtres par categorie, couleurs rouge/vert
 - [x] **Theme Dark Mode** - Design moderne bleu-gris et orange
 - [x] **Categories en cartes** - Layout 2 colonnes avec pagination
+- [x] **Isolation par utilisateur** - Transactions liees au user via UserId, categories globales
 
 **Points d'attention detectes** :
 - `Application.csproj` contient encore `<RootNamespace>Datas</RootNamespace>` (inconsistant avec le namespace reel)

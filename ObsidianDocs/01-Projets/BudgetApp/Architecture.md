@@ -145,6 +145,15 @@ public DbSet<User> Users => Set<User>();
 public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 ```
 
+### Isolation des donnees par utilisateur
+
+- `Transaction` (classe de base TPH) possede un `UserId` (FK vers `Users`)
+- Relation : `User (1:N) <-- Transaction`
+- Default value `UserId = 1` pour les donnees existantes
+- Les services filtrent toutes les requetes par `userId` (`Where(t => t.UserId == userId)`)
+- Les endpoints extraient le `userId` du JWT via `ClaimTypes.NameIdentifier`
+- Les **categories restent globales** (pas de filtre par userId)
+
 ### Seed Data
 - Categorie par defaut "NoCategory" (Id=1)
 

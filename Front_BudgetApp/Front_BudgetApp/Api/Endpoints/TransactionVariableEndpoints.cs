@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Security.Claims;
+using Application.Interfaces;
 using Entities.Contracts.Forms;
 
 namespace Front_BudgetApp.Api.Endpoints;
@@ -14,9 +15,10 @@ public static class TransactionVariableEndpoints
          * GET BY ID
          * ======================= */
 
-        group.MapGet("/{id:int}", async (int id, ITranscationService service) =>
+        group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, ITranscationService service) =>
         {
-            var result = await service.GetById(id);
+            var userId = GetUserId(user);
+            var result = await service.GetById(id, userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -27,9 +29,10 @@ public static class TransactionVariableEndpoints
          * REVENUS BY MONTH
          * ======================= */
 
-        group.MapGet("/revenubymonth/{month:int}", async (int month, ITranscationService service) =>
+        group.MapGet("/revenubymonth/{month:int}", async (int month, ClaimsPrincipal user, ITranscationService service) =>
         {
-            var result = await service.GetRevenuesByMonth(month);
+            var userId = GetUserId(user);
+            var result = await service.GetRevenuesByMonth(month, userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -40,9 +43,10 @@ public static class TransactionVariableEndpoints
          * DEPENSES BY MONTH
          * ======================= */
 
-        group.MapGet("/depensebymonth/{month:int}", async (int month, ITranscationService service) =>
+        group.MapGet("/depensebymonth/{month:int}", async (int month, ClaimsPrincipal user, ITranscationService service) =>
         {
-            var result = await service.GetDepensesByMonth(month);
+            var userId = GetUserId(user);
+            var result = await service.GetDepensesByMonth(month, userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -53,9 +57,10 @@ public static class TransactionVariableEndpoints
          * ADD
          * ======================= */
 
-        group.MapPost("/", async (TransactionVariableForm form, ITranscationService service) =>
+        group.MapPost("/", async (TransactionVariableForm form, ClaimsPrincipal user, ITranscationService service) =>
         {
-            var result = await service.Add(form);
+            var userId = GetUserId(user);
+            var result = await service.Add(form, userId);
 
             if (result.IsSuccess)
             {
@@ -73,9 +78,11 @@ public static class TransactionVariableEndpoints
         group.MapPut("/{id:int}", async (
             int id,
             TransactionVariableForm form,
+            ClaimsPrincipal user,
             ITranscationService service) =>
         {
-            var result = await service.Update(id, form);
+            var userId = GetUserId(user);
+            var result = await service.Update(id, form, userId);
 
             return result.IsSuccess
                 ? Results.NoContent()
@@ -86,9 +93,10 @@ public static class TransactionVariableEndpoints
          * DELETE
          * ======================= */
 
-        group.MapDelete("/{id:int}", async (int id, ITranscationService service) =>
+        group.MapDelete("/{id:int}", async (int id, ClaimsPrincipal user, ITranscationService service) =>
         {
-            var result = await service.Delete(id);
+            var userId = GetUserId(user);
+            var result = await service.Delete(id, userId);
 
             return result.IsSuccess
                 ? Results.NoContent()
@@ -111,4 +119,7 @@ public static class TransactionVariableEndpoints
                 : Results.BadRequest(result.Errors);
         });
     }
+
+    private static int GetUserId(ClaimsPrincipal user)
+        => int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 }

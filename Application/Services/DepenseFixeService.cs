@@ -16,12 +16,12 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
      * READ
      * ======================= */
 
-    public async Task<Result<DepenseFixeDto>> GetById(int id)
+    public async Task<Result<DepenseFixeDto>> GetById(int id, int userId)
     {
         Log.Information("Récupération de la dépense fixe ID {Id}", id);
 
         var depense = await context.DepenseFixes
-            .Where(d => d.Id == id)
+            .Where(d => d.Id == id && d.UserId == userId)
             .Select(ProjectionDto.DepenseFixeAsDto)
             .SingleOrDefaultAsync();
 
@@ -34,11 +34,12 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         return Result.Ok(depense);
     }
 
-    public async Task<Result<IReadOnlyList<DepenseFixeDto>>> GetDepenseFixes()
+    public async Task<Result<IReadOnlyList<DepenseFixeDto>>> GetDepenseFixes(int userId)
     {
         Log.Information("Récupération de toutes les dépenses fixes");
 
         var depenses = await context.DepenseFixes
+            .Where(d => d.UserId == userId)
             .Select(ProjectionDto.DepenseFixeAsDto)
             .ToListAsync();
 
@@ -49,7 +50,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
      * ADD
      * ======================= */
 
-    public async Task<Result<DepenseFixeDto>> Add(DepenseFixeForm form)
+    public async Task<Result<DepenseFixeDto>> Add(DepenseFixeForm form, int userId)
     {
         Log.Information("Ajout d'une dépense fixe {@Form}", form);
 
@@ -74,6 +75,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             ReminderDaysBefore = form.ReminderDaysBefore,
             CategorieId = form.Categorie.Id,
             DateFin = form.DateFin,
+            UserId = userId,
             DueDates = [],
             Rappels = []
         };
@@ -83,21 +85,21 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         context.DepenseFixes.Add(depense);
         await context.SaveChangesAsync();
 
-        return await GetById(depense.Id);
+        return await GetById(depense.Id, userId);
     }
 
     /* =======================
      * UPDATE
      * ======================= */
 
-    public async Task<Result> Update(int id, DepenseFixeForm form)
+    public async Task<Result> Update(int id, DepenseFixeForm form, int userId)
     {
         Log.Information("Mise à jour dépense fixe ID {Id}", id);
 
         var depense = await context.DepenseFixes
             .Include(d => d.DueDates)
             .Include(d => d.Rappels)
-            .SingleOrDefaultAsync(d => d.Id == id);
+            .SingleOrDefaultAsync(d => d.Id == id && d.UserId == userId);
 
         if (depense is null)
             return Result.Fail("Dépense fixe non trouvée");
@@ -120,20 +122,20 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
      * DELETE
      * ======================= */
 
-    public async Task<Result> Delete(int id)
+    public async Task<Result> Delete(int id, int userId)
     {
         Log.Information("Suppression dépense fixe ID {Id}", id);
 
         var result = await context.DepenseFixes
-            .Where(d => d.Id == id)
+            .Where(d => d.Id == id && d.UserId == userId)
             .ExecuteDeleteAsync();
 
         return result > 0
             ? Result.Ok()
             : Result.Fail("Dépense fixe non trouvée");
     }
-    
-    
+
+
     public async Task<Result> ChangeVuRappel(int id)
     {
         Log.Information("Changement d'état vu du rappel ID {Id}", id);
@@ -158,7 +160,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             ? Result.Ok()
             : Result.Fail("Impossible de modifier l'état du rappel");
     }
-    
+
     public async Task<Result> ChangeCategorie(int depenseId, int categorieId)
     {
         Log.Information(
@@ -180,7 +182,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             ? Result.Ok()
             : Result.Fail("Dépense fixe non trouvée");
     }
-    
+
     public async Task<Result> ChangeBeginDate(int id, DateTime beginDate)
     {
         Log.Information("Changement de date de début dépense fixe ID {Id}", id);
@@ -198,7 +200,7 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
 
         return Result.Ok();
     }
-    
+
     public void GenerateNextDates(DepenseFixe depense, DateTime startDate)
     {
         // Ne pas générer si la dépense a une date de fin dépassée

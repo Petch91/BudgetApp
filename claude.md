@@ -65,15 +65,15 @@ BudgetApp/
   - Seeding "NoCategory" par defaut
 
 - `Services/` :
-  - `DepenseFixeService` : Operations CRUD + generation echeances
-  - `TransactionService` : Transactions variables
-  - `CategorieService` : Gestion des categories
-  - `RapportService` : Generation des rapports mensuels
+  - `DepenseFixeService` : Operations CRUD + generation echeances (filtre par userId)
+  - `TransactionService` : Transactions variables (filtre par userId)
+  - `CategorieService` : Gestion des categories (globales, pas de filtre userId)
+  - `RapportService` : Generation des rapports mensuels (filtre par userId)
   - `UserService` : Gestion des utilisateurs
   - `AuthService` : Authentification (login, refresh token)
 
 - `Interfaces/` :
-  - `IRepository<TDto>` : Interface generique lecture/ecriture
+  - `IRepository<TDto>` : Interface generique lecture/ecriture (toutes les methodes prennent un `userId`)
   - `IDepenseFixeService`, `ITranscationService`, `ICategorieService`
 
 - `Projections/ProjectionDto.cs` : Expressions LINQ pour projection efficace
@@ -178,7 +178,7 @@ BudgetApp/
 
 | Table | Description |
 |-------|-------------|
-| `Transactions` | Table de base avec discriminateur TPH |
+| `Transactions` | Table de base avec discriminateur TPH (contient `UserId` FK vers Users) |
 | `Categories` | Categories de depenses |
 | `DepenseDueDates` | Echeances des depenses fixes |
 | `Rappels` | Rappels/alertes |
@@ -197,6 +197,7 @@ Transaction (Base TPH)
 
 Categorie (1:N) ←── Transaction
 
+User (1:N) ←── Transaction
 User (1:N) ←── RefreshToken
 ```
 
@@ -355,9 +356,9 @@ Frontend (Blazor Components)
          │
          ▼ FrontService.GetClientAsync() + JWT Token
 API Endpoints (Minimal APIs) [Authorize]
-         │
+         │ Extraction userId via ClaimTypes.NameIdentifier
          ▼
-Application Services
+Application Services (filtre par userId)
          │
          ▼
 EF Core DbContext
@@ -365,6 +366,14 @@ EF Core DbContext
          ▼
 SQL Server Database
 ```
+
+### Isolation des donnees par utilisateur
+
+- Les **transactions** (DepenseFixe, TransactionVariable) sont liees a un `UserId` (FK vers Users)
+- Les endpoints API extraient le `userId` du JWT via `ClaimTypes.NameIdentifier`
+- Les services filtrent toutes les requetes par `userId` et l'assignent lors de la creation
+- Les **categories** restent globales (partagees entre tous les utilisateurs)
+- Les donnees existantes avant la migration sont attribuees au user Id=1 (default)
 
 ---
 

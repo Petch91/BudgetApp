@@ -10,7 +10,7 @@ namespace Application.Services;
 
 public class RapportService(MyDbContext context) : IRapportService
 {
-    public async Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois)
+    public async Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois, int userId)
     {
         Log.Information("Récupération rapport {Mois}/{Annee}", mois, annee);
 
@@ -20,7 +20,7 @@ public class RapportService(MyDbContext context) : IRapportService
         var dueDates = await context.depenseDueDates
             .Include(dd => dd.Depense)
                 .ThenInclude(d => d.Categorie)
-            .Where(dd => dd.Date.Month == mois && dd.Date.Year == annee)
+            .Where(dd => dd.Date.Month == mois && dd.Date.Year == annee && dd.Depense.UserId == userId)
             .ToListAsync();
 
         foreach (var dueDate in dueDates)
@@ -44,7 +44,7 @@ public class RapportService(MyDbContext context) : IRapportService
         // 2. Récupérer les TransactionVariable du mois
         var transactions = await context.TransactionsVariables
             .Include(t => t.Categorie)
-            .Where(t => t.Date.Month == mois && t.Date.Year == annee)
+            .Where(t => t.Date.Month == mois && t.Date.Year == annee && t.UserId == userId)
             .ToListAsync();
 
         foreach (var transaction in transactions)

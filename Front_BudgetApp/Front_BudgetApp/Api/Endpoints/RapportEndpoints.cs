@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Interfaces;
 
 namespace Front_BudgetApp.Api.Endpoints;
@@ -13,9 +14,10 @@ public static class RapportEndpoints
          * GET RAPPORT BY MONTH
          * ======================= */
 
-        group.MapGet("/{annee:int}/{mois:int}", async (int annee, int mois, IRapportService service) =>
+        group.MapGet("/{annee:int}/{mois:int}", async (int annee, int mois, ClaimsPrincipal user, IRapportService service) =>
         {
-            var result = await service.GetRapportMois(annee, mois);
+            var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await service.GetRapportMois(annee, mois, userId);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
