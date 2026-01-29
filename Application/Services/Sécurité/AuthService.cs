@@ -142,7 +142,7 @@ public class AuthService : IAuthService
         return new RefreshToken
         {
             Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
         };
     }
