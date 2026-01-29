@@ -6,6 +6,7 @@
 
 ```mermaid
 erDiagram
+    User ||--o{ Transaction : "1:N"
     Categorie ||--o{ Transaction : "1:N"
     Transaction ||--|| DepenseFixe : "herite TPH"
     Transaction ||--|| TransactionVariable : "herite TPH"
@@ -20,11 +21,22 @@ erDiagram
         datetime UpdatedAt
     }
 
+    User {
+        int Id PK
+        string Username
+        string Email
+        string PasswordHash
+        bool IsActive
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
     Transaction {
         int Id PK
         string Intitule "max 150"
         decimal Montant
         int CategorieId FK
+        int UserId FK
         datetime CreatedAt
         datetime UpdatedAt
         string TransactionTable "Discriminateur"
@@ -86,6 +98,8 @@ public class Transaction : ITransaction
     public decimal Montant { get; set; }
     public int CategorieId { get; set; }
     public Categorie Categorie { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -93,10 +107,12 @@ public class Transaction : ITransaction
 
 **Relations** :
 - `Categorie` (N:1) - Navigation property vers la categorie
+- `User` (N:1) - Proprietaire de la transaction (FK `UserId`)
 
 **Notes** :
 - Classe de base pour l'heritage TPH
 - Discriminateur `TransactionTable` dans la table SQL
+- `UserId` a un default value de 1 (donnees existantes attribuees au premier utilisateur)
 
 ---
 
@@ -305,6 +321,7 @@ public record DepenseDueDateDto(
 ### Table Transactions
 - PK : `Id` (Identity)
 - FK : `CategorieId` -> Categories.Id
+- FK : `UserId` -> Users.Id (default 1)
 - Index : `TransactionTable` (discriminateur TPH)
 
 ### Table Categories

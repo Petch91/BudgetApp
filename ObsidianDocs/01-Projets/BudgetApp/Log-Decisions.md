@@ -297,6 +297,43 @@ Chaque decision est documentee ainsi :
 
 ---
 
+### 2025-01 - Isolation des transactions par utilisateur (UserId)
+
+**Contexte** : Les transactions etaient accessibles par tous les utilisateurs authentifies, sans isolation des donnees
+
+**Decisions** :
+
+#### 1. UserId sur Transaction (classe de base TPH)
+- **Options** : UserId sur chaque sous-classe vs sur la classe de base
+- **Decision** : UserId sur `Transaction` (classe de base)
+- **Raison** :
+  - Heritage TPH : la colonne est dans la table unique `Transactions`
+  - DepenseFixe et TransactionVariable heritent automatiquement
+  - Une seule FK, une seule relation a configurer
+
+#### 2. Categories globales (pas de filtre par userId)
+- **Options** : Categories par utilisateur vs Categories partagees
+- **Decision** : Categories globales
+- **Raison** :
+  - Simplifie la gestion (pas de doublons)
+  - Les categories sont generiques (Alimentation, Transport, etc.)
+
+#### 3. Extraction userId via ClaimTypes.NameIdentifier (pas JwtRegisteredClaimNames.Sub)
+- **Options** : `JwtRegisteredClaimNames.Sub` vs `ClaimTypes.NameIdentifier`
+- **Decision** : `ClaimTypes.NameIdentifier`
+- **Raison** :
+  - ASP.NET Core remappe automatiquement le claim JWT `"sub"` vers `ClaimTypes.NameIdentifier`
+  - `FindFirst(JwtRegisteredClaimNames.Sub)` retourne `null` a cause de ce remapping
+  - Bug decouvert en runtime (NullReferenceException)
+
+#### 4. Default value UserId = 1 pour la migration
+- **Decision** : `HasDefaultValue(1)` sur la colonne `UserId`
+- **Raison** : Les donnees existantes sont attribuees au premier utilisateur sans perte
+
+**Fichiers modifies** : 18 fichiers (modeles, interfaces, services, endpoints, migration)
+
+---
+
 ## Decisions techniques a documenter
 
 ### [A venir] - Tests unitaires
