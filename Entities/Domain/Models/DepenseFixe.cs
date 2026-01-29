@@ -15,16 +15,13 @@ public class DepenseFixe : Transaction
 
     public ICollection<Rappel> Rappels { get; set; } = new List<Rappel>();
 
+    public bool IsEchelonne { get; set; }
+    public int? NombreEcheances { get; set; }
+    public decimal? MontantParEcheance { get; set; }
+    public int? EcheancesRestantes { get; set; }
+
     /// <summary>
     /// Indique si la dépense est encore active (pas de DateFin ou DateFin non atteinte).
     /// </summary>
     public bool IsActive => DateFin == null || DateFin.Value >= DateTime.Today;
-}
-
-public enum Frequence
-{
-    Mensuel =12,
-    Trimestriel = 4,
-    Biannuel = 2,
-    Annuel = 1
 }

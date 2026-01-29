@@ -81,6 +81,14 @@ public partial class DepenseFixe_C : ComponentBase
 
     private DateTime ObtenirProchainPaiement(DepenseFixeDto depense)
     {
+        // Pour les dépenses échelonnées, calculer à partir de la date de début + échéances passées
+        if (depense.IsEchelonne && depense.NombreEcheances.HasValue && depense.EcheancesRestantes.HasValue)
+        {
+            var startDate = depense.DueDates.Select(d => d.Date).Min();
+            var numero = depense.NombreEcheances.Value - depense.EcheancesRestantes.Value;
+            return startDate.AddMonths(numero);
+        }
+
         var prochaineDueDate = depense.DueDates
             .Where(d => d.Date >= DateTime.Today)
             .OrderBy(d => d.Date)
@@ -199,7 +207,10 @@ public partial class DepenseFixe_C : ComponentBase
                 ReminderDaysBefore = depense.ReminderDaysBefore,
                 BeginDate = depense.DueDates.Select(d => d.Date).Min(),
                 Categorie = depense.Categorie,
-                DateFin = depense.DateFin
+                DateFin = depense.DateFin,
+                IsEchelonne = depense.IsEchelonne,
+                NombreEcheances = depense.NombreEcheances,
+                MontantParEcheance = depense.MontantParEcheance
             };
             _selectedCategorieId = depense.Categorie.Id;
         }

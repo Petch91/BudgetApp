@@ -129,6 +129,23 @@ public static class DepenseFixesEndpoints
                 ? Results.NoContent()
                 : Results.NotFound(result.Errors);
         });
+        /* =======================
+         * ACTIVER ECHELONNEMENT
+         * ======================= */
+
+        group.MapPatch("/{id:int}/echelonnement", async (
+            int id,
+            EchelonnementRequest request,
+            ClaimsPrincipal user,
+            IDepenseFixeService service) =>
+        {
+            var userId = GetUserId(user);
+            var result = await service.ActiverEchelonnement(id, request.NombreEcheances, request.MontantParEcheance, userId);
+
+            return result.IsSuccess
+                ? Results.NoContent()
+                : Results.BadRequest(result.Errors);
+        });
     }
 
     private static int GetUserId(ClaimsPrincipal user)

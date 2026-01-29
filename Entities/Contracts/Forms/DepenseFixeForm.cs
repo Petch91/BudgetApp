@@ -18,4 +18,8 @@ public class DepenseFixeForm
     /// Null = dépense permanente.
     /// </summary>
     public DateTime? DateFin { get; set; }
+
+    public bool IsEchelonne { get; set; }
+    public int? NombreEcheances { get; set; }
+    public decimal? MontantParEcheance { get; set; }
 }

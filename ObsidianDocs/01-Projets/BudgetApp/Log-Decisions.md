@@ -334,6 +334,39 @@ Chaque decision est documentee ainsi :
 
 ---
 
+### 2025-01-29 - Paiement echelonne (echelonnement)
+
+**Contexte** : Les depenses annuelles (assurance, etc.) apparaissent en une seule fois dans le rapport, alors qu'elles sont payees mensuellement
+
+**Decisions** :
+
+#### 1. Proprietes sur DepenseFixe (pas de table separee)
+- **Options** : Table EchelonnementPlan vs Proprietes sur DepenseFixe
+- **Decision** : 4 proprietes sur DepenseFixe (`IsEchelonne`, `NombreEcheances`, `MontantParEcheance`, `EcheancesRestantes`)
+- **Raison** : Simplicite, pas besoin d'une entite separee pour cette fonctionnalite
+
+#### 2. Creation automatique via le scheduler
+- **Options** : Creation manuelle par l'utilisateur vs Automatique via scheduler
+- **Decision** : Automatique via `DepenseFixeScheduler.TraiterEchelonnement()`
+- **Raison** : Pas d'action requise de l'utilisateur chaque mois
+
+#### 3. Exclusion des DueDates echelonnees du rapport
+- **Decision** : Filtre `IsEchelonne == false` sur les DueDates dans `RapportService`
+- **Raison** : Les TransactionVariable creees par le scheduler apparaissent naturellement dans le rapport, evite le double comptage
+
+#### 4. Date de paiement calculee (pas `DateTime.Today`)
+- **Options** : `Date = today` vs `Date = startDate.AddMonths(numero - 1)`
+- **Decision** : Date calculee depuis la premiere DueDate
+- **Raison** : Coherence des dates dans le rapport, la date de debut correspond au premier paiement reel
+
+#### 5. NULL handling pour IsEchelonne en TPH
+- **Decision** : `IsEchelonne == false` (pas `!IsEchelonne`) dans les requetes LINQ
+- **Raison** : En TPH, la colonne est nullable. `!IsEchelonne` en SQL traite NULL comme ni true ni false, excluant les lignes TransactionVariable. `== false` genere `WHERE IsEchelonne = 0` qui fonctionne correctement.
+
+**Fichiers modifies** : 29 fichiers (modeles, DTOs, forms, services, scheduler, endpoints, UI, migration, CSS)
+
+---
+
 ## Decisions techniques a documenter
 
 ### [A venir] - Tests unitaires

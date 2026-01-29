@@ -76,6 +76,10 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             CategorieId = form.Categorie.Id,
             DateFin = form.DateFin,
             UserId = userId,
+            IsEchelonne = form.IsEchelonne,
+            NombreEcheances = form.NombreEcheances,
+            MontantParEcheance = form.MontantParEcheance,
+            EcheancesRestantes = form.IsEchelonne ? form.NombreEcheances : null,
             DueDates = [],
             Rappels = []
         };
@@ -111,6 +115,11 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         depense.ReminderDaysBefore = form.ReminderDaysBefore;
         depense.CategorieId = form.Categorie.Id;
         depense.DateFin = form.DateFin;
+        depense.IsEchelonne = form.IsEchelonne;
+        depense.NombreEcheances = form.NombreEcheances;
+        depense.MontantParEcheance = form.MontantParEcheance;
+        if (form.IsEchelonne && depense.EcheancesRestantes == null)
+            depense.EcheancesRestantes = form.NombreEcheances;
 
         SetDates(depense, form.BeginDate);
 
@@ -198,6 +207,25 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         SetDates(depense, beginDate);
         await context.SaveChangesAsync();
 
+        return Result.Ok();
+    }
+
+    public async Task<Result> ActiverEchelonnement(int id, int nombreEcheances, decimal montantParEcheance, int userId)
+    {
+        Log.Information("Activation échelonnement dépense fixe ID {Id} : {Nb}x{Montant}", id, nombreEcheances, montantParEcheance);
+
+        var depense = await context.DepenseFixes
+            .SingleOrDefaultAsync(d => d.Id == id && d.UserId == userId);
+
+        if (depense is null)
+            return Result.Fail("Dépense fixe non trouvée");
+
+        depense.IsEchelonne = true;
+        depense.NombreEcheances = nombreEcheances;
+        depense.MontantParEcheance = montantParEcheance;
+        depense.EcheancesRestantes = nombreEcheances;
+
+        await context.SaveChangesAsync();
         return Result.Ok();
     }
 

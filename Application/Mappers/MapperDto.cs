@@ -25,7 +25,11 @@ public static class MapperDto
                 .Select(r => r.ToDto())
                 .ToList(),
             d.DateFin,
-            d.IsActive
+            d.IsActive,
+            d.IsEchelonne,
+            d.NombreEcheances,
+            d.MontantParEcheance,
+            d.EcheancesRestantes
         );
 
     public static RappelDto ToDto(this Rappel r)

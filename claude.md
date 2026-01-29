@@ -30,7 +30,7 @@ BudgetApp/
 **Structure:**
 - `Domain/Models/` : Entites principales
   - `Transaction` (classe de base - heritage)
-  - `DepenseFixe` (depenses fixes recurrentes)
+  - `DepenseFixe` (depenses fixes recurrentes, support echelonnement)
   - `TransactionVariable` (transactions variables)
   - `Categorie` (categories de depenses)
   - `DepenseMois` (resumes mensuels)
@@ -316,8 +316,9 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 **Frequence:** Toutes les heures
 
 **Operations:**
-1. **Nettoyage:** Suppression des echeances et rappels expires (> 4 jours)
-2. **Generation:** Creation des prochaines echeances si necessaire (horizon 2 mois)
+1. **Nettoyage:** Suppression des rappels vus et expires (> 5 jours)
+2. **Echelonnement:** Pour les depenses echelonnees (`IsEchelonne && EcheancesRestantes > 0`), cree une TransactionVariable mensuelle automatique. Date calculee depuis la premiere DueDate (`startDate.AddMonths(numero - 1)`). Decremente `EcheancesRestantes`, ajuste la derniere echeance.
+3. **Generation:** Creation des prochaines echeances si necessaire (horizon 2 mois) - depenses non echelonnees uniquement
 
 **Calcul frequence:**
 - Mensuel: +1 mois (12x/an)
@@ -346,6 +347,26 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 - **ASP.NET Core Minimal APIs**
 - Groupes d'endpoints avec tags Swagger
 - Codes HTTP: 200, 201, 204, 400, 404
+
+### Regles de code
+
+#### CSS
+- **Jamais de balise `<style>` dans les fichiers `.razor`**
+- CSS specifique a un composant → fichier `Composant.razor.css` (CSS isolation Blazor)
+- CSS partage entre plusieurs composants → `wwwroot/app.css`
+
+#### TPH et colonnes nullable
+- En TPH, les proprietes specifiques a un sous-type sont nullable en SQL
+- Pour filtrer un bool en LINQ, utiliser `== false` (pas `!property`) car NULL n'est ni true ni false en SQL
+- Exemple : `Where(d => d.IsEchelonne == false)` et non `Where(d => !d.IsEchelonne)`
+
+#### Classes et records
+- **Chaque class/record dans son propre fichier dedie** (pas de types imbriques ou accoles dans un autre fichier)
+- Ranger dans le bon dossier selon le role :
+  - Modeles domaine → `Entities/Domain/Models/`
+  - DTOs → `Entities/Contracts/Dtos/`
+  - Formulaires/Requests → `Entities/Contracts/Forms/`
+  - Interfaces → dans le projet concerne (`Domain/Interfaces/`, `Application/Interfaces/`, etc.)
 
 ---
 

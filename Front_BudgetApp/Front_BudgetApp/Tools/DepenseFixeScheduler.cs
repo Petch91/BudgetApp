@@ -34,14 +34,21 @@ public class DepenseFixeScheduler(
 
         foreach (var depense in depenses)
         {
-            // 1️⃣ Supprimer les rappels vus et expirés (5 jours après la date)
+            // 1. Supprimer les rappels vus et expirés (5 jours après la date)
             var expiredRappels = depense.Rappels
                 .Where(r => r.Vu && r.RappelDate < deleteRappelsBefore)
                 .ToList();
 
             context.Rappels.RemoveRange(expiredRappels);
 
-            // 2️⃣ Vérifier s'il faut générer de nouvelles dates (horizon 2 mois)
+            // 2. Traiter les dépenses échelonnées
+            if (depense.IsEchelonne && depense.EcheancesRestantes > 0)
+            {
+                await TraiterEchelonnement(context, depense, today);
+                continue;
+            }
+
+            // 3. Vérifier s'il faut générer de nouvelles dates (horizon 2 mois)
             // Ne pas générer si la dépense a une date de fin dépassée
             if (depense.DateFin.HasValue && depense.DateFin.Value < today)
                 continue;
@@ -58,6 +65,60 @@ public class DepenseFixeScheduler(
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private async Task TraiterEchelonnement(MyDbContext context, DepenseFixe depense, DateTime today)
+    {
+        var total = depense.NombreEcheances!.Value;
+        var numero = total - depense.EcheancesRestantes!.Value + 1;
+
+        // Calculer la date de paiement à partir de la première DueDate + mois écoulés
+        var startDate = depense.DueDates.Select(d => d.Date).Min();
+        var datePaiement = startDate.AddMonths(numero - 1);
+
+        // Ne pas créer si la date de paiement n'est pas encore arrivée
+        if (datePaiement > today)
+            return;
+
+        // Vérifier si une transaction variable existe déjà pour ce mois
+        var dejaCreeCeMois = await context.TransactionsVariables
+            .AnyAsync(t =>
+                t.UserId == depense.UserId &&
+                t.Date.Month == datePaiement.Month &&
+                t.Date.Year == datePaiement.Year &&
+                t.Intitule.StartsWith(depense.Intitule + " - Echeance"));
+
+        if (dejaCreeCeMois)
+            return;
+
+        // Calculer le montant (ajuster la dernière échéance)
+        decimal montant;
+        if (depense.EcheancesRestantes == 1)
+            montant = depense.Montant - (total - 1) * depense.MontantParEcheance!.Value;
+        else
+            montant = depense.MontantParEcheance!.Value;
+
+        // Créer la TransactionVariable avec la date de paiement prévue
+        var transaction = new TransactionVariable
+        {
+            Intitule = $"{depense.Intitule} - Echeance {numero}/{total}",
+            Montant = montant,
+            Date = datePaiement,
+            TransactionType = TransactionType.Depense,
+            CategorieId = depense.CategorieId,
+            UserId = depense.UserId
+        };
+
+        context.TransactionsVariables.Add(transaction);
+
+        // Décrémenter les échéances restantes
+        depense.EcheancesRestantes--;
+
+        // Créer un rappel mensuel sur la dépense fixe
+        depense.Rappels.Add(new Rappel
+        {
+            RappelDate = datePaiement
+        });
     }
 
     private void GenerateNextDates(DepenseFixe depense, DateTime startDate)

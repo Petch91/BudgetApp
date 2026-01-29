@@ -135,6 +135,10 @@ erDiagram
         Frequence Frequence
         bool EstDomiciliee
         int ReminderDaysBefore
+        bool IsEchelonne
+        int NombreEcheances
+        decimal MontantParEcheance
+        int EcheancesRestantes
     }
 
     TransactionVariable {
@@ -190,6 +194,7 @@ erDiagram
 - [x] **Theme Dark Mode** - Design moderne bleu-gris et orange
 - [x] **Categories en cartes** - Layout 2 colonnes avec pagination
 - [x] **Isolation par utilisateur** - Transactions liees au user via UserId, categories globales
+- [x] **Paiement echelonne** - Depenses fixes echelonnees avec creation automatique de TransactionVariable mensuelles via le scheduler
 
 **Points d'attention detectes** :
 - `Application.csproj` contient encore `<RootNamespace>Datas</RootNamespace>` (inconsistant avec le namespace reel)

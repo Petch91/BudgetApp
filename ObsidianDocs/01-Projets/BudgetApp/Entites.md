@@ -46,6 +46,10 @@ erDiagram
         int Frequence "enum"
         bool EstDomiciliee
         int ReminderDaysBefore "default 3"
+        bool IsEchelonne "default false"
+        int NombreEcheances "nullable"
+        decimal MontantParEcheance "nullable"
+        int EcheancesRestantes "nullable"
     }
 
     TransactionVariable {
@@ -129,8 +133,16 @@ public class DepenseFixe : Transaction
     public ICollection<DepenseDueDate> DueDates { get; set; }
     public int ReminderDaysBefore { get; set; } = 3;
     public ICollection<Rappel> Rappels { get; set; } = new List<Rappel>();
+    public bool IsEchelonne { get; set; }
+    public int? NombreEcheances { get; set; }
+    public decimal? MontantParEcheance { get; set; }
+    public int? EcheancesRestantes { get; set; }
 }
+```
 
+**Fichier** : `Entities/Domain/Models/Frequence.cs`
+
+```csharp
 public enum Frequence
 {
     Mensuel = 12,      // 12 fois par an
@@ -148,6 +160,10 @@ public enum Frequence
 - `EstDomiciliee = true` -> Pas de rappels affiches
 - `ReminderDaysBefore` -> Nombre de jours avant echeance pour rappel
 - `Frequence` -> Determine le calcul des prochaines echeances
+- `IsEchelonne = true` -> Le scheduler cree automatiquement une TransactionVariable chaque mois
+- `EcheancesRestantes` decremente a chaque creation, s'arrete a 0
+- Les DueDates des depenses echelonnees sont exclues du rapport mensuel (pas de double comptage)
+- La derniere echeance est ajustee pour correspondre au montant total
 
 ---
 
@@ -163,6 +179,11 @@ public class TransactionVariable : Transaction
     public TransactionType TransactionType { get; set; }
 }
 
+```
+
+**Fichier** : `Entities/Domain/Models/TransactionType.cs`
+
+```csharp
 public enum TransactionType
 {
     Revenu,
@@ -272,7 +293,13 @@ public record DepenseFixeDto(
     bool EstDomiciliee,
     IReadOnlyList<DepenseDueDateDto> DueDates,
     int ReminderDaysBefore,
-    IReadOnlyList<RappelDto> Rappels
+    IReadOnlyList<RappelDto> Rappels,
+    DateTime? DateFin,
+    bool IsActive,
+    bool IsEchelonne,
+    int? NombreEcheances,
+    decimal? MontantParEcheance,
+    int? EcheancesRestantes
 );
 ```
 
