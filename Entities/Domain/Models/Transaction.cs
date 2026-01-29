@@ -14,9 +14,3 @@ public class Transaction : ITransaction
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
-
-public enum TransactionType
-{
-    Revenu,
-    Depense,
-}

@@ -30,7 +30,11 @@ public static class ProjectionDto
                 ))
                 .ToList(),
             d.DateFin,
-            d.DateFin == null || d.DateFin.Value >= DateTime.Today
+            d.DateFin == null || d.DateFin.Value >= DateTime.Today,
+            d.IsEchelonne,
+            d.NombreEcheances,
+            d.MontantParEcheance,
+            d.EcheancesRestantes
         );
     
     public static Expression<Func<TransactionVariable, TransactionVariableDto>> TransactionAsDto =>

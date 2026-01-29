@@ -257,6 +257,13 @@
                                                         Manuelle
                                                     </Badge>
                                                 }
+                                                @if (depense.IsEchelonne)
+                                                {
+                                                    <Badge Color="BadgeColor.Info">
+                                                        <Icon Name="IconName.CreditCard" class="me-1"/>
+                                                        Echelonne @(depense.EcheancesRestantes)/@(depense.NombreEcheances)
+                                                    </Badge>
+                                                }
                                             </div>
                                         </td>
                                         <td class="text-center">
@@ -363,6 +370,32 @@
                     <InputDate @bind-Value="_form.DateFin" class="form-control"/>
                     <small class="text-muted">Laisser vide pour une depense permanente</small>
                 </div>
+
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <InputCheckbox @bind-Value="_form.IsEchelonne" class="form-check-input" id="isEchelonne"/>
+                        <label class="form-check-label" for="isEchelonne">
+                            <Icon Name="IconName.CreditCard" Color="IconColor.Info" class="me-1"/>
+                            Paiement echelonne
+                        </label>
+                    </div>
+                    <small class="text-muted">Active la creation automatique de transactions mensuelles</small>
+                </div>
+
+                @if (_form.IsEchelonne)
+                {
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre d'echeances *</label>
+                        <InputNumber @bind-Value="_form.NombreEcheances" class="form-control" min="2" max="60" placeholder="Ex: 12"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Montant par echeance *</label>
+                        <div class="input-group">
+                            <InputNumber @bind-Value="_form.MontantParEcheance" class="form-control" placeholder="Ex: 83.33"/>
+                            <span class="input-group-text">&euro;</span>
+                        </div>
+                    </div>
+                }
             </div>
         </EditForm>
     </BodyTemplate>

@@ -20,4 +20,5 @@ public interface IWriteDepenseFixe : IWriteRepository<DepenseFixeDto, DepenseFix
     Task<Result> ChangeVuRappel(int id);
     Task<Result> ChangeCategorie(int depenseId, int categorieId);
     Task<Result> ChangeBeginDate(int id, DateTime beginDate);
+    Task<Result> ActiverEchelonnement(int id, int nombreEcheances, decimal montantParEcheance, int userId);
 }

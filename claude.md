@@ -347,6 +347,21 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 - Groupes d'endpoints avec tags Swagger
 - Codes HTTP: 200, 201, 204, 400, 404
 
+### Regles de code
+
+#### CSS
+- **Jamais de balise `<style>` dans les fichiers `.razor`**
+- CSS specifique a un composant → fichier `Composant.razor.css` (CSS isolation Blazor)
+- CSS partage entre plusieurs composants → `wwwroot/app.css`
+
+#### Classes et records
+- **Chaque class/record dans son propre fichier dedie** (pas de types imbriques ou accoles dans un autre fichier)
+- Ranger dans le bon dossier selon le role :
+  - Modeles domaine → `Entities/Domain/Models/`
+  - DTOs → `Entities/Contracts/Dtos/`
+  - Formulaires/Requests → `Entities/Contracts/Forms/`
+  - Interfaces → dans le projet concerne (`Domain/Interfaces/`, `Application/Interfaces/`, etc.)
+
 ---
 
 ## Flux de donnees

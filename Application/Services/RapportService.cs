@@ -20,7 +20,7 @@ public class RapportService(MyDbContext context) : IRapportService
         var dueDates = await context.depenseDueDates
             .Include(dd => dd.Depense)
                 .ThenInclude(d => d.Categorie)
-            .Where(dd => dd.Date.Month == mois && dd.Date.Year == annee && dd.Depense.UserId == userId)
+            .Where(dd => dd.Date.Month == mois && dd.Date.Year == annee && dd.Depense.UserId == userId && dd.Depense.IsEchelonne == false)
             .ToListAsync();
 
         foreach (var dueDate in dueDates)

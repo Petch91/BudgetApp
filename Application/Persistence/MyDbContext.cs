@@ -36,6 +36,7 @@ public class MyDbContext : DbContext
         entityDepenseFixe
             .Property(p => p.Intitule).HasMaxLength(150);
         entityDepenseFixe.Property(p => p.CategorieId).HasDefaultValue(1);
+        entityDepenseFixe.Property(p => p.IsEchelonne).HasDefaultValue(false);
         entityDepenseFixe.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseFixe.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
         entityDepenseFixe.HasOne(t => t.Categorie)

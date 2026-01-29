@@ -14,5 +14,9 @@ public record DepenseFixeDto
     int ReminderDaysBefore,
     IReadOnlyList<RappelDto> Rappels,
     DateTime? DateFin,
-    bool IsActive
+    bool IsActive,
+    bool IsEchelonne,
+    int? NombreEcheances,
+    decimal? MontantParEcheance,
+    int? EcheancesRestantes
 );
