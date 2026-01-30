@@ -52,7 +52,7 @@ public static class CategorieEndpoints
             }
 
             return Results.BadRequest(result.Errors);
-        }).RequireAuthorization("Connected");
+        }) ;
 
         /* =======================
          * UPDATE
@@ -65,7 +65,7 @@ public static class CategorieEndpoints
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(result.Errors);
-        }).RequireAuthorization("Connected");
+        });
 
         /* =======================
          * DELETE
@@ -78,6 +78,6 @@ public static class CategorieEndpoints
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(result.Errors);
-        }).RequireAuthorization("Connected");
+        });
     }
 }
