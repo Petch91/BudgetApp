@@ -105,12 +105,12 @@
                 <div class="d-flex align-items-center">
                     <Icon Name="IconName.ExclamationTriangleFill" class="me-2 fs-4"/>
                     <div>
-                        <strong>Attention !</strong> @ObtenirDepensesAvecRappelUrgent().Count depense(s) a payer dans les 3 prochains jours :
+                        <strong>Attention !</strong> @ObtenirDepensesAvecRappelUrgent().Count depense(s) à payer si cela n'a pas encore été fait avant la date mentionnée :
                         <ul class="mb-0 mt-2">
                             @foreach (var dep in ObtenirDepensesAvecRappelUrgent().Take(3))
                             {
                                 <li>
-                                    <strong>@dep.Intitule</strong> - @dep.Montant.ToString("N2") &euro;
+                                    <strong>@dep.Intitule</strong> - @(ObtenirMontantEcheance(dep).ToString("N2")) &euro;
                                     (le @ObtenirProchainPaiement(dep).ToString("dd/MM/yyyy"))
                                 </li>
                             }
@@ -202,12 +202,22 @@
                                                 @depense.Categorie.Name
                                             </Badge>
                                         </td>
-                                        <td class="text-end fw-bold">@depense.Montant.ToString("N2") &euro;</td>
+                                        <td class="text-end fw-bold">
+                                            @if (depense.IsEchelonne)
+                                            {
+                                                <span>@(ObtenirMontantEcheance(depense).ToString("N2")) &euro;</span>
+                                                <br/><small class="text-muted">total: @depense.Montant.ToString("N2") &euro;</small>
+                                            }
+                                            else
+                                            {
+                                                @(depense.Montant.ToString("N2")) <text>&euro;</text>
+                                            }
+                                        </td>
                                         <td>
                                             <div class="d-flex flex-column">
                                                 <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
                                                 <small
-                                                    class="@(estUrgent ? "text-danger fw-bold blink" : "text-muted")">
+                                                    class="@(estUrgent && rappelNonVu ? "text-danger fw-bold blink" : "text-muted")">
                                                     @if (joursRestants == 0)
                                                     {
                                                         <text>Aujourd'hui</text>

@@ -79,6 +79,17 @@ public partial class DepenseFixe_C : ComponentBase
         }
     }
 
+    private decimal ObtenirMontantEcheance(DepenseFixeDto depense)
+    {
+        if (!depense.IsEchelonne || !depense.MontantParEcheance.HasValue || !depense.NombreEcheances.HasValue)
+            return depense.Montant;
+
+        if (depense.EcheancesRestantes == 1)
+            return depense.Montant - (depense.NombreEcheances.Value - 1) * depense.MontantParEcheance.Value;
+
+        return depense.MontantParEcheance.Value;
+    }
+
     private DateTime ObtenirProchainPaiement(DepenseFixeDto depense)
     {
         // Pour les dépenses échelonnées, calculer à partir de la date de début + échéances passées
@@ -132,7 +143,7 @@ public partial class DepenseFixe_C : ComponentBase
                 return prochainPaiement.Month == dateMoisProchain.Month
                        && prochainPaiement.Year == dateMoisProchain.Year;
             })
-            .Sum(d => d.Montant);
+            .Sum(d => ObtenirMontantEcheance(d));
     }
 
     private int CompterDepensesActives()
@@ -177,7 +188,7 @@ public partial class DepenseFixe_C : ComponentBase
             return "table-secondary opacity-75";
         if (rappelNonVu)
             return "row-rappel";
-        if (estUrgent)
+        if (estUrgent && rappelNonVu)
             return "table-warning";
         return "";
     }
@@ -310,20 +321,20 @@ public partial class DepenseFixe_C : ComponentBase
 
     private async Task MarquerRappelVu(DepenseFixeDto depense)
     {
-        var rappelNonVu = depense.Rappels
+        var rappelsNonVus = depense.Rappels
             .Where(r => !r.Vu && r.RappelDate <= DateTime.Today)
-            .OrderBy(r => r.RappelDate)
-            .FirstOrDefault();
+            .ToList();
 
-        if (rappelNonVu is not null)
+        if (rappelsNonVus.Count == 0)
+            return;
+
+        foreach (var rappel in rappelsNonVus)
         {
-            var result = await HttpDepense.ChangeVuRappel(rappelNonVu.Id);
-            if (result.IsSuccess)
-            {
-                ToastService.Info("Rappel marque comme lu", "Rappel");
-                ToastService.ExecuteQueue();
-                await LoadAsync();
-            }
+            await HttpDepense.ChangeVuRappel(rappel.Id);
         }
+
+        ToastService.Info($"{rappelsNonVus.Count} rappel(s) marque(s) comme lu(s)", "Rappel");
+        ToastService.ExecuteQueue();
+        await LoadAsync();
     }
 }
