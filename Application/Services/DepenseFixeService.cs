@@ -89,6 +89,9 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         context.DepenseFixes.Add(depense);
         await context.SaveChangesAsync();
 
+        if (depense.IsEchelonne)
+            await RattrapEcheances(depense);
+
         return await GetById(depense.Id, userId);
     }
 
@@ -124,6 +127,10 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         SetDates(depense, form.BeginDate);
 
         await context.SaveChangesAsync();
+
+        if (depense.IsEchelonne && depense.EcheancesRestantes > 0)
+            await RattrapEcheances(depense);
+
         return Result.Ok();
     }
 
@@ -226,6 +233,11 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         depense.EcheancesRestantes = nombreEcheances;
 
         await context.SaveChangesAsync();
+
+        // Inclure les DueDates pour calculer la date de début
+        await context.Entry(depense).Collection(d => d.DueDates).LoadAsync();
+        await RattrapEcheances(depense);
+
         return Result.Ok();
     }
 
@@ -317,4 +329,57 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             new() { RappelDate = date.AddDays(-1) },
             new() { RappelDate = date },
         };
+
+    /// <summary>
+    /// Crée toutes les TransactionVariable pour les échéances passées non encore créées.
+    /// Appelé à l'ajout, la modification ou l'activation de l'échelonnement.
+    /// </summary>
+    private async Task RattrapEcheances(DepenseFixe depense)
+    {
+        var today = DateTime.Today;
+        var total = depense.NombreEcheances!.Value;
+        var startDate = depense.DueDates.Select(d => d.Date).Min();
+
+        while (depense.EcheancesRestantes > 0)
+        {
+            var numero = total - depense.EcheancesRestantes.Value + 1;
+            var datePaiement = startDate.AddMonths(numero - 1);
+
+            if (datePaiement > today)
+                break;
+
+            var dejaCreeCeMois = await context.TransactionsVariables
+                .AnyAsync(t =>
+                    t.UserId == depense.UserId &&
+                    t.Date.Month == datePaiement.Month &&
+                    t.Date.Year == datePaiement.Year &&
+                    t.Intitule.StartsWith(depense.Intitule + " - Echeance"));
+
+            if (dejaCreeCeMois)
+            {
+                depense.EcheancesRestantes--;
+                continue;
+            }
+
+            decimal montant;
+            if (depense.EcheancesRestantes == 1)
+                montant = depense.Montant - (total - 1) * depense.MontantParEcheance!.Value;
+            else
+                montant = depense.MontantParEcheance!.Value;
+
+            context.TransactionsVariables.Add(new TransactionVariable
+            {
+                Intitule = $"{depense.Intitule} - Echeance {numero}/{total}",
+                Montant = montant,
+                Date = datePaiement,
+                TransactionType = TransactionType.Depense,
+                CategorieId = depense.CategorieId,
+                UserId = depense.UserId
+            });
+
+            depense.EcheancesRestantes--;
+        }
+
+        await context.SaveChangesAsync();
+    }
 }

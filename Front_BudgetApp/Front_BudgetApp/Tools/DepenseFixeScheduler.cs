@@ -70,55 +70,56 @@ public class DepenseFixeScheduler(
     private async Task TraiterEchelonnement(MyDbContext context, DepenseFixe depense, DateTime today)
     {
         var total = depense.NombreEcheances!.Value;
-        var numero = total - depense.EcheancesRestantes!.Value + 1;
-
-        // Calculer la date de paiement à partir de la première DueDate + mois écoulés
         var startDate = depense.DueDates.Select(d => d.Date).Min();
-        var datePaiement = startDate.AddMonths(numero - 1);
 
-        // Ne pas créer si la date de paiement n'est pas encore arrivée
-        if (datePaiement > today)
-            return;
-
-        // Vérifier si une transaction variable existe déjà pour ce mois
-        var dejaCreeCeMois = await context.TransactionsVariables
-            .AnyAsync(t =>
-                t.UserId == depense.UserId &&
-                t.Date.Month == datePaiement.Month &&
-                t.Date.Year == datePaiement.Year &&
-                t.Intitule.StartsWith(depense.Intitule + " - Echeance"));
-
-        if (dejaCreeCeMois)
-            return;
-
-        // Calculer le montant (ajuster la dernière échéance)
-        decimal montant;
-        if (depense.EcheancesRestantes == 1)
-            montant = depense.Montant - (total - 1) * depense.MontantParEcheance!.Value;
-        else
-            montant = depense.MontantParEcheance!.Value;
-
-        // Créer la TransactionVariable avec la date de paiement prévue
-        var transaction = new TransactionVariable
+        // Boucle : rattraper toutes les échéances passées d'un coup
+        while (depense.EcheancesRestantes > 0)
         {
-            Intitule = $"{depense.Intitule} - Echeance {numero}/{total}",
-            Montant = montant,
-            Date = datePaiement,
-            TransactionType = TransactionType.Depense,
-            CategorieId = depense.CategorieId,
-            UserId = depense.UserId
-        };
+            var numero = total - depense.EcheancesRestantes.Value + 1;
+            var datePaiement = startDate.AddMonths(numero - 1);
 
-        context.TransactionsVariables.Add(transaction);
+            // Arrêter si la date de paiement n'est pas encore arrivée
+            if (datePaiement > today)
+                break;
 
-        // Décrémenter les échéances restantes
-        depense.EcheancesRestantes--;
+            // Vérifier si une transaction variable existe déjà pour ce mois
+            var dejaCreeCeMois = await context.TransactionsVariables
+                .AnyAsync(t =>
+                    t.UserId == depense.UserId &&
+                    t.Date.Month == datePaiement.Month &&
+                    t.Date.Year == datePaiement.Year &&
+                    t.Intitule.StartsWith(depense.Intitule + " - Echeance"));
 
-        // Créer un rappel mensuel sur la dépense fixe
-        depense.Rappels.Add(new Rappel
-        {
-            RappelDate = datePaiement
-        });
+            if (dejaCreeCeMois)
+            {
+                depense.EcheancesRestantes--;
+                continue;
+            }
+
+            // Calculer le montant (ajuster la dernière échéance)
+            decimal montant;
+            if (depense.EcheancesRestantes == 1)
+                montant = depense.Montant - (total - 1) * depense.MontantParEcheance!.Value;
+            else
+                montant = depense.MontantParEcheance!.Value;
+
+            // Créer la TransactionVariable avec la date de paiement prévue
+            var transaction = new TransactionVariable
+            {
+                Intitule = $"{depense.Intitule} - Echeance {numero}/{total}",
+                Montant = montant,
+                Date = datePaiement,
+                TransactionType = TransactionType.Depense,
+                CategorieId = depense.CategorieId,
+                UserId = depense.UserId
+            };
+
+            context.TransactionsVariables.Add(transaction);
+            depense.EcheancesRestantes--;
+
+            _logger.LogInformation("Echeance {Numero}/{Total} créée pour {Intitule} au {Date}",
+                numero, total, depense.Intitule, datePaiement.ToShortDateString());
+        }
     }
 
     private void GenerateNextDates(DepenseFixe depense, DateTime startDate)
