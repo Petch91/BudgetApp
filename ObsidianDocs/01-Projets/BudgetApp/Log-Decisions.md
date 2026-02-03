@@ -367,6 +367,54 @@ Chaque decision est documentee ainsi :
 
 ---
 
+### 2025-02 - Refresh Token Proactif
+
+**Contexte** : JWT expire apres 15 min. Le refresh ne se declenchait que lors d'un appel API (`GetSessionAsync`). Si l'utilisateur etait inactif > 13 min, le token expirait, le refresh etait tente trop tard ou echouait, et l'utilisateur etait deconnecte.
+
+**Decisions** :
+
+#### 1. Timer proactif dans AuthStateService
+- **Options** : Refresh a chaque appel API vs Timer proactif
+- **Decision** : Timer qui se declenche 3 min avant expiration
+- **Raison** : Le refresh est independant de l'activite utilisateur. Le timer tourne cote serveur (circuit Blazor Server), pas besoin de JS interop.
+
+```csharp
+private void ScheduleRefresh()
+{
+    var delay = _currentSession.ExpiresAt - DateTime.UtcNow - RefreshMargin;
+    _ = Task.Run(async () => {
+        await Task.Delay(delay, token);
+        await RefreshSessionAsync();
+    });
+}
+```
+
+#### 2. Augmentation ExpirationMinutes a 30 min
+- **Options** : 15 min vs 30 min vs 1h
+- **Decision** : 30 min
+- **Raison** : 15 min etait trop agressif pour une app de budget. 30 min est un bon compromis securite/UX.
+
+#### 3. Event OnSessionExpired + MainLayout listener
+- **Options** : Redirect dans ForceLogoutAsync vs Event pattern
+- **Decision** : Event `OnSessionExpired` ecoute par MainLayout
+- **Raison** : Separation des responsabilites. AuthStateService gere la session, MainLayout gere la navigation.
+
+#### 4. Gestion 401 dans tous les FrontServices
+- **Decision** : Tous les FrontServices detectent les 401 et appellent `ForceLogoutAsync()`
+- **Raison** : Meme si le timer fonctionne, le refresh token peut etre revoque cote serveur. Le 401 doit declencher un logout automatique.
+
+**Fichiers modifies** :
+- `AuthStateService.cs` - Timer proactif + event OnSessionExpired + ForceLogoutAsync
+- `MainLayout.razor` - IDisposable + listener OnSessionExpired
+- `appsettings.Development.json` - ExpirationMinutes: 30
+- `appsettings.Production.json` - ExpirationMinutes: 30
+- `DepenseFixeFrontService.cs` - Check 401 + ForceLogoutAsync
+- `TransactionFrontService.cs` - Check 401 + ForceLogoutAsync
+- `CategorieFrontService.cs` - Check 401 + ForceLogoutAsync
+- `RapportFrontService.cs` - Check 401 + ForceLogoutAsync
+
+---
+
 ## Decisions techniques a documenter
 
 ### [A venir] - Tests unitaires

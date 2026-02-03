@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using BudgetApp.Shared.Interfaces.Http;
@@ -10,7 +11,7 @@ namespace Front_BudgetApp.Services;
 
 public class RapportFrontService(IHttpClientFactory factory,AuthStateService authState) : IHttpRapport
 {
-    
+
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -36,6 +37,12 @@ public class RapportFrontService(IHttpClientFactory factory,AuthStateService aut
             var Client = await GetClientAsync();
             var response = await Client.GetAsync($"rapport/{annee}/{mois}");
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -43,7 +50,7 @@ public class RapportFrontService(IHttpClientFactory factory,AuthStateService aut
                     "Erreur recuperation rapport {Mois}/{Annee} ({StatusCode}) : {Error}",
                     mois, annee, response.StatusCode, error);
 
-                return Result.Fail("Impossible de recuperer le rapport");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Récupération du rapport"));
             }
 
             var rapport = await response.Content.ReadFromJsonAsync<RapportMoisDto>(JsonOptions);

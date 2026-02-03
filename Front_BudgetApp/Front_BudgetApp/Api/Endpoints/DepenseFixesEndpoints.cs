@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Interfaces;
 using Entities.Contracts.Forms;
+using Serilog;
 
 namespace Front_BudgetApp.Api.Endpoints;
 
@@ -149,5 +150,13 @@ public static class DepenseFixesEndpoints
     }
 
     private static int GetUserId(ClaimsPrincipal user)
-        => int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    {
+        var claim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim is null || !int.TryParse(claim.Value, out var userId))
+        {
+            Log.Warning("Échec extraction userId du JWT — claim NameIdentifier absent ou invalide");
+            return 0;
+        }
+        return userId;
+    }
 }

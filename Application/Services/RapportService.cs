@@ -12,7 +12,7 @@ public class RapportService(MyDbContext context) : IRapportService
 {
     public async Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois, int userId)
     {
-        Log.Information("Récupération rapport {Mois}/{Annee}", mois, annee);
+        Log.Information("Récupération rapport {Mois}/{Annee} pour userId {UserId}", mois, annee, userId);
 
         var lignes = new List<RapportLigneDto>();
 

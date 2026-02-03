@@ -1,13 +1,16 @@
 using BlazorBootstrap;
 using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
+using Front_BudgetApp.Services.Notifications;
 using Microsoft.AspNetCore.Components;
+using Serilog;
 
 namespace BudgetApp.Shared.Components.Rapport;
 
 public partial class Rapport_C : ComponentBase
 {
     [Inject] private IHttpRapport HttpRapport { get; set; } = null!;
+    [Inject] private IAppToastService ToastService { get; set; } = default!;
 
     private DateTime _selectedDate = DateTime.Today;
     private RapportMoisDto? _rapport;
@@ -15,9 +18,14 @@ public partial class Rapport_C : ComponentBase
     private string? _errorMessage;
     private int? _selectedCategorieId;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await ChargerRapport();
+        if (firstRender)
+        {
+            ToastService.ExecuteQueue();
+            await ChargerRapport();
+            StateHasChanged();
+        }
     }
 
     private async Task ChargerRapport()
@@ -36,12 +44,16 @@ public partial class Rapport_C : ComponentBase
             }
             else
             {
-                _errorMessage = "Impossible de charger le rapport";
+                _errorMessage = result.Errors.First().Message;
+                Log.Warning("Échec chargement rapport {Month}/{Year} : {Error}", _selectedDate.Month, _selectedDate.Year, _errorMessage);
+                ToastService.Error(_errorMessage);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             _errorMessage = "Erreur technique lors du chargement";
+            Log.Error(ex, "Erreur inattendue chargement rapport");
+            ToastService.Error(_errorMessage);
         }
         finally
         {

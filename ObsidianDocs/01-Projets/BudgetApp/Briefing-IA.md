@@ -14,7 +14,7 @@ Gere aussi les transactions variables (revenus/depenses ponctuelles) avec suivi 
 - **.NET** : 10.0
 - **SQL Server** + EF Core 10.0.1
 - **UI** : Blazor.Bootstrap 3.5.0
-- **Packages cles** : FluentValidation, FluentResults, Serilog, Swashbuckle
+- **Packages cles** : FluentValidation, FluentResults, Serilog, Swashbuckle, JWT Bearer
 
 ## Structure solution
 ```
@@ -31,6 +31,7 @@ BudgetApp/
 3. **FluentResults** : Gestion d'erreurs sans exceptions
 4. **Minimal APIs** : Endpoints REST groupes par domaine
 5. **BackgroundService** : Scheduler pour maintenance echeances/rappels
+6. **JWT + Refresh proactif** : Timer cote serveur qui rafraichit le token avant expiration
 
 ## Ou j'en suis
 **Fonctionnalites terminees** :
@@ -40,6 +41,9 @@ BudgetApp/
 - Statistiques mensuelles
 - Navigation par mois
 - Page unifiee avec onglets
+- **Authentification JWT** avec refresh proactif (timer)
+- **Isolation par utilisateur** (transactions filtrees par userId)
+- **Paiement echelonne** (creation automatique de transactions mensuelles)
 
 **En cours** :
 [A remplir]
@@ -59,4 +63,3 @@ Pour le detail complet : voir `ObsidianDocs/01-Projets/BudgetApp/README.md`
 - `Application.csproj` contient encore `<RootNamespace>Datas</RootNamespace>`
 - Interface `ITranscationService` avec faute de frappe
 - Pas de tests unitaires
-- Pas d'authentification

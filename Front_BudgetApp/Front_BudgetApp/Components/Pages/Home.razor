@@ -1,9 +1,11 @@
 @page "/"
 @using BudgetApp.Shared.Interfaces.Http
 @using Entities.Contracts.Dtos
+@using Front_BudgetApp.Services.Notifications
 @using Front_BudgetApp.Services.Sécurité
 @inject IHttpRapport RapportService
 @inject AuthStateService AuthState
+@inject IAppToastService ToastService
 
 <PageTitle>Tableau de bord - BudgetApp</PageTitle>
 
@@ -139,7 +141,7 @@
                     </div>
                 </CardBody>
                 <CardFooter Class="bg-transparent border-0 text-center">
-                    <a href="/depenses" class="btn btn-outline-primary btn-sm">
+                    <a href="/depenses#rapport" class="btn btn-outline-primary btn-sm">
                         <Icon Name="IconName.ArrowRight" class="me-1"/>
                         Voir tout le rapport
                     </a>
@@ -160,6 +162,7 @@
         if (firstRender && !_initialized)
         {
             _initialized = true;
+            ToastService.ExecuteQueue();
 
             // Pré-charger la session dans le cache mémoire
             await AuthState.GetSessionAsync();
@@ -184,6 +187,7 @@
         else
         {
             _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Erreur inconnue";
+            ToastService.Error(_errorMessage);
         }
 
         _isLoading = false;
