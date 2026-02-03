@@ -36,6 +36,8 @@ BudgetApp/
   - `DepenseMois` (resumes mensuels)
   - `DepenseDueDate` (echeances)
   - `Rappel` (rappels/alertes)
+  - `User` (utilisateurs)
+  - `RefreshToken` (tokens de rafraichissement JWT)
 
 - `Contracts/Dtos/` : Data Transfer Objects
 - `Contracts/Forms/` : Formulaires de saisie
@@ -70,7 +72,11 @@ BudgetApp/
   - `CategorieService` : Gestion des categories (globales, pas de filtre userId)
   - `RapportService` : Generation des rapports mensuels (filtre par userId)
   - `UserService` : Gestion des utilisateurs
-  - `AuthService` : Authentification (login, refresh token)
+  - `AuthService` : Authentification (login, refresh token, logout)
+
+- `Services/Securite/` :
+  - `PasswordManager` : Hash et verification des mots de passe (IPasswordHasher)
+  - `JwtTokenGenerator` : Generation des tokens JWT (IJwtTokenGenerator)
 
 - `Interfaces/` :
   - `IRepository<TDto>` : Interface generique lecture/ecriture (toutes les methodes prennent un `userId`)
@@ -96,14 +102,20 @@ BudgetApp/
 
 - `Components/Transactions/` :
   - `DepenseFixe_C.razor` : Grille des depenses fixes
+  - `TransactionVariable_C.razor` : Gestion des transactions variables
 
 - `Components/Categories/` :
   - `Categories_C.razor` : Gestion des categories
   - `CategorieForm_C.razor` : Formulaire categorie
 
+- `Components/Rapport/` :
+  - `Rapport_C.razor` : Rapport mensuel avec filtres
+
 - `Interfaces/Http/` :
   - `IHttpDepenseFixe` : Service HTTP depenses fixes
   - `IHttpCategorie` : Service HTTP categories
+  - `IHttpTransaction` : Service HTTP transactions variables
+  - `IHttpRapport` : Service HTTP rapports
 
 - `Tools/` :
   - `SerilogConfig.cs` : Configuration logging
@@ -150,17 +162,18 @@ BudgetApp/
   - `TransactionVariableEndpoints.cs` : `/api/transaction`
   - `CategorieEndpoints.cs` : `/api/categorie`
   - `RapportEndpoints.cs` : `/api/rapport`
-  - `AuthEndpoints.cs` : `/api/auth` (login, refresh)
+  - `AuthEndpoints.cs` : `/api/auth` (login, refresh, logout)
 
 - `Services/` :
   - `DepenseFixeFrontService.cs` : Client HTTP depenses
   - `CategorieFrontService.cs` : Client HTTP categories
   - `TransactionFrontService.cs` : Client HTTP transactions
   - `RapportFrontService.cs` : Client HTTP rapports
+  - `HttpErrorHelper.cs` : Messages d'erreur utilisateur
   - `Notifications/AppToastService.cs` : Notifications toast
 
 - `Services/Securite/` :
-  - `AuthStateService.cs` : Gestion session (ProtectedLocalStorage)
+  - `AuthStateService.cs` : Gestion session (ProtectedLocalStorage) + timer refresh proactif
   - `CustomAuthStateProvider.cs` : AuthenticationStateProvider Blazor
   - `Handlers/JwtAuthorizationHandler.cs` : DelegatingHandler JWT (desactive)
 
@@ -216,7 +229,7 @@ User (1:N) ←── RefreshToken
 | Gestion erreurs | FluentResults | 4.0.0 |
 | Logging | Serilog | 4.3.1 |
 | Documentation API | Swagger/Swashbuckle | 10.0.1 |
-| Authentification | JWT Bearer | - |
+| Authentification | JWT Bearer | 10.0.2 |
 
 ---
 
@@ -232,8 +245,9 @@ L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** c
 1. Login (/login)
    └── POST /api/auth/login → JWT AccessToken + RefreshToken
        └── AuthStateService.SaveSessionAsync() → ProtectedLocalStorage
-           └── CustomAuthStateProvider.NotifyAuthStateChanged()
-               └── AuthorizeView re-evalue → Authorized → MainLayout affiche
+           └── ScheduleRefresh() → Timer proactif
+               └── CustomAuthStateProvider.NotifyAuthStateChanged()
+                   └── AuthorizeView re-evalue → Authorized → MainLayout affiche
 
 2. Navigation (page protegee)
    └── MainLayout → AuthorizeView
@@ -243,9 +257,17 @@ L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** c
 3. Appel API (FrontService)
    └── GetClientAsync() → AuthStateService.GetAccessTokenAsync()
        └── HttpClient avec Authorization: Bearer {token}
+       └── Si 401 → ForceLogoutAsync() → OnSessionExpired → redirect /login
 
-4. Logout
-   └── AuthStateService.LogoutAsync() → supprime ProtectedLocalStorage
+4. Refresh proactif (timer)
+   └── AuthStateService.ScheduleRefresh()
+       └── Timer se declenche 3 min avant expiration
+           └── RefreshSessionAsync() → nouveau token
+               └── ScheduleRefresh() → nouveau timer
+       └── Si refresh echoue → ForceLogoutAsync() → redirect /login
+
+5. Logout
+   └── AuthStateService.LogoutAsync() → CancelRefreshTimer() + supprime ProtectedLocalStorage
        └── NavigateTo("/login", forceLoad: true)
 ```
 
@@ -253,7 +275,7 @@ L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** c
 
 | Composant | Role |
 |-----------|------|
-| `AuthStateService` | Gestion session via ProtectedLocalStorage + cache memoire (`_currentSession`) |
+| `AuthStateService` | Gestion session via ProtectedLocalStorage + cache memoire + timer refresh proactif |
 | `CustomAuthStateProvider` | Fournit l'etat d'auth a Blazor via `AuthenticationStateProvider` |
 | `AuthorizeView` (MainLayout) | Protege toutes les pages utilisant MainLayout |
 | `RedirectToLogin` | Redirige vers `/login` quand non authentifie |
@@ -265,6 +287,38 @@ L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** c
 |--------|-----------|-------|
 | `MainLayout` | `AuthorizeView` (authentification requise) | Home, DepenseFixe, Categories |
 | `LoginLayout` | Aucune (public) | Login, Error |
+
+### Refresh Token Proactif
+
+L'`AuthStateService` implemente un timer qui rafraichit le token **avant** son expiration :
+
+```csharp
+// Timer declenche a ExpiresAt - 3 minutes
+private void ScheduleRefresh()
+{
+    var delay = _currentSession.ExpiresAt - DateTime.UtcNow - RefreshMargin;
+    _ = Task.Run(async () => {
+        await Task.Delay(delay, token);
+        await RefreshSessionAsync();
+    });
+}
+```
+
+**Evenements** :
+- `OnAuthStateChanged` : Notifie les changements d'etat d'auth
+- `OnSessionExpired` : Declenche une redirection vers `/login` (ecoute par MainLayout)
+
+### Gestion des 401 dans les FrontServices
+
+Tous les FrontServices detectent les reponses 401 et declenchent un logout automatique :
+
+```csharp
+if (response.StatusCode == HttpStatusCode.Unauthorized)
+{
+    await authState.ForceLogoutAsync();
+    return Result.Fail("Session expiree");
+}
+```
 
 ### Token JWT dans les FrontServices
 
@@ -283,6 +337,14 @@ private async Task<HttpClient> GetClientAsync()
 ```
 
 > **Note:** Le `JwtAuthorizationHandler` (DelegatingHandler) est desactive car incompatible avec ProtectedLocalStorage (JS interop non disponible dans le contexte du handler HTTP). Le token est ajoute directement dans chaque FrontService via `GetClientAsync()`.
+
+### Configuration JWT
+
+| Parametre | Development | Production |
+|-----------|-------------|------------|
+| `ExpirationMinutes` | 30 | 30 |
+| RefreshToken | 7 jours | 7 jours |
+| RefreshMargin | 3 minutes | 3 minutes |
 
 ### Configuration Blazor
 
@@ -335,7 +397,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 - Integration Blazor via **Blazored.FluentValidation**
 
 ### Gestion des erreurs
-- Pattern **FluentResults** : `Result<T>` pour retours typés
+- Pattern **FluentResults** : `Result<T>` pour retours types
 - Pas d'exceptions pour les erreurs attendues
 
 ### Logging

@@ -1,21 +1,40 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
 using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using FluentResults;
+using Front_BudgetApp.Services.Sécurité;
 using Serilog;
 
 namespace Front_BudgetApp.Services;
 
-public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
+public class CategorieFrontService(IHttpClientFactory factory, AuthStateService authState) : IHttpCategorie
 {
-    private HttpClient Client => factory.CreateClient("Api");
+    private async Task<HttpClient> GetClientAsync()
+    {
+        var client = factory.CreateClient("Api");
+        var token = await authState.GetAccessTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+        return client;
+    }
 
     public async Task<Result<IReadOnlyList<CategorieDto>>> GetCategories()
     {
         try
         {
-            var response = await Client.GetAsync("categorie");
+            var client = await GetClientAsync();
+            var response = await client.GetAsync("categorie");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -23,7 +42,7 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
                 Log.Warning("Erreur récupération catégories ({StatusCode}) : {Error}",
                     response.StatusCode, error);
 
-                return Result.Fail("Impossible de récupérer les catégories");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Récupération des catégories"));
             }
 
             var categories = await response.Content
@@ -42,7 +61,14 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
     {
         try
         {
-            var response = await Client.PostAsJsonAsync("categorie", form);
+            var client = await GetClientAsync();
+            var response = await client.PostAsJsonAsync("categorie", form);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -50,7 +76,7 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
                 Log.Warning("Erreur ajout catégorie ({StatusCode}) : {Error}",
                     response.StatusCode, error);
 
-                return Result.Fail("Impossible d'ajouter la catégorie");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Ajout catégorie"));
             }
 
             var created = await response.Content.ReadFromJsonAsync<CategorieDto>();
@@ -71,7 +97,14 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
     {
         try
         {
-            var response = await Client.PutAsJsonAsync($"categorie/{id}", form);
+            var client = await GetClientAsync();
+            var response = await client.PutAsJsonAsync($"categorie/{id}", form);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -79,7 +112,7 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
                 Log.Warning("Erreur update catégorie {Id} ({StatusCode}) : {Error}",
                     id, response.StatusCode, error);
 
-                return Result.Fail("Impossible de mettre à jour la catégorie");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Mise à jour catégorie"));
             }
 
             return Result.Ok();
@@ -95,7 +128,14 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
     {
         try
         {
-            var response = await Client.DeleteAsync($"categorie/{id}");
+            var client = await GetClientAsync();
+            var response = await client.DeleteAsync($"categorie/{id}");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -103,7 +143,7 @@ public class CategorieFrontService(IHttpClientFactory factory) : IHttpCategorie
                 Log.Warning("Erreur suppression catégorie {Id} ({StatusCode}) : {Error}",
                     id, response.StatusCode, error);
 
-                return Result.Fail("Impossible de supprimer la catégorie");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Suppression catégorie"));
             }
 
             return Result.Ok();

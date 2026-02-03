@@ -26,12 +26,14 @@
   - `TransactionService` - CRUD transactions variables
   - `CategorieService` - CRUD categories
   - `RapportService` - Generation des rapports mensuels
+  - `AuthService` - Authentification JWT (login, refresh, logout)
+  - `UserService` - Gestion des utilisateurs
   - `DepenseFixeScheduler` - Service de maintenance planifie (BackgroundService)
 
 ### Base de donnees
 - **SQL Server** avec Entity Framework Core 10.0.1
 - Connexion : `192.168.50.48` / Database `BudgetDB`
-- Migrations : 1 migration initiale (20251222150225_Initial)
+- Migrations : InitialAfterAddUser, AddUserIdToTransactions, AddEtalonnage
 
 ### Packages NuGet notables
 | Package | Version | Role |
@@ -41,6 +43,7 @@
 | FluentResults | 4.0.0 | Gestion d'erreurs sans exceptions |
 | Serilog | 4.3.1-dev | Logging structure |
 | Swashbuckle | 10.0.1 | Documentation API Swagger |
+| JWT Bearer | 10.0.2 | Authentification API |
 
 ## Architecture detectee
 
@@ -49,16 +52,17 @@
 BudgetApp/
 ├── Entities/                         # Domaine (Models, DTOs, Forms, Interfaces)
 │   ├── Domain/
-│   │   ├── Models/                   # Transaction, DepenseFixe, Categorie, etc.
+│   │   ├── Models/                   # Transaction, DepenseFixe, Categorie, User, etc.
 │   │   └── Interfaces/               # IModel, ITransaction
 │   └── Contracts/
-│       ├── Dtos/                     # DepenseFixeDto, CategorieDto, etc.
-│       ├── Forms/                    # DepenseFixeForm, CategorieForm, etc.
+│       ├── Dtos/                     # DepenseFixeDto, CategorieDto, AuthenticatedUserDto, etc.
+│       ├── Forms/                    # DepenseFixeForm, CategorieForm, LoginForm, etc.
 │       └── Validations/              # Validators FluentValidation
 │
 ├── Application/                      # Logique metier & persistance
-│   ├── Interfaces/                   # IDepenseFixeService, ICategorieService, etc.
+│   ├── Interfaces/                   # IDepenseFixeService, ICategorieService, IAuthService, etc.
 │   ├── Services/                     # Implementations des services
+│   ├── Services/Securite/            # PasswordManager, JwtTokenGenerator
 │   ├── Persistence/
 │   │   ├── MyDbContext.cs            # DbContext EF Core
 │   │   └── Migrations/               # Migrations EF Core
@@ -69,27 +73,29 @@ BudgetApp/
 ├── BudgetApp.Shared/                 # Composants Blazor partages
 │   ├── Components/
 │   │   ├── Transactions/             # DepenseFixe_C, TransactionVariable_C
+│   │   ├── Rapport/                  # Rapport_C
 │   │   └── Categories/               # Categories_C, CategorieForm_C
-│   ├── Interfaces/Http/              # IHttpDepenseFixe, IHttpCategorie, IHttpTransaction
+│   ├── Interfaces/Http/              # IHttpDepenseFixe, IHttpCategorie, IHttpTransaction, IHttpRapport
 │   ├── Services/Notifications/       # IAppToastService
 │   └── Tools/                        # SerilogConfig, Icones
 │
 └── Front_BudgetApp/
     ├── Front_BudgetApp/              # Application Blazor Server principale
     │   ├── Components/
-    │   │   ├── Pages/                # DepenseFixePage, CategoriesPage, Home
-    │   │   └── Layout/               # MainLayout, NavMenu
+    │   │   ├── Pages/                # DepenseFixePage, CategoriesPage, Home, Login
+    │   │   └── Layout/               # MainLayout, LoginLayout, NavMenu, RedirectToLogin
     │   ├── Api/Endpoints/            # Minimal APIs REST
-    │   ├── Services/                 # Services HTTP frontend
+    │   ├── Services/                 # Services HTTP frontend + HttpErrorHelper
+    │   ├── Services/Securite/        # AuthStateService, CustomAuthStateProvider
     │   └── Tools/                    # DepenseFixeScheduler
     └── Front_BudgetApp.Client/       # Projet client (WebAssembly si besoin)
 ```
 
 ### Organisation du code
-**Modeles** : `Entities/Domain/Models/` - Transaction, DepenseFixe, TransactionVariable, Categorie, Rappel, DepenseDueDate
-**Services** : `Application/Services/` - DepenseFixeService, TransactionService, CategorieService
-**Pages Blazor** : `Front_BudgetApp/Components/Pages/` - DepenseFixePage (avec onglets), CategoriesPage, Home
-**Composants reutilisables** : `BudgetApp.Shared/Components/` - DepenseFixe_C, TransactionVariable_C, Categories_C
+**Modeles** : `Entities/Domain/Models/` - Transaction, DepenseFixe, TransactionVariable, Categorie, User, Rappel, DepenseDueDate, RefreshToken
+**Services** : `Application/Services/` - DepenseFixeService, TransactionService, CategorieService, AuthService
+**Pages Blazor** : `Front_BudgetApp/Components/Pages/` - DepenseFixePage (avec onglets), CategoriesPage, Home, Login
+**Composants reutilisables** : `BudgetApp.Shared/Components/` - DepenseFixe_C, TransactionVariable_C, Categories_C, Rapport_C
 
 ### Patterns identifies
 - [x] **Clean Architecture** : Separation Entities/Application/Presentation
@@ -99,6 +105,7 @@ BudgetApp/
 - [x] **Result Pattern** : FluentResults pour gestion d'erreurs
 - [x] **TPH (Table Per Hierarchy)** : Heritage Transaction -> DepenseFixe/TransactionVariable
 - [x] **Minimal APIs** : Endpoints REST groupes par domaine
+- [x] **JWT Bearer** : Authentification API avec refresh proactif
 - [ ] CQRS : Non
 
 ## Entites et relations
@@ -106,11 +113,23 @@ BudgetApp/
 ```mermaid
 erDiagram
     User ||--o{ Transaction : possede
+    User ||--o{ RefreshToken : possede
     Categorie ||--o{ Transaction : contient
     Transaction ||--|| DepenseFixe : "herite (TPH)"
     Transaction ||--|| TransactionVariable : "herite (TPH)"
     DepenseFixe ||--o{ DepenseDueDate : possede
     DepenseFixe ||--o{ Rappel : possede
+
+    User {
+        int Id PK
+        string Username
+        string Email
+        string PasswordHash
+        bool IsActive
+        datetime LastLoginAt
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
 
     Categorie {
         int Id PK
@@ -162,6 +181,14 @@ erDiagram
         datetime CreatedAt
         datetime UpdatedAt
     }
+
+    RefreshToken {
+        int Id PK
+        string Token
+        datetime ExpiresAt
+        bool IsRevoked
+        int UserId FK
+    }
 ```
 
 ## Configuration et startup
@@ -171,12 +198,18 @@ erDiagram
   - `IDepenseFixeService` -> `DepenseFixeService`
   - `ITranscationService` -> `TransactionService`
   - `ICategorieService` -> `CategorieService`
+  - `IRapportService` -> `RapportService`
+  - `IAuthService` -> `AuthService`
+  - `IUserService` -> `UserService`
   - `IHttpDepenseFixe` -> `DepenseFixeFrontService`
   - `IHttpCategorie` -> `CategorieFrontService`
   - `IHttpTransaction` -> `TransactionFrontService`
+  - `IHttpRapport` -> `RapportFrontService`
   - `IAppToastService` -> `AppToastService`
+  - `AuthStateService` - Session frontend avec timer refresh
+  - `CustomAuthStateProvider` - AuthenticationStateProvider
 - Background Service : `DepenseFixeScheduler` (maintenance horaire)
-- Middleware : StaticFiles, Antiforgery, Swagger (dev)
+- Middleware : StaticFiles, Antiforgery, Swagger (dev), JWT Bearer
 - HttpClient : Configure pour appeler l'API locale
 
 ## Etat actuel du developpement
@@ -193,8 +226,11 @@ erDiagram
 - [x] **Rapport mensuel** - Liste des transactions avec filtres par categorie, couleurs rouge/vert
 - [x] **Theme Dark Mode** - Design moderne bleu-gris et orange
 - [x] **Categories en cartes** - Layout 2 colonnes avec pagination
+- [x] **Authentification JWT** - Login, refresh token proactif (timer), logout
 - [x] **Isolation par utilisateur** - Transactions liees au user via UserId, categories globales
 - [x] **Paiement echelonne** - Depenses fixes echelonnees avec creation automatique de TransactionVariable mensuelles via le scheduler
+- [x] **Refresh proactif** - Timer cote serveur qui refresh le token 3 min avant expiration
+- [x] **Gestion 401** - Logout automatique et redirection /login sur 401
 
 **Points d'attention detectes** :
 - `Application.csproj` contient encore `<RootNamespace>Datas</RootNamespace>` (inconsistant avec le namespace reel)
@@ -210,4 +246,4 @@ erDiagram
 ## Metadonnees
 - **Cree le** : Decembre 2024 (base sur commits)
 - **Framework** : .NET 10.0
-- **Documente le** : 2025-01-12
+- **Documente le** : 2025-02-03

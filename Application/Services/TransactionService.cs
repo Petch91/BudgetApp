@@ -26,7 +26,10 @@ public class TransactionService(MyDbContext context) : ITranscationService
             .SingleOrDefaultAsync();
 
         if (transaction is null)
+        {
+            Log.Warning("Transaction variable ID {Id} non trouvée pour userId {UserId}", id, userId);
             return Result.Fail("Transaction non trouvée");
+        }
 
         return Result.Ok(transaction);
     }
@@ -104,9 +107,12 @@ public class TransactionService(MyDbContext context) : ITranscationService
                 .SetProperty(t => t.TransactionType, form.TransactionType)
                 .SetProperty(t => t.CategorieId, form.CategorieId));
 
-        return result > 0
-            ? Result.Ok()
-            : Result.Fail("Transaction non trouvée");
+        if (result <= 0)
+        {
+            Log.Warning("Transaction variable ID {Id} non trouvée pour mise à jour (userId {UserId})", id, userId);
+            return Result.Fail("Transaction non trouvée");
+        }
+        return Result.Ok();
     }
 
     /* =======================
@@ -115,15 +121,18 @@ public class TransactionService(MyDbContext context) : ITranscationService
 
     public async Task<Result> Delete(int id, int userId)
     {
-        Log.Information("Suppression transaction variable ID {Id}", id);
+        Log.Information("Suppression transaction variable ID {Id} (userId {UserId})", id, userId);
 
         var result = await context.TransactionsVariables
             .Where(t => t.Id == id && t.UserId == userId)
             .ExecuteDeleteAsync();
 
-        return result > 0
-            ? Result.Ok()
-            : Result.Fail("Transaction non trouvée");
+        if (result <= 0)
+        {
+            Log.Warning("Transaction variable ID {Id} non trouvée pour suppression (userId {UserId})", id, userId);
+            return Result.Fail("Transaction non trouvée");
+        }
+        return Result.Ok();
     }
 
     /* =======================

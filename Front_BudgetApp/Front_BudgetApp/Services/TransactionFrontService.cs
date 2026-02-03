@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
@@ -38,7 +39,10 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
 
             if (revenus.IsFailed || depenses.IsFailed)
             {
-                return Result.Fail("Impossible de recuperer les transactions");
+                var firstError = revenus.IsFailed
+                    ? revenus.Errors.First().Message
+                    : depenses.Errors.First().Message;
+                return Result.Fail(firstError);
             }
 
             var all = revenus.Value.Concat(depenses.Value)
@@ -58,8 +62,14 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
     {
         try
         {
-            var Client = await GetClientAsync();    
+            var Client = await GetClientAsync();
             var response = await Client.GetAsync($"transaction/revenubymonth/{month}");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -68,7 +78,7 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
                     "Erreur recuperation revenus ({StatusCode}) : {Error}",
                     response.StatusCode, error);
 
-                return Result.Fail("Impossible de recuperer les revenus");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Récupération des revenus"));
             }
 
             var revenus = await response.Content
@@ -92,8 +102,14 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
     {
         try
         {
-            var Client = await GetClientAsync();   
+            var Client = await GetClientAsync();
             var response = await Client.GetAsync($"transaction/depensebymonth/{month}");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -102,7 +118,7 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
                     "Erreur recuperation depenses ({StatusCode}) : {Error}",
                     response.StatusCode, error);
 
-                return Result.Fail("Impossible de recuperer les depenses");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Récupération des dépenses"));
             }
 
             var depenses = await response.Content
@@ -129,6 +145,12 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
             var Client = await GetClientAsync();
             var response = await Client.PostAsJsonAsync("transaction", form);
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -136,7 +158,7 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
                     "Erreur ajout transaction ({StatusCode}) : {Error}",
                     response.StatusCode, error);
 
-                return Result.Fail("Impossible d'ajouter la transaction");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Ajout transaction"));
             }
 
             var created = await response.Content
@@ -161,6 +183,12 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
             var Client = await GetClientAsync();
             var response = await Client.PutAsJsonAsync($"transaction/{id}", form);
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -168,7 +196,7 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
                     "Erreur update transaction {Id} ({StatusCode}) : {Error}",
                     id, response.StatusCode, error);
 
-                return Result.Fail("Impossible de mettre a jour la transaction");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Mise à jour transaction"));
             }
 
             return Result.Ok();
@@ -187,6 +215,12 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
             var Client = await GetClientAsync();
             var response = await Client.DeleteAsync($"transaction/{id}");
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -194,7 +228,7 @@ public class TransactionFrontService(IHttpClientFactory factory, AuthStateServic
                     "Erreur suppression transaction {Id} ({StatusCode}) : {Error}",
                     id, response.StatusCode, error);
 
-                return Result.Fail("Impossible de supprimer la transaction");
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Suppression transaction"));
             }
 
             return Result.Ok();

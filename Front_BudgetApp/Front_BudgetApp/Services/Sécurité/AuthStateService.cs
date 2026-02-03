@@ -12,12 +12,14 @@ public class AuthStateService
     private readonly ProtectedLocalStorage _localStorage;
     private readonly IHttpClientFactory _httpClientFactory;
     private const string AUTH_KEY = "budgetapp_auth_session";
-    private static readonly TimeSpan RefreshThreshold = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan RefreshMargin = TimeSpan.FromMinutes(3);
 
     private AuthSession? _currentSession;
     private bool _isRefreshing;
+    private CancellationTokenSource? _refreshTimerCts;
 
     public event Action? OnAuthStateChanged;
+    public event Action? OnSessionExpired;
 
     public AuthStateService(ProtectedLocalStorage localStorage, IHttpClientFactory httpClientFactory)
     {
@@ -33,6 +35,10 @@ public class AuthStateService
             {
                 var result = await _localStorage.GetAsync<AuthSession>(AUTH_KEY);
                 _currentSession = result.Success ? result.Value : null;
+
+                // Premier chargement depuis storage → démarrer le timer
+                if (_currentSession is { IsExpired: false })
+                    ScheduleRefresh();
             }
             catch
             {
@@ -43,22 +49,16 @@ public class AuthStateService
         if (_currentSession == null)
             return null;
 
-        // Token expiré → tenter un refresh
+        // Token expiré → tenter un refresh synchrone
         if (_currentSession.IsExpired)
         {
             var refreshed = await RefreshSessionAsync();
             if (!refreshed)
             {
-                await LogoutAsync();
+                await ForceLogoutAsync();
                 return null;
             }
             return _currentSession;
-        }
-
-        // Token bientôt expiré → refresh proactif
-        if (_currentSession.ExpiresAt - DateTime.UtcNow < RefreshThreshold)
-        {
-            _ = RefreshSessionAsync(); // fire-and-forget, on utilise le token actuel en attendant
         }
 
         return _currentSession;
@@ -75,11 +75,14 @@ public class AuthStateService
         {
             // JS interop not available during static rendering
         }
+        ScheduleRefresh();
         OnAuthStateChanged?.Invoke();
     }
 
     public async Task LogoutAsync()
     {
+        CancelRefreshTimer();
+
         // Révoquer le refresh token côté serveur
         if (_currentSession?.RefreshToken != null)
         {
@@ -107,6 +110,16 @@ public class AuthStateService
         OnAuthStateChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Logout + signal OnSessionExpired pour redirection automatique.
+    /// Appelé quand un 401 est reçu ou quand le refresh échoue.
+    /// </summary>
+    public async Task ForceLogoutAsync()
+    {
+        await LogoutAsync();
+        OnSessionExpired?.Invoke();
+    }
+
     public async Task<bool> IsAuthenticatedAsync()
     {
         var session = await GetSessionAsync();
@@ -117,6 +130,56 @@ public class AuthStateService
     {
         var session = await GetSessionAsync();
         return session?.AccessToken;
+    }
+
+    private void ScheduleRefresh()
+    {
+        CancelRefreshTimer();
+
+        if (_currentSession == null)
+            return;
+
+        var delay = _currentSession.ExpiresAt - DateTime.UtcNow - RefreshMargin;
+        if (delay <= TimeSpan.Zero)
+            delay = TimeSpan.FromSeconds(5); // refresh ASAP si déjà proche
+
+        _refreshTimerCts = new CancellationTokenSource();
+        var token = _refreshTimerCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(delay, token);
+                if (token.IsCancellationRequested) return;
+
+                Log.Information("Timer refresh déclenché (délai: {Delay})", delay);
+                var success = await RefreshSessionAsync();
+                if (!success)
+                {
+                    Log.Warning("Refresh proactif échoué → forceLogout");
+                    await ForceLogoutAsync();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Timer annulé (logout ou nouveau login)
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Erreur dans le timer de refresh");
+            }
+        }, token);
+    }
+
+    private void CancelRefreshTimer()
+    {
+        if (_refreshTimerCts != null)
+        {
+            _refreshTimerCts.Cancel();
+            _refreshTimerCts.Dispose();
+            _refreshTimerCts = null;
+        }
     }
 
     private async Task<bool> RefreshSessionAsync()

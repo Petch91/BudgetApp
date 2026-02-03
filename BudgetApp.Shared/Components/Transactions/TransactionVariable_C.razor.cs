@@ -3,7 +3,9 @@ using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
 using Entities.Contracts.Forms;
 using Entities.Domain.Models;
+using Front_BudgetApp.Services.Notifications;
 using Microsoft.AspNetCore.Components;
+using Serilog;
 
 namespace BudgetApp.Shared.Components.Transactions;
 
@@ -11,6 +13,7 @@ public partial class TransactionVariable_C : ComponentBase
 {
     [Inject] public IHttpTransaction HttpTransaction { get; set; } = default!;
     [Inject] public IHttpCategorie HttpCategorie { get; set; } = default!;
+    [Inject] public IAppToastService ToastService { get; set; } = default!;
 
     private bool IsLoading = true;
     private bool _isSaving;
@@ -31,6 +34,7 @@ public partial class TransactionVariable_C : ComponentBase
     {
         if (firstRender)
         {
+            ToastService.ExecuteQueue();
             await LoadCategoriesAsync();
             await LoadTransactionsAsync();
         }
@@ -42,6 +46,11 @@ public partial class TransactionVariable_C : ComponentBase
         if (result.IsSuccess)
         {
             _categories = result.Value.ToList();
+        }
+        else
+        {
+            Log.Warning("Échec chargement catégories : {Errors}", string.Join(", ", result.Errors.Select(e => e.Message)));
+            ToastService.Error(result.Errors.First().Message);
         }
     }
 
@@ -58,6 +67,8 @@ public partial class TransactionVariable_C : ComponentBase
             if (result.IsFailed)
             {
                 _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                Log.Warning("Échec chargement transactions {Month}/{Year} : {Error}", _selectedDate.Month, _selectedDate.Year, _errorMessage);
+                ToastService.Error(_errorMessage);
             }
             else
             {
@@ -67,6 +78,8 @@ public partial class TransactionVariable_C : ComponentBase
         catch (Exception ex)
         {
             _errorMessage = $"Erreur lors du chargement: {ex.Message}";
+            Log.Error(ex, "Erreur inattendue chargement transactions");
+            ToastService.Error(_errorMessage);
         }
         finally
         {
@@ -192,18 +205,22 @@ public partial class TransactionVariable_C : ComponentBase
                 var result = await HttpTransaction.Add(_form);
                 if (result.IsFailed)
                 {
-                    _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    var error = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    ToastService.Error(error);
                     return;
                 }
+                ToastService.Success("Transaction ajoutée avec succès");
             }
             else
             {
                 var result = await HttpTransaction.Update(_transactionEnEdition.Id, _form);
                 if (result.IsFailed)
                 {
-                    _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    var error = string.Join(" | ", result.Errors.Select(e => e.Message));
+                    ToastService.Error(error);
                     return;
                 }
+                ToastService.Success("Transaction mise à jour avec succès");
             }
 
             await FermerModal();
@@ -240,10 +257,12 @@ public partial class TransactionVariable_C : ComponentBase
             var result = await HttpTransaction.Delete(transaction.Id);
             if (result.IsFailed)
             {
-                _errorMessage = string.Join(" | ", result.Errors.Select(e => e.Message));
+                var error = string.Join(" | ", result.Errors.Select(e => e.Message));
+                ToastService.Error(error);
             }
             else
             {
+                ToastService.Success("Transaction supprimée avec succès");
                 await LoadTransactionsAsync();
             }
         }

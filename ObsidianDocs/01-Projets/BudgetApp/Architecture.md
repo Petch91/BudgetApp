@@ -7,7 +7,7 @@
 **Projet Entities** (`Entities.csproj`)
 - **Role** : Couche Domaine - Coeur de l'application
 - **Responsabilites** :
-  - Modeles du domaine (Transaction, DepenseFixe, Categorie, etc.)
+  - Modeles du domaine (Transaction, DepenseFixe, Categorie, User, etc.)
   - DTOs pour les contrats API
   - Formulaires de saisie avec validation
   - Interfaces du domaine (IModel, ITransaction)
@@ -21,8 +21,9 @@
   - Acces donnees via EF Core
   - DbContext et migrations
   - Projections LINQ pour mapping efficace
+  - Services de securite (PasswordManager, JwtTokenGenerator)
 - **Dependances** : `Entities`
-- **Packages** : EF Core SqlServer, FluentValidation, FluentResults, Serilog
+- **Packages** : EF Core SqlServer, FluentValidation, FluentResults, Serilog, JWT Bearer
 
 **Projet BudgetApp.Shared** (`BudgetApp.Shared.csproj`)
 - **Role** : Composants UI partages (Razor Class Library)
@@ -41,7 +42,7 @@
   - Pages Blazor
   - API REST (Minimal APIs)
   - Services HTTP frontend
-  - Authentification frontend (JWT + AuthorizeView)
+  - Authentification frontend (JWT + AuthorizeView + Timer refresh)
   - Background services
 - **Dependances** : `Application`, `BudgetApp.Shared`, `Front_BudgetApp.Client`
 - **Packages** : Blazor.Bootstrap, EF Core, Swashbuckle, JWT Bearer
@@ -75,6 +76,7 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 builder.Services.AddScoped<IDepenseFixeService, DepenseFixeService>();
 builder.Services.AddScoped<ITranscationService, TransactionService>();
 builder.Services.AddScoped<ICategorieService, CategorieService>();
+builder.Services.AddScoped<IRapportService, RapportService>();
 
 // Securite
 builder.Services.AddScoped<IUserService, UserService>();
@@ -123,6 +125,8 @@ public class MyDbContext : DbContext
     public DbSet<Rappel> Rappels => Set<Rappel>();
     public DbSet<DepenseDueDate> DepenseDueDates => Set<DepenseDueDate>();
     public DbSet<DepenseMois> DepensesMois => Set<DepenseMois>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 }
 ```
 
@@ -137,13 +141,6 @@ public class MyDbContext : DbContext
 - `TG_UpdateDepenseDueDates` - MAJ automatique UpdatedAt
 - `TG_UpdateRappel` - MAJ automatique UpdatedAt
 - `TG_UpdateDepenseMois` - MAJ automatique UpdatedAt
-
-### Tables supplementaires (Securite)
-
-```csharp
-public DbSet<User> Users => Set<User>();
-public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-```
 
 ### Isolation des donnees par utilisateur
 
@@ -172,7 +169,7 @@ app.MapAuth();               // /api/auth
 
 ### Endpoints disponibles
 
-**Depenses Fixes** (`/api/depensefixe`)
+**Depenses Fixes** (`/api/depensefixe`) [Authorize]
 | Methode | Route | Description |
 |---------|-------|-------------|
 | GET | `/` | Liste toutes les depenses |
@@ -185,7 +182,7 @@ app.MapAuth();               // /api/auth
 | PATCH | `/{id}/duedate` | Change l'echeance |
 | PATCH | `/{id}/echelonnement` | Active l'echelonnement |
 
-**Transactions** (`/api/transaction`)
+**Transactions** (`/api/transaction`) [Authorize]
 | Methode | Route | Description |
 |---------|-------|-------------|
 | GET | `/{id}` | Recupere une transaction |
@@ -196,7 +193,7 @@ app.MapAuth();               // /api/auth
 | DELETE | `/{id}` | Supprime |
 | PATCH | `/{id}/categorie` | Change la categorie |
 
-**Categories** (`/api/categorie`)
+**Categories** (`/api/categorie`) [AllowAnonymous]
 | Methode | Route | Description |
 |---------|-------|-------------|
 | GET | `/` | Liste toutes les categories |
@@ -205,39 +202,47 @@ app.MapAuth();               // /api/auth
 | PUT | `/{id}` | Met a jour |
 | DELETE | `/{id}` | Supprime |
 
-**Rapport** (`/api/rapport`)
+**Rapport** (`/api/rapport`) [Authorize]
 | Methode | Route | Description |
 |---------|-------|-------------|
 | GET | `/{annee}/{mois}` | Rapport mensuel |
 
-**Authentification** (`/api/auth`)
+**Authentification** (`/api/auth`) [AllowAnonymous]
 | Methode | Route | Description |
 |---------|-------|-------------|
 | POST | `/login` | Connexion (retourne JWT + RefreshToken) |
 | POST | `/refresh` | Rafraichir le token |
+| POST | `/logout` | Revoquer le refresh token |
 
 ## Authentification & Securite
 
 ### Architecture
 
-L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** cote frontend.
+L'authentification utilise **JWT Bearer** cote API et **AuthorizeView Blazor** cote frontend avec **refresh proactif**.
 
 ### Flux
 
 ```
 Login → POST /api/auth/login → JWT AccessToken + RefreshToken
      → AuthStateService.SaveSessionAsync() → ProtectedLocalStorage
+     → ScheduleRefresh() → Timer proactif (ExpiresAt - 3 min)
      → CustomAuthStateProvider.NotifyAuthStateChanged()
      → AuthorizeView → Authorized → MainLayout affiche le contenu
+
+Timer → RefreshSessionAsync() → nouveau token
+     → ScheduleRefresh() → nouveau timer
+     → Si echec → ForceLogoutAsync() → OnSessionExpired → redirect /login
+
+401 API → FrontService detecte → ForceLogoutAsync() → redirect /login
 ```
 
 ### Composants frontend
 
 | Composant | Fichier | Role |
 |-----------|---------|------|
-| `AuthStateService` | `Services/Securite/` | Session via ProtectedLocalStorage + cache memoire |
+| `AuthStateService` | `Services/Securite/` | Session via ProtectedLocalStorage + cache memoire + **timer refresh proactif** |
 | `CustomAuthStateProvider` | `Services/Securite/` | Fournit l'etat auth a Blazor |
-| `MainLayout` | `Components/Layout/` | `AuthorizeView` protege les pages |
+| `MainLayout` | `Components/Layout/` | `AuthorizeView` protege les pages + ecoute `OnSessionExpired` |
 | `LoginLayout` | `Components/Layout/` | Layout public (login, error) |
 | `RedirectToLogin` | `Components/Layout/` | Redirige vers `/login` si non authentifie |
 
@@ -247,6 +252,36 @@ Login → POST /api/auth/login → JWT AccessToken + RefreshToken
 |--------|-----------|-------|
 | `MainLayout` | `AuthorizeView` (auth requise) | Home, DepenseFixe, Categories |
 | `LoginLayout` | Aucune (public) | Login, Error |
+
+### Refresh Token Proactif
+
+L'`AuthStateService` implemente un timer qui rafraichit le token **avant** son expiration :
+
+```csharp
+private void ScheduleRefresh()
+{
+    var delay = _currentSession.ExpiresAt - DateTime.UtcNow - RefreshMargin; // 3 min
+    _ = Task.Run(async () => {
+        await Task.Delay(delay, token);
+        var success = await RefreshSessionAsync();
+        if (!success) await ForceLogoutAsync();
+    });
+}
+```
+
+**Evenements** :
+- `OnAuthStateChanged` : Notifie les changements d'etat
+- `OnSessionExpired` : Declenche une redirection vers `/login` (MainLayout ecoute cet event)
+
+### Gestion des 401 dans les FrontServices
+
+```csharp
+if (response.StatusCode == HttpStatusCode.Unauthorized)
+{
+    await authState.ForceLogoutAsync();
+    return Result.Fail("Session expiree");
+}
+```
 
 ### Token JWT dans les FrontServices
 
@@ -265,6 +300,14 @@ private async Task<HttpClient> GetClientAsync()
 ```
 
 > **Decision** : Le `JwtAuthorizationHandler` (DelegatingHandler) est desactive car ProtectedLocalStorage (JS interop) n'est pas accessible dans le contexte du handler HTTP. Le token est ajoute directement dans chaque FrontService.
+
+### Configuration JWT
+
+| Parametre | Valeur |
+|-----------|--------|
+| `ExpirationMinutes` | 30 |
+| RefreshToken expiration | 7 jours |
+| RefreshMargin (timer) | 3 minutes |
 
 ### Configuration Blazor
 

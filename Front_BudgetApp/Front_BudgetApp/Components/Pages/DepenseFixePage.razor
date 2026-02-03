@@ -1,27 +1,108 @@
 @page "/depenses"
-@page "/DepenseFixe"
 @rendermode InteractiveServer
 @using BudgetApp.Shared.Components.Transactions
 @using BudgetApp.Shared.Components.Rapport
+@inject NavigationManager Navigation
+@implements IDisposable
 
 <PageTitle>Depenses - BudgetApp</PageTitle>
 
 <div class="container-fluid">
-    <Tabs EnableFadeEffect="true" NavStyle="NavStyle.Underline">
-        <Tab Title="Depenses Fixes" Name="fixes" IsActive="true">
+    <Tabs @ref="tabsRef"
+          EnableFadeEffect="true"
+          NavStyle="NavStyle.Underline"
+          OnShown="OnTabShown">
+        <Tab Title="Depenses Fixes" Name="fixes" IsActive="@(currentTab == "fixes")">
             <Content>
-                <DepenseFixe_C />
+                <DepenseFixe_C/>
             </Content>
         </Tab>
-        <Tab Title="Transactions Variables" Name="variables">
+        <Tab Title="Transactions Variables" Name="variables" IsActive="@(currentTab == "variables")">
             <Content>
-                <TransactionVariable_C />
+                <TransactionVariable_C/>
             </Content>
         </Tab>
-        <Tab Title="Rapport" Name="rapport">
+        <Tab Title="Rapport" Name="rapport" IsActive="@(currentTab == "rapport")">
             <Content>
-                <Rapport_C />
+                <Rapport_C/>
             </Content>
         </Tab>
     </Tabs>
 </div>
+
+@code {
+    private Tabs tabsRef = default!;
+    private string currentTab = "fixes";
+    private bool isNavigating = false;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateTabFromUrl();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ShowTabFromUrl();
+        }
+    }
+
+    private void UpdateTabFromUrl()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var fragment = uri.Fragment.TrimStart('#');
+
+        if (!string.IsNullOrEmpty(fragment) && IsValidTab(fragment))
+        {
+            currentTab = fragment;
+        }
+        else
+        {
+            currentTab = "fixes";
+        }
+    }
+
+    private async Task ShowTabFromUrl()
+    {
+        if (tabsRef != null)
+        {
+            isNavigating = true;
+            await tabsRef.ShowTabByNameAsync(currentTab);
+            isNavigating = false;
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateTabFromUrl();
+        InvokeAsync(async () =>
+        {
+            await ShowTabFromUrl();
+            StateHasChanged();
+        });
+    }
+
+    private async Task OnTabShown(TabsEventArgs args)
+    {
+        // Éviter la boucle infinie : ne pas naviguer si on est déjà en train de naviguer
+        if (!isNavigating)
+        {
+            var newUrl = $"/depenses#{args.ActiveTabName}";
+            Navigation.NavigateTo(newUrl);
+            currentTab = args.ActiveTabName;
+        }
+    }
+
+    private bool IsValidTab(string tabName)
+    {
+        return tabName == "fixes" || tabName == "variables" || tabName == "rapport";
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+}
