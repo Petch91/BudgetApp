@@ -14,6 +14,7 @@ BudgetApp/
 ├── Front_BudgetApp/
 │   ├── Front_BudgetApp/               # Application Blazor Server principale
 │   └── Front_BudgetApp.Client/        # Composants Blazor cote client
+├── BudgetApp.Mobile/                  # App mobile MAUI Blazor Hybrid (iOS/Android)
 └── BudgetApp.sln
 ```
 
@@ -178,6 +179,98 @@ BudgetApp/
   - `Handlers/JwtAuthorizationHandler.cs` : DelegatingHandler JWT (desactive)
 
 - `Tools/DepenseFixeScheduler.cs` : Service de maintenance planifie
+
+---
+
+### 5. BudgetApp.Mobile (Application mobile)
+
+**Type:** .NET MAUI Blazor Hybrid (.NET 10)
+
+**Responsabilites:**
+- Application mobile iOS/Android
+- Mode offline avec SQLite
+- Synchronisation bidirectionnelle
+- Authentification biometrique (Face ID / Touch ID)
+
+**Structure:**
+
+```
+BudgetApp.Mobile/
+├── Components/
+│   ├── Pages/
+│   │   ├── HomePage.razor         # Rapport mensuel (revenus/depenses/solde)
+│   │   ├── TransactionsPage.razor # Liste + ajout/edit transactions (bottom sheet)
+│   │   └── LoginPage.razor        # Auth email/password + biometrie
+│   └── Layout/
+│       └── MobileLayout.razor     # Navigation bottom tabs + indicateur offline
+│
+├── Services/
+│   ├── Api/                       # Clients HTTP (meme pattern que FrontServices)
+│   │   ├── MobileTransactionService.cs
+│   │   ├── MobileRapportService.cs
+│   │   └── MobileCategorieService.cs
+│   │
+│   ├── Auth/
+│   │   ├── MobileAuthStateService.cs  # SecureStorage (pas ProtectedLocalStorage)
+│   │   └── BiometricService.cs        # Face ID / Touch ID via Plugin.Fingerprint
+│   │
+│   ├── Offline/
+│   │   ├── LocalDbContext.cs          # SQLite EF Core
+│   │   ├── SyncService.cs             # Sync bidirectionnel (Last-Write-Wins)
+│   │   └── ConnectivityService.cs     # Detection online/offline
+│   │
+│   └── Hybrid/                    # Orchestration online/offline
+│       ├── TransactionHybridService.cs
+│       └── RapportHybridService.cs
+│
+├── Models/Local/
+│   ├── LocalTransaction.cs        # Entite SQLite avec SyncState
+│   ├── LocalCategorie.cs          # Cache categories (read-only)
+│   └── SyncMetadata.cs            # Tracking sync
+│
+├── Platforms/
+│   ├── Android/                   # AndroidManifest.xml, MainActivity.cs
+│   └── iOS/                       # Info.plist (Face ID), AppDelegate.cs
+│
+└── wwwroot/
+    └── css/mobile.css             # Styles mobile (safe areas, dark mode)
+```
+
+**Architecture offline-first:**
+
+```
+App Start
+    │
+    ▼
+Charger depuis SQLite (immediat)
+    │
+    ▼
+Si online → Sync en background
+    │
+    ├── Pull: GET /api/rapport/{year}/{month}
+    │         → Update LocalTransaction
+    │
+    └── Push: Envoyer PendingCreate/Update/Delete
+              → Marquer comme Synced
+```
+
+**Modele de sync (SyncState):**
+- `Synced` (0) : Synchronise avec le serveur
+- `PendingCreate` (1) : Cree offline, pas encore envoye
+- `PendingUpdate` (2) : Modifie offline
+- `PendingDelete` (3) : Supprime offline
+
+**Resolution de conflits:** Last-Write-Wins base sur `LastModified`
+
+**Dependances specifiques:**
+- `Microsoft.EntityFrameworkCore.Sqlite` : Base locale
+- `Plugin.Fingerprint` : Biometrie
+- `System.IdentityModel.Tokens.Jwt` : Parsing JWT
+
+**Configuration API (MauiProgram.cs):**
+- Android emulateur: `http://10.0.2.2:5201`
+- iOS simulateur: `http://localhost:5201`
+- Production: A configurer
 
 ---
 
@@ -520,3 +613,59 @@ Client → HTTPS → Traefik → HTTP:5201 → App
 
 - **Development** (`dotnet run`) : Assets mappes dynamiquement depuis NuGet
 - **Production** (`dotnet publish` / Docker) : Assets copies physiquement dans le build
+
+---
+
+## Etat actuel & Prochaines etapes
+
+### BudgetApp.Mobile - Statut
+
+**Statut:** Code complet, non teste (workloads MAUI non installes sur Windows)
+
+**Ce qui a ete cree:**
+- Structure complete du projet MAUI Blazor Hybrid
+- Pages: Login (biometrie), Home (rapport), Transactions (CRUD)
+- Services: Auth (SecureStorage), Offline (SQLite), Sync, API clients
+- Platforms: Android (manifest, permissions) et iOS (Info.plist, Face ID)
+- Styles CSS mobile-first avec support dark mode et safe areas
+
+**Prochaines etapes sur Mac:**
+
+1. **Installer les prerequis:**
+   ```bash
+   # .NET 10 SDK
+   brew install --cask dotnet-sdk
+
+   # MAUI workloads
+   dotnet workload install maui
+
+   # Xcode depuis App Store (pour iOS)
+   ```
+
+2. **Restaurer et builder:**
+   ```bash
+   cd BudgetApp
+   dotnet restore BudgetApp.Mobile/BudgetApp.Mobile.csproj
+   dotnet build BudgetApp.Mobile -f net10.0-ios
+   ```
+
+3. **Lancer sur simulateur iOS:**
+   ```bash
+   dotnet build BudgetApp.Mobile -f net10.0-ios -t:Run
+   ```
+
+4. **Configurer l'API:**
+   - Modifier `MauiProgram.cs` pour pointer vers l'API backend
+   - S'assurer que l'API est accessible depuis le simulateur
+
+5. **Tester:**
+   - Login avec email/password
+   - Activer Face ID (simulateur: Features > Face ID > Enrolled)
+   - Ajouter/modifier des transactions
+   - Tester le mode offline (mode avion)
+   - Verifier la sync a la reconnexion
+
+**Points d'attention potentiels:**
+- Les packages NuGet peuvent avoir des versions incompatibles avec .NET 10
+- `Plugin.Fingerprint` est en beta (3.0.0-beta.1)
+- Tester la compatibilite EF Core SQLite sur iOS/Android
