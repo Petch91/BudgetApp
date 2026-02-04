@@ -1,0 +1,211 @@
+@page "/login"
+@layout MobileLayout
+@inject IMobileAuthStateService AuthState
+@inject IBiometricService BiometricService
+@inject NavigationManager Navigation
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="login-page">
+    <div class="login-logo">
+        <i class="bi bi-wallet2"></i>
+    </div>
+    <h1 class="login-title">BudgetApp</h1>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger mb-3" style="max-width: 320px;">
+            @_errorMessage
+        </div>
+    }
+
+    <div class="login-form">
+        <EditForm Model="_loginForm" OnValidSubmit="HandleLoginAsync">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="_loginForm.Email" class="form-control"
+                           placeholder="email@example.com" disabled="@_isLoading" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <InputText id="password" @bind-Value="_loginForm.Password" class="form-control"
+                           type="password" placeholder="********" disabled="@_isLoading" />
+            </div>
+
+            <button type="submit" class="btn btn-primary login-btn" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                Connexion
+            </button>
+        </EditForm>
+
+        @if (_biometricAvailable && _biometricEnabled)
+        {
+            <button class="biometric-btn" @onclick="HandleBiometricLoginAsync" disabled="@_isLoading">
+                <i class="bi @GetBiometricIcon()"></i>
+                @GetBiometricLabel()
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    private LoginForm _loginForm = new();
+    private bool _isLoading;
+    private string? _errorMessage;
+    private bool _biometricAvailable;
+    private bool _biometricEnabled;
+    private BiometricType _biometricType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if already authenticated
+        if (await AuthState.IsAuthenticatedAsync())
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        // Check biometric availability
+        _biometricAvailable = await BiometricService.IsAvailableAsync();
+        if (_biometricAvailable)
+        {
+            _biometricType = await BiometricService.GetBiometricTypeAsync();
+            _biometricEnabled = await AuthState.IsBiometricEnabledAsync();
+
+            // Auto-prompt biometric if enabled
+            if (_biometricEnabled)
+            {
+                await HandleBiometricLoginAsync();
+            }
+        }
+    }
+
+    private async Task HandleLoginAsync()
+    {
+        if (string.IsNullOrEmpty(_loginForm.Email) || string.IsNullOrEmpty(_loginForm.Password))
+        {
+            _errorMessage = "Veuillez remplir tous les champs";
+            return;
+        }
+
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.PostAsJsonAsync("/api/auth/login", new
+            {
+                email = _loginForm.Email,
+                password = _loginForm.Password
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _errorMessage = "Email ou mot de passe incorrect";
+                return;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var doc = System.Text.Json.JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            var accessToken = root.GetProperty("accessToken").GetString()!;
+            var refreshToken = root.GetProperty("refreshToken").GetString()!;
+            var userId = root.GetProperty("userId").GetInt32();
+
+            // Parse JWT to get expiration
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+            var expiresAt = jwt.ValidTo;
+
+            var session = new AuthSession
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                UserId = userId,
+                UserEmail = _loginForm.Email,
+                ExpiresAt = expiresAt
+            };
+
+            await AuthState.SaveSessionAsync(session);
+
+            // Offer to enable biometric if available and not already enabled
+            if (_biometricAvailable && !_biometricEnabled)
+            {
+                await AuthState.SetBiometricEnabledAsync(true);
+            }
+
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur de connexion: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleBiometricLoginAsync()
+    {
+        if (!_biometricAvailable)
+            return;
+
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var authenticated = await BiometricService.AuthenticateAsync("Connectez-vous a BudgetApp");
+
+            if (authenticated)
+            {
+                // Try to refresh the existing session
+                var refreshed = await AuthState.RefreshSessionAsync();
+                if (refreshed)
+                {
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    _errorMessage = "Session expiree, veuillez vous reconnecter";
+                    await AuthState.SetBiometricEnabledAsync(false);
+                    _biometricEnabled = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur biometrique: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetBiometricIcon() => _biometricType switch
+    {
+        BiometricType.FaceId => "bi-person-bounding-box",
+        BiometricType.Fingerprint => "bi-fingerprint",
+        _ => "bi-shield-lock"
+    };
+
+    private string GetBiometricLabel() => _biometricType switch
+    {
+        BiometricType.FaceId => "Face ID",
+        BiometricType.Fingerprint => "Touch ID",
+        _ => "Biometrie"
+    };
+
+    private class LoginForm
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

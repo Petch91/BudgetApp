@@ -1,0 +1,382 @@
+@page "/transactions"
+@page "/transactions/edit/{LocalId:int}"
+@inject ITransactionHybridService TransactionService
+@inject LocalDbContext Db
+@inject NavigationManager Navigation
+
+<div class="mobile-header">
+    <h1>Transactions</h1>
+    <button class="btn btn-link p-0" @onclick="OpenAddModal">
+        <i class="bi bi-plus-lg fs-4"></i>
+    </button>
+</div>
+
+@if (_isLoading)
+{
+    <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Month Navigation -->
+    <div class="month-nav">
+        <button class="month-nav-btn" @onclick="PreviousMonth">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="month-nav-title">@GetMonthName()</span>
+        <button class="month-nav-btn" @onclick="NextMonth">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="transaction-list">
+        @if (_transactions.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>Aucune transaction ce mois-ci</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var tx in _transactions)
+            {
+                <div class="transaction-item" @onclick="() => OpenEditModal(tx)">
+                    <div class="transaction-info">
+                        <div class="transaction-date">@tx.Date.ToString("dd/MM")</div>
+                        <div class="transaction-label">
+                            <i class="bi bi-pencil me-1 text-muted"></i>
+                            @tx.Intitule
+                            @if (tx.SyncState != SyncState.Synced)
+                            {
+                                <i class="bi bi-cloud-arrow-up ms-1 text-warning"></i>
+                            }
+                        </div>
+                        @if (tx.Categorie is not null)
+                        {
+                            <div class="transaction-category">@tx.Categorie.Name</div>
+                        }
+                    </div>
+                    <div class="transaction-amount @(tx.TransactionType == TransactionType.Revenu ? "positive" : "negative")">
+                        @(tx.TransactionType == TransactionType.Revenu ? "+" : "-")@FormatMoney(tx.Montant)
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+
+<!-- FAB for adding -->
+<button class="fab" @onclick="OpenAddModal">
+    <i class="bi bi-plus"></i>
+</button>
+
+<!-- Add/Edit Modal -->
+@if (_showModal)
+{
+    <div class="offcanvas offcanvas-bottom show" style="height: auto; max-height: 90vh;">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">@(_isEditing ? "Modifier" : "Nouvelle") transaction</h5>
+            <button type="button" class="btn-close" @onclick="CloseModal"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mobile-form">
+                <EditForm Model="_form" OnValidSubmit="HandleSubmitAsync">
+                    <div class="form-group">
+                        <label for="intitule">Intitule</label>
+                        <InputText id="intitule" @bind-Value="_form.Intitule" class="form-control"
+                                   placeholder="Ex: Courses, Salaire..." />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="montant">Montant</label>
+                        <InputNumber id="montant" @bind-Value="_form.Montant" class="form-control"
+                                     placeholder="0.00" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <InputDate id="date" @bind-Value="_form.Date" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Type</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <InputRadio name="type" Value="TransactionType.Depense"
+                                            @bind-Value="_form.TransactionType" />
+                                Depense
+                            </label>
+                            <label class="radio-option">
+                                <InputRadio name="type" Value="TransactionType.Revenu"
+                                            @bind-Value="_form.TransactionType" />
+                                Revenu
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categorie">Categorie</label>
+                        <InputSelect id="categorie" @bind-Value="_form.CategorieId" class="form-control">
+                            <option value="">-- Aucune --</option>
+                            @foreach (var cat in _categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger">@_errorMessage</div>
+                    }
+
+                    <div class="d-flex gap-2 mt-4">
+                        @if (_isEditing)
+                        {
+                            <button type="button" class="btn btn-outline-danger flex-fill"
+                                    @onclick="HandleDeleteAsync" disabled="@_isSaving">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        }
+                        <button type="button" class="btn btn-outline-secondary flex-fill"
+                                @onclick="CloseModal" disabled="@_isSaving">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary flex-fill" disabled="@_isSaving">
+                            @if (_isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            @(_isEditing ? "Modifier" : "Ajouter")
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="offcanvas-backdrop fade show" @onclick="CloseModal"></div>
+}
+
+@code {
+    [Parameter]
+    public int? LocalId { get; set; }
+
+    private List<LocalTransaction> _transactions = [];
+    private List<LocalCategorie> _categories = [];
+    private bool _isLoading = true;
+    private int _year;
+    private int _month;
+
+    private bool _showModal;
+    private bool _isEditing;
+    private bool _isSaving;
+    private string? _errorMessage;
+    private TransactionForm _form = new();
+    private int? _editingLocalId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateTime.Today;
+        _year = today.Year;
+        _month = today.Month;
+
+        await LoadCategoriesAsync();
+        await LoadTransactionsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LocalId.HasValue && !_showModal)
+        {
+            var tx = _transactions.FirstOrDefault(t => t.Id == LocalId.Value);
+            if (tx is not null)
+            {
+                OpenEditModal(tx);
+            }
+        }
+    }
+
+    private async Task LoadTransactionsAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        var result = await TransactionService.GetByMonthAsync(_year, _month);
+        if (result.IsSuccess)
+        {
+            _transactions = result.Value;
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        await Db.InitializeDatabaseAsync();
+        _categories = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .ToListAsync(Db.Categories);
+    }
+
+    private async Task PreviousMonth()
+    {
+        _month--;
+        if (_month < 1)
+        {
+            _month = 12;
+            _year--;
+        }
+        await LoadTransactionsAsync();
+    }
+
+    private async Task NextMonth()
+    {
+        _month++;
+        if (_month > 12)
+        {
+            _month = 1;
+            _year++;
+        }
+        await LoadTransactionsAsync();
+    }
+
+    private string GetMonthName()
+    {
+        var date = new DateTime(_year, _month, 1);
+        return date.ToString("MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"));
+    }
+
+    private string FormatMoney(decimal amount)
+    {
+        return Math.Abs(amount).ToString("N2", new System.Globalization.CultureInfo("fr-FR")) + " EUR";
+    }
+
+    private void OpenAddModal()
+    {
+        _form = new TransactionForm
+        {
+            Date = DateTime.Today,
+            TransactionType = TransactionType.Depense
+        };
+        _isEditing = false;
+        _editingLocalId = null;
+        _errorMessage = null;
+        _showModal = true;
+    }
+
+    private void OpenEditModal(LocalTransaction tx)
+    {
+        _form = new TransactionForm
+        {
+            Intitule = tx.Intitule,
+            Montant = tx.Montant,
+            Date = tx.Date,
+            TransactionType = tx.TransactionType,
+            CategorieId = tx.CategorieId
+        };
+        _isEditing = true;
+        _editingLocalId = tx.Id;
+        _errorMessage = null;
+        _showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+        _editingLocalId = null;
+
+        // Clear the URL parameter if editing
+        if (LocalId.HasValue)
+        {
+            Navigation.NavigateTo("/transactions");
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Intitule))
+        {
+            _errorMessage = "L'intitule est requis";
+            return;
+        }
+
+        if (_form.Montant <= 0)
+        {
+            _errorMessage = "Le montant doit etre positif";
+            return;
+        }
+
+        _isSaving = true;
+        _errorMessage = null;
+
+        var formData = new Entities.Contracts.Forms.TransactionVariableForm
+        {
+            Intitule = _form.Intitule,
+            Montant = _form.Montant,
+            Date = _form.Date,
+            TransactionType = _form.TransactionType,
+            CategorieId = _form.CategorieId
+        };
+
+        FluentResults.Result result;
+
+        if (_isEditing && _editingLocalId.HasValue)
+        {
+            result = await TransactionService.UpdateAsync(_editingLocalId.Value, formData);
+        }
+        else
+        {
+            var createResult = await TransactionService.CreateAsync(formData);
+            result = createResult.ToResult();
+        }
+
+        if (result.IsSuccess)
+        {
+            CloseModal();
+            await LoadTransactionsAsync();
+        }
+        else
+        {
+            _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Erreur";
+        }
+
+        _isSaving = false;
+    }
+
+    private async Task HandleDeleteAsync()
+    {
+        if (!_editingLocalId.HasValue)
+            return;
+
+        _isSaving = true;
+        _errorMessage = null;
+
+        var result = await TransactionService.DeleteAsync(_editingLocalId.Value);
+
+        if (result.IsSuccess)
+        {
+            CloseModal();
+            await LoadTransactionsAsync();
+        }
+        else
+        {
+            _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Erreur";
+        }
+
+        _isSaving = false;
+    }
+
+    private class TransactionForm
+    {
+        public string Intitule { get; set; } = string.Empty;
+        public decimal Montant { get; set; }
+        public DateTime Date { get; set; } = DateTime.Today;
+        public TransactionType TransactionType { get; set; }
+        public int? CategorieId { get; set; }
+    }
+}

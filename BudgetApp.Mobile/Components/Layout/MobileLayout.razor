@@ -1,0 +1,97 @@
+@inherits LayoutComponentBase
+@inject IMobileAuthStateService AuthState
+@inject IConnectivityService Connectivity
+@inject ISyncService SyncService
+@inject NavigationManager Navigation
+
+<div class="mobile-layout">
+    @if (!_isOnline)
+    {
+        <div class="offline-indicator">
+            <i class="bi bi-wifi-off"></i> Mode hors ligne
+        </div>
+    }
+
+    <main class="mobile-content">
+        @Body
+    </main>
+
+    @if (_isAuthenticated)
+    {
+        <nav class="mobile-nav">
+            <NavLink class="mobile-nav-item" href="/" Match="NavLinkMatch.All">
+                <i class="bi bi-house-fill"></i>
+                <span>Accueil</span>
+            </NavLink>
+            <NavLink class="mobile-nav-item" href="/transactions">
+                <i class="bi bi-list-ul"></i>
+                <span>Transactions</span>
+            </NavLink>
+        </nav>
+    }
+</div>
+
+@code {
+    private bool _isAuthenticated;
+    private bool _isOnline = true;
+    private bool _isSyncing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isOnline = Connectivity.IsOnline;
+        Connectivity.OnConnectivityChanged += OnConnectivityChanged;
+        SyncService.OnSyncStateChanged += OnSyncStateChanged;
+        AuthState.OnAuthStateChanged += OnAuthStateChanged;
+        AuthState.OnSessionExpired += OnSessionExpired;
+
+        await CheckAuthenticationAsync();
+    }
+
+    private async Task CheckAuthenticationAsync()
+    {
+        _isAuthenticated = await AuthState.IsAuthenticatedAsync();
+        if (!_isAuthenticated && !Navigation.Uri.EndsWith("/login"))
+        {
+            Navigation.NavigateTo("/login");
+        }
+        StateHasChanged();
+    }
+
+    private void OnConnectivityChanged(bool isOnline)
+    {
+        _isOnline = isOnline;
+        InvokeAsync(StateHasChanged);
+
+        if (isOnline)
+        {
+            _ = SyncService.SyncAllAsync();
+        }
+    }
+
+    private void OnSyncStateChanged(bool isSyncing)
+    {
+        _isSyncing = isSyncing;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAuthStateChanged()
+    {
+        InvokeAsync(CheckAuthenticationAsync);
+    }
+
+    private void OnSessionExpired()
+    {
+        InvokeAsync(() =>
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+        });
+    }
+
+    public void Dispose()
+    {
+        Connectivity.OnConnectivityChanged -= OnConnectivityChanged;
+        SyncService.OnSyncStateChanged -= OnSyncStateChanged;
+        AuthState.OnAuthStateChanged -= OnAuthStateChanged;
+        AuthState.OnSessionExpired -= OnSessionExpired;
+    }
+}

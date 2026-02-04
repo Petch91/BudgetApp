@@ -1,0 +1,196 @@
+@page "/"
+@inject IRapportHybridService RapportService
+@inject IMobileAuthStateService AuthState
+@inject ISyncService SyncService
+@inject NavigationManager Navigation
+
+<div class="mobile-header">
+    <h1>Rapport</h1>
+    <div class="d-flex align-items-center gap-2">
+        @if (SyncService.IsSyncing)
+        {
+            <span class="sync-indicator syncing">
+                <i class="bi bi-arrow-repeat"></i>
+            </span>
+        }
+        <button class="btn btn-link p-0" @onclick="HandleLogoutAsync">
+            <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+}
+else if (_rapport is not null)
+{
+    <!-- Month Navigation -->
+    <div class="month-nav">
+        <button class="month-nav-btn" @onclick="PreviousMonth">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="month-nav-title">@GetMonthName()</span>
+        <button class="month-nav-btn" @onclick="NextMonth">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-card-label">Revenus</div>
+            <div class="summary-card-value positive">+@FormatMoney(_rapport.TotalRevenus)</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-label">Depenses</div>
+            <div class="summary-card-value negative">-@FormatMoney(_rapport.TotalDepenses)</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-label">Solde</div>
+            <div class="summary-card-value @(_rapport.Solde >= 0 ? "positive" : "negative")">
+                @(_rapport.Solde >= 0 ? "+" : "")@FormatMoney(_rapport.Solde)
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="transaction-list">
+        <div class="transaction-list-header">
+            <h2>
+                <i class="bi bi-list-ul me-2"></i>
+                Transactions
+            </h2>
+            @if (_rapport.IsOffline)
+            {
+                <span class="badge bg-warning text-dark">Hors ligne</span>
+            }
+        </div>
+
+        @if (_rapport.Transactions.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>Aucune transaction ce mois-ci</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var tx in _rapport.Transactions)
+            {
+                <div class="transaction-item" @onclick="() => NavigateToEdit(tx.LocalId)">
+                    <div class="transaction-info">
+                        <div class="transaction-date">@tx.Date.ToString("dd/MM")</div>
+                        <div class="transaction-label">
+                            @tx.Intitule
+                            @if (tx.IsPending)
+                            {
+                                <i class="bi bi-cloud-arrow-up ms-1 text-warning" title="En attente de sync"></i>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(tx.CategorieName))
+                        {
+                            <div class="transaction-category">@tx.CategorieName</div>
+                        }
+                    </div>
+                    <div class="transaction-amount @(tx.TransactionType == TransactionType.Revenu ? "positive" : "negative")">
+                        @(tx.TransactionType == TransactionType.Revenu ? "+" : "-")@FormatMoney(tx.Montant)
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+else if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger m-3">
+        @_errorMessage
+        <button class="btn btn-link" @onclick="LoadRapportAsync">Reessayer</button>
+    </div>
+}
+
+@code {
+    private MobileRapportDto? _rapport;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private int _year;
+    private int _month;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateTime.Today;
+        _year = today.Year;
+        _month = today.Month;
+
+        await LoadRapportAsync();
+    }
+
+    private async Task LoadRapportAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        StateHasChanged();
+
+        var result = await RapportService.GetRapportAsync(_year, _month);
+
+        if (result.IsSuccess)
+        {
+            _rapport = result.Value;
+        }
+        else
+        {
+            _errorMessage = result.Errors.FirstOrDefault()?.Message ?? "Erreur inconnue";
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task PreviousMonth()
+    {
+        _month--;
+        if (_month < 1)
+        {
+            _month = 12;
+            _year--;
+        }
+        await LoadRapportAsync();
+    }
+
+    private async Task NextMonth()
+    {
+        _month++;
+        if (_month > 12)
+        {
+            _month = 1;
+            _year++;
+        }
+        await LoadRapportAsync();
+    }
+
+    private string GetMonthName()
+    {
+        var date = new DateTime(_year, _month, 1);
+        return date.ToString("MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"));
+    }
+
+    private string FormatMoney(decimal amount)
+    {
+        return Math.Abs(amount).ToString("N2", new System.Globalization.CultureInfo("fr-FR")) + " EUR";
+    }
+
+    private void NavigateToEdit(int localId)
+    {
+        Navigation.NavigateTo($"/transactions/edit/{localId}");
+    }
+
+    private async Task HandleLogoutAsync()
+    {
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}
