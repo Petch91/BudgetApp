@@ -132,25 +132,83 @@ public partial class DepenseFixe_C : ComponentBase
     private int CompterRappelsActifs()
         => _depenses.Count(d => d.IsActive && (EstRappelActif(d) || EstRappelUrgent(d)));
 
-    private decimal CalculerTotalMensuel()
+    private decimal CalculerTotalMoisEnCours()
     {
-        var dateMoisProchain = DateTime.Today.AddMonths(1);
+        var aujourdhui = DateTime.Today;
         return _depenses
             .Where(d => d.IsActive)
             .Where(d =>
             {
                 var prochainPaiement = ObtenirProchainPaiement(d);
-                return prochainPaiement.Month == dateMoisProchain.Month
-                       && prochainPaiement.Year == dateMoisProchain.Year;
+                return prochainPaiement.Month == aujourdhui.Month
+                       && prochainPaiement.Year == aujourdhui.Year
+                       && prochainPaiement >= aujourdhui;
             })
             .Sum(d => ObtenirMontantEcheance(d));
     }
 
-    private int CompterDepensesActives()
-        => _depenses.Count(d => d.IsActive);
+    private decimal CalculerMoyenneMensuelle()
+    {
+        return _depenses
+            .Where(d => d.IsActive)
+            .Sum(d =>
+            {
+                var montant = ObtenirMontantEcheance(d);
+                return d.Frequence switch
+                {
+                    Frequence.Mensuel => montant,
+                    Frequence.Trimestriel => montant / 3m,
+                    Frequence.Biannuel => montant / 6m,
+                    Frequence.Annuel => montant / 12m,
+                    _ => montant
+                };
+            });
+    }
 
-    private int CompterDepensesTerminees()
-        => _depenses.Count(d => !d.IsActive);
+    private decimal CalculerTotalAnnuel()
+    {
+        return _depenses
+            .Where(d => d.IsActive)
+            .Sum(d =>
+            {
+                var montant = ObtenirMontantEcheance(d);
+                return d.Frequence switch
+                {
+                    Frequence.Mensuel => montant * 12m,
+                    Frequence.Trimestriel => montant * 4m,
+                    Frequence.Biannuel => montant * 2m,
+                    Frequence.Annuel => montant,
+                    _ => montant
+                };
+            });
+    }
+
+    private (int count, decimal total) CalculerEchelonnesRestants()
+    {
+        var echelonnes = _depenses
+            .Where(d => d.IsActive && d.IsEchelonne && d.EcheancesRestantes > 0)
+            .ToList();
+
+        var count = echelonnes.Sum(d => d.EcheancesRestantes ?? 0);
+        var total = echelonnes.Sum(d => (d.EcheancesRestantes ?? 0) * ObtenirMontantEcheance(d));
+
+        return (count, total);
+    }
+
+    private (string intitule, DateTime date, decimal montant)? ObtenirProchaineEcheanceInfo()
+    {
+        var prochaine = _depenses
+            .Where(d => d.IsActive)
+            .Select(d => new { Depense = d, Date = ObtenirProchainPaiement(d) })
+            .Where(x => x.Date >= DateTime.Today)
+            .OrderBy(x => x.Date)
+            .FirstOrDefault();
+
+        if (prochaine is null)
+            return null;
+
+        return (prochaine.Depense.Intitule, prochaine.Date, ObtenirMontantEcheance(prochaine.Depense));
+    }
 
     private static string GetFrequenceLabel(Frequence frequence) => frequence switch
     {

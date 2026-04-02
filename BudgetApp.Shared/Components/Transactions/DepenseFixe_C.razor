@@ -41,56 +41,106 @@
     {
         @* ===== STATISTIQUES ===== *@
         <div class="row mb-4 g-3">
+            @* Carte 1: A venir ce mois + Moyenne mensuelle *@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-shrink-0">
-                                <div class="bg-primary bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.CurrencyEuro" Size="IconSize.x2" Color="IconColor.Primary"/>
+                                <div class="bg-primary bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.CurrencyEuro" Color="IconColor.Primary"/>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Total mois prochain</h6>
-                                <h4 class="mb-0 text-primary">@CalculerTotalMensuel().ToString("N2") &euro;</h4>
+                                <small class="text-muted">A venir ce mois</small>
+                                <h5 class="mb-0 text-primary">@CalculerTotalMoisEnCours().ToString("N2") &euro;</h5>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-info bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.GraphUp" Color="IconColor.Info"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <small class="text-muted">Moyenne mensuelle</small>
+                                <h5 class="mb-0 text-info">@CalculerMoyenneMensuelle().ToString("N2") &euro;</h5>
                             </div>
                         </div>
                     </CardBody>
                 </Card>
             </div>
+            @* Carte 2: Total annuel + Echelonnes restants *@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-shrink-0">
-                                <div class="bg-warning bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.Bell" Size="IconSize.x2" Color="IconColor.Warning"/>
+                                <div class="bg-success bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.Calendar3" Color="IconColor.Success"/>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Rappels actifs</h6>
-                                <h4 class="mb-0 text-warning">@CompterRappelsActifs()</h4>
+                                <small class="text-muted">Total annuel</small>
+                                <h5 class="mb-0 text-success">@CalculerTotalAnnuel().ToString("N2") &euro;</h5>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-secondary bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.CreditCard" Color="IconColor.Secondary"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                @{
+                                    var echelonnes = CalculerEchelonnesRestants();
+                                }
+                                <small class="text-muted">Echelonnes restants</small>
+                                <h5 class="mb-0 text-secondary">
+                                    @echelonnes.count <small class="text-muted">(@echelonnes.total.ToString("N2") &euro;)</small>
+                                </h5>
                             </div>
                         </div>
                     </CardBody>
                 </Card>
             </div>
+            @* Carte 3: Rappels actifs + Prochaine echeance *@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-shrink-0">
-                                <div class="bg-success bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.CheckCircle" Size="IconSize.x2" Color="IconColor.Success"/>
+                                <div class="bg-warning bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.Bell" Color="IconColor.Warning"/>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Actives / Terminees</h6>
-                                <h4 class="mb-0">
-                                    <span class="text-success">@CompterDepensesActives()</span>
-                                    <span class="text-muted mx-1">/</span>
-                                    <span class="text-secondary">@CompterDepensesTerminees()</span>
-                                </h4>
+                                <small class="text-muted">Rappels actifs</small>
+                                <h5 class="mb-0 text-warning">@CompterRappelsActifs()</h5>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-danger bg-opacity-10 p-2 rounded">
+                                    <Icon Name="IconName.ClockHistory" Color="IconColor.Danger"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                @{
+                                    var prochaine = ObtenirProchaineEcheanceInfo();
+                                }
+                                <small class="text-muted">Prochaine echeance</small>
+                                @if (prochaine.HasValue)
+                                {
+                                    <h6 class="mb-0 text-danger">
+                                        @prochaine.Value.intitule
+                                        <br/><small>@prochaine.Value.date.ToString("dd/MM") - @prochaine.Value.montant.ToString("N2") &euro;</small>
+                                    </h6>
+                                }
+                                else
+                                {
+                                    <h6 class="mb-0 text-muted">Aucune</h6>
+                                }
                             </div>
                         </div>
                     </CardBody>

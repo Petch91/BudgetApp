@@ -101,6 +101,23 @@ public partial class Rapport_C : ComponentBase
         return _rapport.Lignes.Where(l => l.Categorie.Id == _selectedCategorieId);
     }
 
+    private decimal GetDepensesFiltrees()
+    {
+        if (_rapport is null || _selectedCategorieId is null) return 0;
+
+        return _rapport.Lignes
+            .Where(l => l.Categorie.Id == _selectedCategorieId && !l.IsRevenu)
+            .Sum(l => l.Montant);
+    }
+
+    private string? GetSelectedCategorieName()
+    {
+        if (_rapport is null || _selectedCategorieId is null) return null;
+
+        return _rapport.Lignes
+            .FirstOrDefault(l => l.Categorie.Id == _selectedCategorieId)?.Categorie.Name;
+    }
+
     /* =======================
      * HELPERS AFFICHAGE SOLDE
      * ======================= */

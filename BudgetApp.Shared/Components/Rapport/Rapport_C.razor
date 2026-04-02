@@ -70,17 +70,45 @@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm border-start border-danger border-4">
                     <CardBody>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="bg-danger bg-opacity-10 p-3 rounded">
-                                    <Icon Name="IconName.ArrowDownCircle" Size="IconSize.x2" Color="IconColor.Danger"/>
+                        @if (_selectedCategorieId is not null)
+                        {
+                            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-danger bg-opacity-10 p-2 rounded">
+                                        <Icon Name="IconName.ArrowDownCircle" Color="IconColor.Danger"/>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">Depenses totales</small>
+                                    <h5 class="mb-0 text-danger">-@_rapport.TotalDepenses.ToString("N2") &euro;</h5>
                                 </div>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Depenses</h6>
-                                <h4 class="mb-0 text-danger">-@_rapport.TotalDepenses.ToString("N2") &euro;</h4>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-warning bg-opacity-10 p-2 rounded">
+                                        <Icon Name="IconName.Funnel" Color="IconColor.Warning"/>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">@GetSelectedCategorieName()</small>
+                                    <h5 class="mb-0 text-warning">-@GetDepensesFiltrees().ToString("N2") &euro;</h5>
+                                </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                        <Icon Name="IconName.ArrowDownCircle" Size="IconSize.x2" Color="IconColor.Danger"/>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="text-muted mb-1">Depenses</h6>
+                                    <h4 class="mb-0 text-danger">-@_rapport.TotalDepenses.ToString("N2") &euro;</h4>
+                                </div>
+                            </div>
+                        }
                     </CardBody>
                 </Card>
             </div>
@@ -105,28 +133,32 @@
 
         @* ===== FILTRE PAR CATEGORIE ===== *@
         <Card Class="mb-4 border-0 shadow-sm">
-            <CardBody>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="fw-bold">Filtrer :</span>
-                    <Button Color="@(_selectedCategorieId == null ? ButtonColor.Primary : ButtonColor.Secondary)"
-                            Size="ButtonSize.Small"
-                            Outline="@(_selectedCategorieId != null)"
-                            @onclick="() => FiltrerParCategorie(null)">
-                        Toutes
-                    </Button>
-                    @foreach (var categorie in GetCategoriesFromRapport())
-                    {
-                        <Button Color="@(_selectedCategorieId == categorie.Id ? ButtonColor.Primary : ButtonColor.Secondary)"
-                                Size="ButtonSize.Small"
-                                Outline="@(_selectedCategorieId != categorie.Id)"
-                                @onclick="() => FiltrerParCategorie(categorie.Id)">
-                            @if (!string.IsNullOrEmpty(categorie.Icon))
+            <CardBody Class="py-2">
+                <div class="d-flex align-items-center">
+                    <span class="fw-bold text-nowrap me-3">Filtrer :</span>
+                    <div class="categories-scroll flex-grow-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <Button Color="@(_selectedCategorieId == null ? ButtonColor.Primary : ButtonColor.Secondary)"
+                                    Size="ButtonSize.Small"
+                                    Outline="@(_selectedCategorieId != null)"
+                                    @onclick="() => FiltrerParCategorie(null)">
+                                Toutes
+                            </Button>
+                            @foreach (var categorie in GetCategoriesFromRapport())
                             {
-                                <Icon CustomIconName="@categorie.Icon" class="me-1"/>
+                                <Button Color="@(_selectedCategorieId == categorie.Id ? ButtonColor.Primary : ButtonColor.Secondary)"
+                                        Size="ButtonSize.Small"
+                                        Outline="@(_selectedCategorieId != categorie.Id)"
+                                        @onclick="() => FiltrerParCategorie(categorie.Id)">
+                                    @if (!string.IsNullOrEmpty(categorie.Icon))
+                                    {
+                                        <Icon CustomIconName="@categorie.Icon" class="me-1"/>
+                                    }
+                                    @categorie.Name
+                                </Button>
                             }
-                            @categorie.Name
-                        </Button>
-                    }
+                        </div>
+                    </div>
                 </div>
             </CardBody>
         </Card>
