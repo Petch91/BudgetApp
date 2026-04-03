@@ -719,13 +719,26 @@ h1:focus {
 }
 
 /* =============================================
-   SCROLLBAR HIDDEN - Scroll sans barre visible
+   SCROLLBAR THIN - Scroll avec barre fine stylisee
    ============================================= */
-.scrollbar-hidden {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+.scrollbar-thin {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
 }
 
-.scrollbar-hidden::-webkit-scrollbar {
-    display: none; /* Chrome/Safari/Opera */
+.scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(128, 128, 128, 0.3);
+    border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(128, 128, 128, 0.5);
 }
