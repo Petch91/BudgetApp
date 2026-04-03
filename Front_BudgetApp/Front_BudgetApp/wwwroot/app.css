@@ -717,3 +717,15 @@ h1:focus {
     padding: 0.75rem;
     font-size: 1rem;
 }
+
+/* =============================================
+   SCROLLBAR HIDDEN - Scroll sans barre visible
+   ============================================= */
+.scrollbar-hidden {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
