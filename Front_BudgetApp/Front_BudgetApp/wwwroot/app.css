@@ -722,6 +722,25 @@ h1:focus {
 }
 
 /* =============================================
+   BOUTONS ACTION - Taille minimale cible cliquable (WCAG 2.5.5)
+   ============================================= */
+.btn-group-sm .btn,
+.btn-sm {
+    min-width: 32px;
+    min-height: 32px;
+}
+
+/* =============================================
+   KPI CARDS - Hiérarchie typographique
+   ============================================= */
+.card .text-muted small,
+.card small.text-muted {
+    font-size: 0.75rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* =============================================
    SCROLLBAR THIN - Scroll avec barre fine stylisee
    ============================================= */
 .scrollbar-thin {
