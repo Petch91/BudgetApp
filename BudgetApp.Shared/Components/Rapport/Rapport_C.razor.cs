@@ -28,6 +28,11 @@ public partial class Rapport_C : ComponentBase
         }
     }
 
+    public async Task RafraichirAsync()
+    {
+        await ChargerRapport();
+    }
+
     private async Task ChargerRapport()
     {
         _isLoading = true;

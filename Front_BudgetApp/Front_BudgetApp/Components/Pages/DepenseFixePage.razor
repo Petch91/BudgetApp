@@ -24,7 +24,7 @@
         </Tab>
         <Tab Title="Rapport" Name="rapport" IsActive="@(currentTab == "rapport")">
             <Content>
-                <Rapport_C/>
+                <Rapport_C @ref="_rapportComponent"/>
             </Content>
         </Tab>
     </Tabs>
@@ -32,6 +32,7 @@
 
 @code {
     private Tabs tabsRef = default!;
+    private Rapport_C? _rapportComponent;
     private string currentTab = "fixes";
     private bool isNavigating = false;
 
@@ -92,6 +93,12 @@
             var newUrl = $"/depenses#{args.ActiveTabName}";
             Navigation.NavigateTo(newUrl);
             currentTab = args.ActiveTabName;
+        }
+
+        // Rafraîchir le rapport quand on arrive sur cet onglet
+        if (args.ActiveTabName == "rapport" && _rapportComponent is not null)
+        {
+            await _rapportComponent.RafraichirAsync();
         }
     }
 
