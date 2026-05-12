@@ -236,6 +236,9 @@ public partial class TransactionVariable_C : ComponentBase
         {
             _form.CategorieId = _selectedCategorieId;
 
+            var moisTransaction = new DateTime(_form.Date.Year, _form.Date.Month, 1);
+            var moisDifferent = moisTransaction != new DateTime(_selectedDate.Year, _selectedDate.Month, 1);
+
             if (_transactionEnEdition is null)
             {
                 var result = await HttpTransaction.Add(_form);
@@ -245,6 +248,20 @@ public partial class TransactionVariable_C : ComponentBase
                     ToastService.Error(error);
                     return;
                 }
+
+                if (moisDifferent)
+                {
+                    ToastService.Info($"Transaction placée en {moisTransaction.ToString("MMMM yyyy")}");
+                    _selectedDate = moisTransaction;
+                    await FermerModal();
+                    await LoadTransactionsAsync();
+                }
+                else
+                {
+                    _transactions.Add(result.Value);
+                    await FermerModal();
+                }
+
                 ToastService.Success("Transaction ajoutée avec succès");
             }
             else
@@ -256,20 +273,31 @@ public partial class TransactionVariable_C : ComponentBase
                     ToastService.Error(error);
                     return;
                 }
+
+                if (moisDifferent)
+                {
+                    ToastService.Info($"Transaction déplacée en {moisTransaction.ToString("MMMM yyyy")}");
+                    _selectedDate = moisTransaction;
+                    await FermerModal();
+                    await LoadTransactionsAsync();
+                }
+                else
+                {
+                    var categorie = _categories.First(c => c.Id == _selectedCategorieId);
+                    var updated = new TransactionVariableDto(
+                        _transactionEnEdition.Id,
+                        _form.Intitule,
+                        _form.Montant,
+                        _form.Date,
+                        _form.TransactionType,
+                        categorie);
+                    var idx = _transactions.FindIndex(t => t.Id == _transactionEnEdition.Id);
+                    if (idx >= 0) _transactions[idx] = updated;
+                    await FermerModal();
+                }
+
                 ToastService.Success("Transaction mise à jour avec succès");
             }
-
-            await FermerModal();
-
-            // Recharger le mois de la transaction ajoutée/modifiée
-            var moisTransaction = new DateTime(_form.Date.Year, _form.Date.Month, 1);
-            if (moisTransaction != new DateTime(_selectedDate.Year, _selectedDate.Month, 1))
-            {
-                var nomMois = moisTransaction.ToString("MMMM yyyy");
-                ToastService.Info($"Transaction placée en {nomMois}");
-            }
-            _selectedDate = moisTransaction;
-            await LoadTransactionsAsync();
         }
         finally
         {
@@ -304,8 +332,8 @@ public partial class TransactionVariable_C : ComponentBase
             }
             else
             {
+                _transactions.Remove(transaction);
                 ToastService.Success("Transaction supprimée avec succès");
-                await LoadTransactionsAsync();
             }
         }
     }
