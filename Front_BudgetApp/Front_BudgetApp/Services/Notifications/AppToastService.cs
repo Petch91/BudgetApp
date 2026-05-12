@@ -43,11 +43,15 @@ public class AppToastService(ToastService toastService) : IAppToastService
         if (!_uiReady)
             return;
 
-        while (_queue.Count > 0)
+        const int maxToasts = 3;
+        int shown = 0;
+
+        while (_queue.Count > 0 && shown < maxToasts)
         {
             try
             {
                 toastService.Notify(_queue.Dequeue());
+                shown++;
             }
             catch
             {
@@ -55,5 +59,8 @@ public class AppToastService(ToastService toastService) : IAppToastService
                 break;
             }
         }
+
+        // Vider les messages en attente au-delà du seuil pour éviter l’accumulation
+        _queue.Clear();
     }
 }
