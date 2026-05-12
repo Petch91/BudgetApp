@@ -26,7 +26,8 @@
         <CardBody>
             <div class="row align-items-center">
                 <div class="col-auto">
-                    <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisPrecedent">
+                    <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisPrecedent"
+                            title="Mois précédent" aria-label="Mois précédent">
                         <Icon Name="IconName.ChevronLeft"/>
                     </Button>
                 </div>
@@ -35,7 +36,8 @@
                 </div>
                 <div class="col-auto">
                     <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisSuivant"
-                            Disabled="@(_selectedDate.Month == DateTime.Today.Month && _selectedDate.Year == DateTime.Today.Year)">
+                            Disabled="@(_selectedDate.Month == DateTime.Today.Month && _selectedDate.Year == DateTime.Today.Year)"
+                            title="Mois suivant" aria-label="Mois suivant">
                         <Icon Name="IconName.ChevronRight"/>
                     </Button>
                 </div>
@@ -160,16 +162,24 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 12%">Date</th>
-                                    <th style="width: 10%" class="text-center">Type</th>
-                                    <th style="width: 30%">Intitulé</th>
+                                    <th style="width: 12%; cursor: pointer;" @onclick='() => TrierPar("Date")'>
+                                        Date <i class="@GetSortIcon("Date")"></i>
+                                    </th>
+                                    <th style="width: 10%; cursor: pointer;" class="text-center" @onclick='() => TrierPar("Type")'>
+                                        Type <i class="@GetSortIcon("Type")"></i>
+                                    </th>
+                                    <th style="width: 30%; cursor: pointer;" @onclick='() => TrierPar("Intitule")'>
+                                        Intitulé <i class="@GetSortIcon("Intitule")"></i>
+                                    </th>
                                     <th style="width: 18%">Catégorie</th>
-                                    <th style="width: 15%" class="text-end">Montant</th>
+                                    <th style="width: 15%; cursor: pointer;" class="text-end" @onclick='() => TrierPar("Montant")'>
+                                        Montant <i class="@GetSortIcon("Montant")"></i>
+                                    </th>
                                     <th style="width: 15%" class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var transaction in GetTransactionsFiltrees().OrderByDescending(t => t.Date))
+                                @foreach (var transaction in GetTransactionsFiltrees())
                                 {
                                     var isRevenu = transaction.TransactionType == TransactionType.Revenu;
 

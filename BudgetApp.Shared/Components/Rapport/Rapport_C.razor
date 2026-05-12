@@ -14,7 +14,8 @@
         <CardBody>
             <div class="row align-items-center">
                 <div class="col-auto">
-                    <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisPrecedent">
+                    <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisPrecedent"
+                            title="Mois précédent" aria-label="Mois précédent">
                         <Icon Name="IconName.ChevronLeft"/>
                     </Button>
                 </div>
@@ -23,7 +24,8 @@
                 </div>
                 <div class="col-auto">
                     <Button Color="ButtonColor.Secondary" Outline="true" @onclick="MoisSuivant"
-                            Disabled="@(_selectedDate.Month == DateTime.Today.Month && _selectedDate.Year == DateTime.Today.Year)">
+                            Disabled="@(_selectedDate.Month == DateTime.Today.Month && _selectedDate.Year == DateTime.Today.Year)"
+                            title="Mois suivant" aria-label="Mois suivant">
                         <Icon Name="IconName.ChevronRight"/>
                     </Button>
                 </div>

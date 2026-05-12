@@ -30,11 +30,41 @@ public partial class TransactionVariable_C : ComponentBase
     private TransactionVariableForm _form = new();
     private int _selectedCategorieId;
     private string _searchTerm = string.Empty;
+    private string _sortColumn = "Date";
+    private bool _sortAscending = false;
 
-    private IEnumerable<TransactionVariableDto> GetTransactionsFiltrees() =>
-        string.IsNullOrWhiteSpace(_searchTerm)
+    private IEnumerable<TransactionVariableDto> GetTransactionsFiltrees()
+    {
+        var filtered = string.IsNullOrWhiteSpace(_searchTerm)
             ? _transactions
             : _transactions.Where(t => t.Intitule.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+
+        return _sortColumn switch
+        {
+            "Date"     => _sortAscending ? filtered.OrderBy(t => t.Date)     : filtered.OrderByDescending(t => t.Date),
+            "Intitule" => _sortAscending ? filtered.OrderBy(t => t.Intitule)  : filtered.OrderByDescending(t => t.Intitule),
+            "Montant"  => _sortAscending ? filtered.OrderBy(t => t.Montant)   : filtered.OrderByDescending(t => t.Montant),
+            "Type"     => _sortAscending ? filtered.OrderBy(t => t.TransactionType) : filtered.OrderByDescending(t => t.TransactionType),
+            _          => filtered.OrderByDescending(t => t.Date)
+        };
+    }
+
+    private void TrierPar(string colonne)
+    {
+        if (_sortColumn == colonne)
+            _sortAscending = !_sortAscending;
+        else
+        {
+            _sortColumn = colonne;
+            _sortAscending = colonne != "Date";
+        }
+    }
+
+    private string GetSortIcon(string colonne)
+    {
+        if (_sortColumn != colonne) return "bi-chevron-expand";
+        return _sortAscending ? "bi-chevron-up" : "bi-chevron-down";
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
