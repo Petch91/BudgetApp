@@ -148,7 +148,7 @@ public partial class TransactionVariable_C : ComponentBase
 
         return _form.TransactionType == TransactionType.Revenu
             ? "Nouveau revenu"
-            : "Nouvelle depense";
+            : "Nouvelle dépense";
     }
 
     private async Task OuvrirModal(TransactionVariableDto? transaction, TransactionType type)
@@ -225,8 +225,14 @@ public partial class TransactionVariable_C : ComponentBase
 
             await FermerModal();
 
-            // Recharger le mois de la transaction ajoutee/modifiee
-            _selectedDate = new DateTime(_form.Date.Year, _form.Date.Month, 1);
+            // Recharger le mois de la transaction ajoutée/modifiée
+            var moisTransaction = new DateTime(_form.Date.Year, _form.Date.Month, 1);
+            if (moisTransaction != new DateTime(_selectedDate.Year, _selectedDate.Month, 1))
+            {
+                var nomMois = moisTransaction.ToString("MMMM yyyy");
+                ToastService.Info($"Transaction placée en {nomMois}");
+            }
+            _selectedDate = moisTransaction;
             await LoadTransactionsAsync();
         }
         finally
@@ -238,12 +244,12 @@ public partial class TransactionVariable_C : ComponentBase
 
     private async Task ConfirmerSuppression(TransactionVariableDto transaction)
     {
-        var typeLabel = transaction.TransactionType == TransactionType.Revenu ? "revenu" : "depense";
+        var typeLabel = transaction.TransactionType == TransactionType.Revenu ? "revenu" : "dépense";
 
         var confirmation = await _confirmDialog.ShowAsync(
             title: "Confirmer la suppression",
             message1: $"Voulez-vous vraiment supprimer {typeLabel} \"{transaction.Intitule}\" ?",
-            message2: "Cette action est irreversible.",
+            message2: "Cette action est irréversible.",
             confirmDialogOptions: new ConfirmDialogOptions
             {
                 YesButtonText = "Supprimer",

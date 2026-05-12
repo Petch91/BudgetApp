@@ -210,7 +210,7 @@
 @* ===== MODAL AJOUT/EDITION ===== *@
 <Modal @ref="_modalForm" Title="@GetModalTitle()" Size="ModalSize.Large">
     <BodyTemplate>
-        <div class="row g-3">
+        <div class="row g-3" @onkeydown="@(async e => { if (e.Key == "Enter") await SauvegarderTransaction(); })">
             <div class="col-12">
                 <div class="btn-group w-100" role="group">
                     <input type="radio" class="btn-check" name="transactionType" id="btnRevenu"
