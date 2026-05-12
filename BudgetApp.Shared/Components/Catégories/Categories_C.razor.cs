@@ -20,7 +20,7 @@ public partial class Categories_C : ComponentBase
     private ConfirmDialog _confirmDialog = default!;
 
     // Pagination
-    private const int PageSize = 10;
+    private const int PageSize = 30;
     private int CurrentPage { get; set; } = 1;
     private int TotalPages => (int)Math.Ceiling(_categories.Count / (double)PageSize);
 

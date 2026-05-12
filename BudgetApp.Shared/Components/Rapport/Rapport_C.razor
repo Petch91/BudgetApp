@@ -166,10 +166,19 @@
         @* ===== LISTE DES TRANSACTIONS ===== *@
         @if (!GetLignesFiltrees().Any())
         {
-            <Alert Color="AlertColor.Info">
-                <Icon Name="IconName.InfoCircle" class="me-2"/>
-                Aucune transaction pour ce mois.
-            </Alert>
+            <div class="text-center py-5">
+                <Icon Name="IconName.Inbox" Size="IconSize.x5" Color="IconColor.Secondary" class="mb-3 opacity-50"/>
+                <h5 class="text-muted">Aucune transaction pour ce mois</h5>
+                @if (_selectedCategorieId is not null)
+                {
+                    <p class="text-muted small mb-3">Aucun résultat pour la catégorie « @GetSelectedCategorieName() »</p>
+                    <Button Color="ButtonColor.Secondary" Outline="true" Size="ButtonSize.Small"
+                            @onclick="() => FiltrerParCategorie(null)">
+                        <Icon Name="IconName.XCircle" class="me-1"/>
+                        Effacer le filtre
+                    </Button>
+                }
+            </div>
         }
         else
         {

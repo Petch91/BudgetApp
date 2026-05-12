@@ -18,12 +18,12 @@
         }
     </div>
 
-    <!-- Grille de catégories sur 2 colonnes -->
+    <!-- Grille de catégories sur 3 colonnes -->
     <div class="row g-3">
         @foreach (var categorie in GetPagedCategories())
         {
             var isSelected = selectedCategory?.Id == categorie.Id;
-            <div class="col-md-6 col-lg-6">
+            <div class="col-md-4 col-lg-4">
                 <div class="@($"card h-100 category-card {(isSelected ? "selected" : "")}")"
                      @onclick="() => SelectCategory(categorie)"
                      style="cursor: pointer;">
