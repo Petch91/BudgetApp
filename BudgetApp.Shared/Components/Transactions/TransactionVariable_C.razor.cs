@@ -29,6 +29,12 @@ public partial class TransactionVariable_C : ComponentBase
     private TransactionVariableDto? _transactionEnEdition;
     private TransactionVariableForm _form = new();
     private int _selectedCategorieId;
+    private string _searchTerm = string.Empty;
+
+    private IEnumerable<TransactionVariableDto> GetTransactionsFiltrees() =>
+        string.IsNullOrWhiteSpace(_searchTerm)
+            ? _transactions
+            : _transactions.Where(t => t.Intitule.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

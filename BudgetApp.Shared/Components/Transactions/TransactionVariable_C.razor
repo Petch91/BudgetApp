@@ -115,6 +115,26 @@
             </div>
         </div>
 
+        @* ===== RECHERCHE ===== *@
+        @if (_transactions.Any())
+        {
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <Icon Name="IconName.Search"/>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Rechercher par intitulé..."
+                           @bind="_searchTerm" @bind:event="oninput"/>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <button class="btn btn-outline-secondary" type="button" @onclick="() => _searchTerm = string.Empty">
+                            <Icon Name="IconName.XCircle"/>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
         @* ===== LISTE DES TRANSACTIONS ===== *@
         @if (!_transactions.Any())
         {
@@ -122,6 +142,15 @@
                 <Icon Name="IconName.InfoCircle" class="me-2"/>
                 Aucune transaction pour ce mois. Ajoutez un revenu ou une dépense !
             </Alert>
+        }
+        else if (!GetTransactionsFiltrees().Any())
+        {
+            <div class="text-center py-4">
+                <Icon Name="IconName.Search" Size="IconSize.x4" Color="IconColor.Secondary" class="mb-3 opacity-50"/>
+                <p class="text-muted">Aucun résultat pour « @_searchTerm »</p>
+                <Button Color="ButtonColor.Secondary" Outline="true" Size="ButtonSize.Small"
+                        @onclick="() => _searchTerm = string.Empty">Effacer la recherche</Button>
+            </div>
         }
         else
         {
@@ -140,7 +169,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var transaction in _transactions.OrderByDescending(t => t.Date))
+                                @foreach (var transaction in GetTransactionsFiltrees().OrderByDescending(t => t.Date))
                                 {
                                     var isRevenu = transaction.TransactionType == TransactionType.Revenu;
 
@@ -233,7 +262,7 @@
 
             <div class="col-md-8">
                 <label class="form-label">Intitulé *</label>
-                <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Salaire, Courses..."/>
+                <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Salaire, Courses..." autofocus/>
             </div>
 
             <div class="col-md-4">
