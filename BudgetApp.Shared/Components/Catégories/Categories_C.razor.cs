@@ -17,6 +17,7 @@ public partial class Categories_C : ComponentBase
     private CategorieDto? selectedCategory;
 
     private Modal modal = default!;
+    private ConfirmDialog _confirmDialog = default!;
 
     // Pagination
     private const int PageSize = 10;
@@ -180,6 +181,21 @@ public partial class Categories_C : ComponentBase
     private async Task Delete()
     {
         if (selectedCategory is null)
+            return;
+
+        var confirmed = await _confirmDialog.ShowAsync(
+            title: "Confirmer la suppression",
+            message1: $"Voulez-vous vraiment supprimer la catégorie \"{selectedCategory.Name}\" ?",
+            message2: "Cette action est irréversible.",
+            confirmDialogOptions: new ConfirmDialogOptions
+            {
+                YesButtonText = "Supprimer",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Annuler",
+                NoButtonColor = ButtonColor.Secondary
+            });
+
+        if (!confirmed)
             return;
 
         var result = await HttpCategorie.Delete(selectedCategory.Id);

@@ -16,7 +16,7 @@
             </Button>
             <Button Color="ButtonColor.Danger" @onclick="() => OuvrirModal(null, TransactionType.Depense)">
                 <Icon Name="IconName.DashCircle" class="me-1"/>
-                Depense
+                Dépense
             </Button>
         </div>
     </div>
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-muted mb-1">Depenses</h6>
+                                <h6 class="text-muted mb-1">Dépenses</h6>
                                 <h4 class="mb-0 text-danger">-@CalculerTotalDepenses().ToString("N2") &euro;</h4>
                             </div>
                         </div>
@@ -120,7 +120,7 @@
         {
             <Alert Color="AlertColor.Info">
                 <Icon Name="IconName.InfoCircle" class="me-2"/>
-                Aucune transaction pour ce mois. Ajoutez un revenu ou une depense !
+                Aucune transaction pour ce mois. Ajoutez un revenu ou une dépense !
             </Alert>
         }
         else
@@ -133,8 +133,8 @@
                                 <tr>
                                     <th style="width: 12%">Date</th>
                                     <th style="width: 10%" class="text-center">Type</th>
-                                    <th style="width: 30%">Intitule</th>
-                                    <th style="width: 18%">Categorie</th>
+                                    <th style="width: 30%">Intitulé</th>
+                                    <th style="width: 18%">Catégorie</th>
                                     <th style="width: 15%" class="text-end">Montant</th>
                                     <th style="width: 15%" class="text-center">Actions</th>
                                 </tr>
@@ -163,7 +163,7 @@
                                             {
                                                 <Badge Color="BadgeColor.Danger">
                                                     <Icon Name="IconName.ArrowDown" class="me-1"/>
-                                                    Depense
+                                                    Dépense
                                                 </Badge>
                                             }
                                         </td>
@@ -226,13 +226,13 @@
                            @onchange="() => _form.TransactionType = TransactionType.Depense"/>
                     <label class="btn btn-outline-danger" for="btnDepense">
                         <Icon Name="IconName.ArrowDownCircle" class="me-1"/>
-                        Depense
+                        Dépense
                     </label>
                 </div>
             </div>
 
             <div class="col-md-8">
-                <label class="form-label">Intitule *</label>
+                <label class="form-label">Intitulé *</label>
                 <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Salaire, Courses..."/>
             </div>
 
@@ -245,9 +245,9 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Categorie *</label>
+                <label class="form-label">Catégorie *</label>
                 <InputSelect @bind-Value="_selectedCategorieId" class="form-select">
-                    <option value="0">-- Choisir une categorie --</option>
+                    <option value="0">-- Choisir une catégorie --</option>
                     @foreach (var cat in _categories)
                     {
                         <option value="@cat.Id">@cat.Name</option>

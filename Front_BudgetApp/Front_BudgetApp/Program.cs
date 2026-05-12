@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using BudgetApp.Shared.Interfaces.Http;
 using BudgetApp.Shared.Tools;
@@ -19,6 +20,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
 using AppToastService = Front_BudgetApp.Services.Notifications.AppToastService;
+
+var frCulture = new CultureInfo("fr-FR");
+CultureInfo.DefaultThreadCurrentCulture = frCulture;
+CultureInfo.DefaultThreadCurrentUICulture = frCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 //builder.WebHost.UseStaticWebAssets();

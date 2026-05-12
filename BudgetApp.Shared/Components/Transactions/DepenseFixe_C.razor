@@ -1,4 +1,4 @@
-﻿@using Entities.Contracts.Dtos
+@using Entities.Contracts.Dtos
 @using Entities.Domain.Models
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -7,11 +7,11 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">
             <Icon Name="IconName.CashStack" class="me-2"/>
-            Depenses Fixes
+            Dépenses Fixes
         </h2>
         <Button Color="ButtonColor.Primary" @onclick="() => OuvrirModal(null)">
             <Icon Name="IconName.PlusCircle" class="me-1"/>
-            Nouvelle depense
+            Nouvelle dépense
         </Button>
     </div>
 
@@ -34,7 +34,7 @@
     {
         <Alert Color="AlertColor.Info">
             <Icon Name="IconName.InfoCircle" class="me-2"/>
-            Aucune depense fixe enregistree. Commencez par en ajouter une !
+            Aucune dépense fixe enregistrée. Commencez par en ajouter une !
         </Alert>
     }
     else
@@ -52,7 +52,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <small class="text-muted">A venir ce mois</small>
+                                <small class="text-muted">À venir ce mois</small>
                                 <h5 class="mb-0 text-primary">@CalculerTotalMoisEnCours().ToString("N2") &euro;</h5>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                     </CardBody>
                 </Card>
             </div>
-            @* Carte 2: Total annuel + Echelonnes restants *@
+            @* Carte 2: Total annuel + Échelonnés restants *@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
@@ -95,7 +95,7 @@
                                 @{
                                     var echelonnes = CalculerEchelonnesRestants();
                                 }
-                                <small class="text-muted">Echelonnes restants</small>
+                                <small class="text-muted">Échelonnés restants</small>
                                 <h5 class="mb-0 text-secondary">
                                     @echelonnes.count <small class="text-muted">(@echelonnes.total.ToString("N2") &euro;)</small>
                                 </h5>
@@ -104,7 +104,7 @@
                     </CardBody>
                 </Card>
             </div>
-            @* Carte 3: Rappels actifs + Prochaine echeance *@
+            @* Carte 3: Rappels actifs + Prochaine échéance *@
             <div class="col-md-4">
                 <Card Class="h-100 border-0 shadow-sm">
                     <CardBody>
@@ -129,7 +129,7 @@
                                 @{
                                     var prochaine = ObtenirProchaineEcheanceInfo();
                                 }
-                                <small class="text-muted">Prochaine echeance</small>
+                                <small class="text-muted">Prochaine échéance</small>
                                 @if (prochaine.HasValue)
                                 {
                                     <h6 class="mb-0 text-danger">
@@ -155,7 +155,7 @@
                 <div class="d-flex align-items-center">
                     <Icon Name="IconName.ExclamationTriangleFill" class="me-2 fs-4"/>
                     <div>
-                        <strong>Attention !</strong> @ObtenirDepensesAvecRappelUrgent().Count depense(s) à payer si cela n'a pas encore été fait avant la date mentionnée :
+                        <strong>Attention !</strong> @ObtenirDepensesAvecRappelUrgent().Count dépense(s) à payer si cela n'a pas encore été fait avant la date mentionnée :
                         <ul class="mb-0 mt-2">
                             @foreach (var dep in ObtenirDepensesAvecRappelUrgent().Take(3))
                             {
@@ -192,7 +192,7 @@
         {
             <Alert Color="AlertColor.Light" Class="text-center">
                 <Icon Name="IconName.Inbox" class="me-2"/>
-                Aucune depense @GetFrequenceLabel(_selectedFrequence).ToLower()
+                Aucune dépense @GetFrequenceLabel(_selectedFrequence).ToLower()
             </Alert>
         }
         else
@@ -204,10 +204,10 @@
                             <h5 class="mb-0">
                                 <Badge Color="@GetFrequenceBadgeColor(_selectedFrequence)"
                                        Class="me-2">@GetFrequenceLabel(_selectedFrequence)</Badge>
-                                <span class="text-muted fs-6">(@depensesFiltered.Count depense(s))</span>
+                                <span class="text-muted fs-6">(@depensesFiltered.Count dépense(s))</span>
                             </h5>
                             <span
-                                class="fw-bold">@depensesFiltered.Sum(d => d.Montant).ToString("N2") &euro; / periode</span>
+                                class="fw-bold">@depensesFiltered.Sum(d => d.Montant).ToString("N2") &euro; / période</span>
                         </div>
                     </CardHeader>
                     <CardBody Class="p-0">
@@ -215,10 +215,10 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                 <tr>
-                                    <th style="width: 30%">Intitule</th>
-                                    <th style="width: 15%">Categorie</th>
+                                    <th style="width: 30%">Intitulé</th>
+                                    <th style="width: 15%">Catégorie</th>
                                     <th style="width: 12%" class="text-end">Montant</th>
-                                    <th style="width: 15%">Prochaine echeance</th>
+                                    <th style="width: 15%">Prochaine échéance</th>
                                     <th style="width: 10%" class="text-center">Statut</th>
                                     <th style="width: 18%" class="text-center">Actions</th>
                                 </tr>
@@ -293,21 +293,21 @@
                                                 {
                                                     <Badge Color="BadgeColor.Dark">
                                                         <Icon Name="IconName.XCircle" class="me-1"/>
-                                                        Terminee
+                                                        Terminée
                                                     </Badge>
                                                 }
                                                 else if (depense.DateFin.HasValue)
                                                 {
                                                     <Badge Color="BadgeColor.Info">
                                                         <Icon Name="IconName.CalendarEvent" class="me-1"/>
-                                                        Fin: @depense.DateFin.Value.ToString("dd/MM/yy")
+                                                        Fin: @depense.DateFin.Value.ToString("dd/MM/yyyy")
                                                     </Badge>
                                                 }
                                                 @if (depense.EstDomiciliee)
                                                 {
                                                     <Badge Color="BadgeColor.Success">
                                                         <Icon Name="IconName.CheckCircle" class="me-1"/>
-                                                        Domiciliee
+                                                        Domiciliée
                                                     </Badge>
                                                 }
                                                 else
@@ -321,7 +321,7 @@
                                                 {
                                                     <Badge Color="BadgeColor.Info">
                                                         <Icon Name="IconName.CreditCard" class="me-1"/>
-                                                        Echelonne @(depense.EcheancesRestantes)/@(depense.NombreEcheances)
+                                                        Échelonné @(depense.EcheancesRestantes)/@(depense.NombreEcheances)
                                                     </Badge>
                                                 }
                                             </div>
@@ -360,15 +360,15 @@
 </div>
 
 @* ===== MODAL AJOUT/EDITION ===== *@
-<Modal @ref="_modalForm" Title="@(_depenseEnEdition is null ? "Nouvelle depense fixe" : "Modifier la depense")" Size="ModalSize.Large">
+<Modal @ref="_modalForm" Title="@(_depenseEnEdition is null ? "Nouvelle dépense fixe" : "Modifier la dépense")" Size="ModalSize.Large">
     <BodyTemplate>
         <EditForm Model="_form" OnValidSubmit="SauvegarderDepense">
             <DataAnnotationsValidator/>
 
             <div class="row g-3">
                 <div class="col-md-8">
-                    <label class="form-label">Intitule *</label>
-                    <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Loyer, Electricite..."/>
+                    <label class="form-label">Intitulé *</label>
+                    <InputText @bind-Value="_form.Intitule" class="form-control" placeholder="Ex: Loyer, Électricité..."/>
                     <ValidationMessage For="() => _form.Intitule"/>
                 </div>
 
@@ -382,9 +382,9 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Categorie *</label>
+                    <label class="form-label">Catégorie *</label>
                     <InputSelect @bind-Value="_selectedCategorieId" class="form-select">
-                        <option value="0">-- Choisir une categorie --</option>
+                        <option value="0">-- Choisir une catégorie --</option>
                         @foreach (var cat in _categories)
                         {
                             <option value="@cat.Id">@cat.Name</option>
@@ -393,7 +393,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Frequence *</label>
+                    <label class="form-label">Fréquence *</label>
                     <InputSelect @bind-Value="_form.Frequence" class="form-select">
                         <option value="@Frequence.Mensuel">Mensuel</option>
                         <option value="@Frequence.Trimestriel">Trimestriel</option>
@@ -403,7 +403,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Date de debut *</label>
+                    <label class="form-label">Date de début *</label>
                     <InputDate @bind-Value="_form.BeginDate" class="form-control"/>
                     <ValidationMessage For="() => _form.BeginDate"/>
                 </div>
@@ -419,16 +419,16 @@
                         <InputCheckbox @bind-Value="_form.EstDomiciliee" class="form-check-input" id="estDomiciliee"/>
                         <label class="form-check-label" for="estDomiciliee">
                             <Icon Name="IconName.CheckCircle" Color="IconColor.Success" class="me-1"/>
-                            Prelevement automatique (domiciliee)
+                            Prélèvement automatique (domiciliée)
                         </label>
                     </div>
-                    <small class="text-muted">Les depenses domiciliees n'affichent pas de rappels</small>
+                    <small class="text-muted">Les dépenses domiciliées n'affichent pas de rappels</small>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Date de fin (optionnel)</label>
                     <InputDate @bind-Value="_form.DateFin" class="form-control"/>
-                    <small class="text-muted">Laisser vide pour une depense permanente</small>
+                    <small class="text-muted">Laisser vide pour une dépense permanente</small>
                 </div>
 
                 <div class="col-12">
@@ -436,20 +436,20 @@
                         <InputCheckbox @bind-Value="_form.IsEchelonne" class="form-check-input" id="isEchelonne"/>
                         <label class="form-check-label" for="isEchelonne">
                             <Icon Name="IconName.CreditCard" Color="IconColor.Info" class="me-1"/>
-                            Paiement echelonne
+                            Paiement échelonné
                         </label>
                     </div>
-                    <small class="text-muted">Active la creation automatique de transactions mensuelles</small>
+                    <small class="text-muted">Active la création automatique de transactions mensuelles</small>
                 </div>
 
                 @if (_form.IsEchelonne)
                 {
                     <div class="col-md-6">
-                        <label class="form-label">Nombre d'echeances *</label>
+                        <label class="form-label">Nombre d'échéances *</label>
                         <InputNumber @bind-Value="_form.NombreEcheances" class="form-control" min="2" max="60" placeholder="Ex: 12"/>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Montant par echeance *</label>
+                        <label class="form-label">Montant par échéance *</label>
                         <div class="input-group">
                             <InputNumber @bind-Value="_form.MontantParEcheance" class="form-control" placeholder="Ex: 83.33"/>
                             <span class="input-group-text">&euro;</span>
@@ -474,4 +474,5 @@
 
 @* ===== MODAL CONFIRMATION SUPPRESSION ===== *@
 <ConfirmDialog @ref="_confirmDialog"/>
+
 
