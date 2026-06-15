@@ -226,10 +226,11 @@
                                 <tbody>
                                 @foreach (var depense in depensesFiltered)
                                 {
+                                    var echelonneTermine = EchelonnementTermine(depense);
                                     var prochainPaiement = ObtenirProchainPaiement(depense);
                                     var joursRestants = (prochainPaiement - DateTime.Today).Days;
-                                    var estUrgent = joursRestants <= 3 && !depense.EstDomiciliee;
-                                    var rappelNonVu = depense.Rappels.Any(r => !r.Vu && r.RappelDate <= DateTime.Today);
+                                    var estUrgent = joursRestants <= 3 && !depense.EstDomiciliee && !echelonneTermine;
+                                    var rappelNonVu = !echelonneTermine && depense.Rappels.Any(r => !r.Vu && r.RappelDate <= DateTime.Today);
 
                                     <tr class="@GetRowClass(depense, rappelNonVu, estUrgent)">
                                         <td>
@@ -264,28 +265,38 @@
                                             }
                                         </td>
                                         <td>
-                                            <div class="d-flex flex-column">
-                                                <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
-                                                <small
-                                                    class="@(estUrgent && rappelNonVu ? "text-danger fw-bold blink" : "text-muted")">
-                                                    @if (joursRestants == 0)
-                                                    {
-                                                        <text>Aujourd'hui</text>
-                                                    }
-                                                    else if (joursRestants == 1)
-                                                    {
-                                                        <text>Demain</text>
-                                                    }
-                                                    else if (joursRestants < 0)
-                                                    {
-                                                        <text>En retard de @Math.Abs(joursRestants) jour(s)</text>
-                                                    }
-                                                    else
-                                                    {
-                                                        <text>Dans @joursRestants jours</text>
-                                                    }
-                                                </small>
-                                            </div>
+                                            @if (echelonneTermine)
+                                            {
+                                                <div class="d-flex flex-column">
+                                                    <span class="text-muted">&mdash;</span>
+                                                    <small class="text-success">Soldé</small>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex flex-column">
+                                                    <span>@prochainPaiement.ToString("dd/MM/yyyy")</span>
+                                                    <small
+                                                        class="@(estUrgent && rappelNonVu ? "text-danger fw-bold blink" : "text-muted")">
+                                                        @if (joursRestants == 0)
+                                                        {
+                                                            <text>Aujourd'hui</text>
+                                                        }
+                                                        else if (joursRestants == 1)
+                                                        {
+                                                            <text>Demain</text>
+                                                        }
+                                                        else if (joursRestants < 0)
+                                                        {
+                                                            <text>En retard de @Math.Abs(joursRestants) jour(s)</text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <text>Dans @joursRestants jours</text>
+                                                        }
+                                                    </small>
+                                                </div>
+                                            }
                                         </td>
                                         <td class="text-center">
                                             <div class="d-flex flex-column gap-1 align-items-center">

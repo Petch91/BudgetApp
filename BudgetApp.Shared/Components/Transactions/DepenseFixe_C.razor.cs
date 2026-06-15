@@ -90,10 +90,14 @@ public partial class DepenseFixe_C : ComponentBase
         return depense.MontantParEcheance.Value;
     }
 
+    private static bool EchelonnementTermine(DepenseFixeDto depense)
+        => depense.IsEchelonne && depense.EcheancesRestantes is <= 0;
+
     private DateTime ObtenirProchainPaiement(DepenseFixeDto depense)
     {
-        // Pour les dépenses échelonnées, calculer à partir de la date de début + échéances passées
-        if (depense.IsEchelonne && depense.NombreEcheances.HasValue && depense.EcheancesRestantes.HasValue)
+        // Pour les dépenses échelonnées encore en cours, calculer à partir de la date de début + échéances passées.
+        // Échelonnement terminé (EcheancesRestantes == 0) : pas de prochaine échéance échelonnée, on retombe sur les DueDates.
+        if (depense.IsEchelonne && depense.NombreEcheances.HasValue && depense.EcheancesRestantes > 0)
         {
             var startDate = depense.DueDates.Select(d => d.Date).Min();
             var numero = depense.NombreEcheances.Value - depense.EcheancesRestantes.Value;
@@ -110,7 +114,7 @@ public partial class DepenseFixe_C : ComponentBase
 
     private bool EstRappelActif(DepenseFixeDto depense)
     {
-        if (depense.EstDomiciliee || depense.ReminderDaysBefore == 0) return false;
+        if (depense.EstDomiciliee || depense.ReminderDaysBefore == 0 || EchelonnementTermine(depense)) return false;
 
         var prochaineDate = ObtenirProchainPaiement(depense);
         var joursRestants = (prochaineDate - DateTime.Today).Days;
@@ -119,7 +123,7 @@ public partial class DepenseFixe_C : ComponentBase
 
     private bool EstRappelUrgent(DepenseFixeDto depense)
     {
-        if (depense.EstDomiciliee) return false;
+        if (depense.EstDomiciliee || EchelonnementTermine(depense)) return false;
 
         var prochaineDate = ObtenirProchainPaiement(depense);
         var joursRestants = (prochaineDate - DateTime.Today).Days;
