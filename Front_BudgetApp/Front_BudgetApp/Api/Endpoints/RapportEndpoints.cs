@@ -29,5 +29,25 @@ public static class RapportEndpoints
                 ? Results.Ok(result.Value)
                 : Results.BadRequest(result.Errors);
         });
+
+        /* =======================
+         * GET DEPENSES FIXES DU MOIS (export CSV)
+         * ======================= */
+
+        group.MapGet("/{annee:int}/{mois:int}/depensesfixes", async (int annee, int mois, ClaimsPrincipal user, IRapportService service) =>
+        {
+            var claim = user.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim is null || !int.TryParse(claim.Value, out var userId))
+            {
+                Log.Warning("Échec extraction userId du JWT — claim NameIdentifier absent ou invalide");
+                return Results.Unauthorized();
+            }
+
+            var result = await service.GetDepensesFixesMois(annee, mois, userId);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(result.Errors);
+        });
     }
 }

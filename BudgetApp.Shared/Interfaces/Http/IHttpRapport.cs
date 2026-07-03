@@ -6,4 +6,6 @@ namespace BudgetApp.Shared.Interfaces.Http;
 public interface IHttpRapport
 {
     Task<Result<RapportMoisDto>> GetRapportMois(int annee, int mois);
+
+    Task<Result<IReadOnlyList<DepenseFixeMoisDto>>> GetDepensesFixesMois(int annee, int mois);
 }

@@ -4,15 +4,36 @@
 
 <div class="container-fluid py-4">
     @* ===== HEADER ===== *@
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h2 class="mb-0">
             <Icon Name="IconName.CashStack" class="me-2"/>
             Dépenses Fixes
         </h2>
-        <Button Color="ButtonColor.Primary" @onclick="() => OuvrirModal(null)">
-            <Icon Name="IconName.PlusCircle" class="me-1"/>
-            Nouvelle dépense fixe
-        </Button>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <div class="export-group d-flex align-items-center gap-2">
+                <input type="month" class="form-control form-control-sm export-month"
+                       value="@_exportMonth"
+                       @onchange="e => _exportMonth = e.Value?.ToString() ?? _exportMonth"
+                       aria-label="Mois à exporter"/>
+                <Button Color="ButtonColor.Secondary" Outline="true" @onclick="ExporterCsv"
+                        Disabled="_isExporting"
+                        title="Exporter en CSV les dépenses fixes du mois choisi">
+                    @if (_isExporting)
+                    {
+                        <Spinner Size="SpinnerSize.Small" class="me-1"/>
+                    }
+                    else
+                    {
+                        <Icon Name="IconName.Download" class="me-1"/>
+                    }
+                    Exporter CSV
+                </Button>
+            </div>
+            <Button Color="ButtonColor.Primary" @onclick="() => OuvrirModal(null)">
+                <Icon Name="IconName.PlusCircle" class="me-1"/>
+                Nouvelle dépense fixe
+            </Button>
+        </div>
     </div>
 
     @* ===== LOADING ===== *@

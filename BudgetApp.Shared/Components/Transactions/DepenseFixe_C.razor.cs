@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using BlazorBootstrap;
 using BudgetApp.Shared.Interfaces.Http;
 using Entities.Contracts.Dtos;
@@ -5,6 +7,7 @@ using Entities.Contracts.Forms;
 using Entities.Domain.Models;
 using Front_BudgetApp.Services.Notifications;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace BudgetApp.Shared.Components.Transactions;
 
@@ -12,10 +15,14 @@ public partial class DepenseFixe_C : ComponentBase
 {
     [Inject] public IHttpDepenseFixe HttpDepense { get; set; } = default!;
     [Inject] public IHttpCategorie HttpCategorie { get; set; } = default!;
+    [Inject] public IHttpRapport HttpRapport { get; set; } = default!;
     [Inject] public IAppToastService ToastService { get; set; } = default!;
+    [Inject] public IJSRuntime JS { get; set; } = default!;
 
     private bool IsLoading = true;
     private bool _isSaving;
+    private bool _isExporting;
+    private string _exportMonth = DateTime.Today.ToString("yyyy-MM");
     private string? _errorMessage;
 
     private List<DepenseFixeDto> _depenses = [];
@@ -77,6 +84,92 @@ public partial class DepenseFixe_C : ComponentBase
             IsLoading = false;
             StateHasChanged();
         }
+    }
+
+    /* =======================
+     * EXPORT CSV
+     * ======================= */
+
+    private async Task ExporterCsv()
+    {
+        if (!DateTime.TryParseExact(_exportMonth, "yyyy-MM", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var mois))
+        {
+            ToastService.Error("Mois invalide", "Export");
+            ToastService.ExecuteQueue();
+            return;
+        }
+
+        _isExporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await HttpRapport.GetDepensesFixesMois(mois.Year, mois.Month);
+
+            if (result.IsFailed)
+            {
+                ToastService.Error(string.Join(" | ", result.Errors.Select(e => e.Message)), "Export");
+                ToastService.ExecuteQueue();
+                return;
+            }
+
+            var lignes = result.Value;
+            if (lignes.Count == 0)
+            {
+                ToastService.Info("Aucune dépense fixe pour ce mois", "Export");
+                ToastService.ExecuteQueue();
+                return;
+            }
+
+            var csv = ConstruireCsv(lignes);
+            var filename = $"depenses-fixes-{_exportMonth}.csv";
+            await JS.InvokeVoidAsync("budgetApp.downloadFile", filename, csv, "text/csv;charset=utf-8;");
+
+            ToastService.Success($"{lignes.Count} dépense(s) fixe(s) exportée(s)", "Export");
+            ToastService.ExecuteQueue();
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Erreur lors de l'export : {ex.Message}", "Export");
+            ToastService.ExecuteQueue();
+        }
+        finally
+        {
+            _isExporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string ConstruireCsv(IReadOnlyList<DepenseFixeMoisDto> lignes)
+    {
+        var sb = new StringBuilder();
+        sb.Append("Date;Intitulé;Catégorie;Fréquence;Échéance;Montant\r\n");
+
+        foreach (var l in lignes)
+        {
+            var echeance = l is { NumeroEcheance: { } n, TotalEcheances: { } t }
+                ? $"{n}/{t}"
+                : string.Empty;
+            var montant = l.Montant.ToString("0.00", CultureInfo.InvariantCulture).Replace('.', ',');
+
+            sb.Append(l.Date.ToString("dd/MM/yyyy")).Append(';')
+                .Append(EchapperCsv(l.Intitule)).Append(';')
+                .Append(EchapperCsv(l.Categorie)).Append(';')
+                .Append(EchapperCsv(l.Frequence)).Append(';')
+                .Append(echeance).Append(';')
+                .Append(montant).Append("\r\n");
+        }
+
+        return sb.ToString();
+    }
+
+    private static string EchapperCsv(string? field)
+    {
+        field ??= string.Empty;
+        if (field.Contains('"') || field.Contains(';') || field.Contains('\n') || field.Contains('\r'))
+            return "\"" + field.Replace("\"", "\"\"") + "\"";
+        return field;
     }
 
     private decimal ObtenirMontantEcheance(DepenseFixeDto depense)

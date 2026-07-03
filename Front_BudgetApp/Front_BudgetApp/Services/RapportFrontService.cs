@@ -66,4 +66,41 @@ public class RapportFrontService(IHttpClientFactory factory,AuthStateService aut
             return Result.Fail("Erreur technique lors de la recuperation du rapport");
         }
     }
+
+    public async Task<Result<IReadOnlyList<DepenseFixeMoisDto>>> GetDepensesFixesMois(int annee, int mois)
+    {
+        try
+        {
+            var client = await GetClientAsync();
+            var response = await client.GetAsync($"rapport/{annee}/{mois}/depensesfixes");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await authState.ForceLogoutAsync();
+                return Result.Fail("Session expirée");
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Log.Warning(
+                    "Erreur export depenses fixes {Mois}/{Annee} ({StatusCode}) : {Error}",
+                    mois, annee, response.StatusCode, error);
+
+                return Result.Fail(HttpErrorHelper.GetUserMessage(response, "Export des dépenses fixes"));
+            }
+
+            var depenses = await response.Content.ReadFromJsonAsync<List<DepenseFixeMoisDto>>(JsonOptions);
+
+            if (depenses is null)
+                return Result.Fail("Reponse invalide du serveur");
+
+            return Result.Ok<IReadOnlyList<DepenseFixeMoisDto>>(depenses);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Erreur inattendue lors de l'export des depenses fixes {Mois}/{Annee}", mois, annee);
+            return Result.Fail("Erreur technique lors de l'export des dépenses fixes");
+        }
+    }
 }

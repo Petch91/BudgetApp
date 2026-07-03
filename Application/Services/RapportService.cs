@@ -80,4 +80,83 @@ public class RapportService(MyDbContext context) : IRapportService
             Lignes: lignes
         ));
     }
+
+    public async Task<Result<IReadOnlyList<DepenseFixeMoisDto>>> GetDepensesFixesMois(int annee, int mois, int userId)
+    {
+        Log.Information("Export dépenses fixes {Mois}/{Annee} pour userId {UserId}", mois, annee, userId);
+
+        if (mois is < 1 or > 12)
+            return Result.Fail("Mois invalide");
+
+        var rows = new List<DepenseFixeMoisDto>();
+
+        // 1. Dépenses récurrentes non échelonnées : une DueDate tombe ce mois.
+        var dueDates = await context.depenseDueDates
+            .Include(dd => dd.Depense)
+                .ThenInclude(d => d.Categorie)
+            .Where(dd => dd.Date.Month == mois && dd.Date.Year == annee
+                         && dd.Depense.UserId == userId && dd.Depense.IsEchelonne == false)
+            .ToListAsync();
+
+        foreach (var dueDate in dueDates)
+        {
+            rows.Add(new DepenseFixeMoisDto(
+                Date: dueDate.Date,
+                Intitule: dueDate.Depense.Intitule,
+                Categorie: dueDate.Depense.Categorie.Name,
+                Frequence: LabelFrequence(dueDate.Depense.Frequence),
+                NumeroEcheance: null,
+                TotalEcheances: null,
+                Montant: dueDate.MontantEffectif ?? dueDate.Depense.Montant
+            ));
+        }
+
+        // 2. Dépenses échelonnées : l'échéance planifiée ce mois (calculée depuis la 1re DueDate).
+        var echelonnees = await context.DepenseFixes
+            .Include(d => d.DueDates)
+            .Include(d => d.Categorie)
+            .Where(d => d.UserId == userId && d.IsEchelonne)
+            .ToListAsync();
+
+        foreach (var depense in echelonnees)
+        {
+            if (depense.NombreEcheances is not { } total || total < 1 || depense.DueDates.Count == 0)
+                continue;
+
+            var startDate = depense.DueDates.Select(dd => dd.Date).Min();
+            var numero = (annee - startDate.Year) * 12 + (mois - startDate.Month) + 1;
+
+            if (numero < 1 || numero > total)
+                continue;
+
+            var montantParEcheance = depense.MontantParEcheance ?? (total == 0 ? 0 : depense.Montant / total);
+
+            // La dernière échéance absorbe l'arrondi pour retomber sur le montant total.
+            var montant = numero == total
+                ? depense.Montant - (total - 1) * montantParEcheance
+                : montantParEcheance;
+
+            rows.Add(new DepenseFixeMoisDto(
+                Date: startDate.AddMonths(numero - 1),
+                Intitule: depense.Intitule,
+                Categorie: depense.Categorie.Name,
+                Frequence: "Échelonné",
+                NumeroEcheance: numero,
+                TotalEcheances: total,
+                Montant: montant
+            ));
+        }
+
+        var ordered = rows.OrderBy(r => r.Date).ThenBy(r => r.Intitule).ToList();
+        return Result.Ok<IReadOnlyList<DepenseFixeMoisDto>>(ordered);
+    }
+
+    private static string LabelFrequence(Frequence frequence) => frequence switch
+    {
+        Frequence.Mensuel => "Mensuel",
+        Frequence.Trimestriel => "Trimestriel",
+        Frequence.Biannuel => "Biannuel",
+        Frequence.Annuel => "Annuel",
+        _ => frequence.ToString()
+    };
 }
