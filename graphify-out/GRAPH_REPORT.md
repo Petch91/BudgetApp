@@ -1,16 +1,16 @@
-# Graph Report - BudgetApp  (2026-07-03)
+# Graph Report - BudgetApp  (2026-08-11)
 
 ## Corpus Check
-- 150 files · ~48,579 words
+- 169 files · ~54,498 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1419 nodes · 1875 edges · 278 communities (71 shown, 207 thin omitted)
+- 1554 nodes · 2144 edges · 269 communities (74 shown, 195 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.55)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4e565f2a`
+- Built from commit: `80a66b2a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,7 +25,6 @@
 - [[_COMMUNITY_DepenseFixeDto|DepenseFixeDto]]
 - [[_COMMUNITY_Home.razor|Home.razor]]
 - [[_COMMUNITY_DepenseFixeService|DepenseFixeService]]
-- [[_COMMUNITY_Dashboard-Dev|Dashboard-Dev.md]]
 - [[_COMMUNITY_Categories_C|Categories_C]]
 - [[_COMMUNITY_DepenseFixe_C.razor|DepenseFixe_C.razor]]
 - [[_COMMUNITY_Categorie|Categorie]]
@@ -84,6 +83,7 @@
 - [[_COMMUNITY_CategorieDto|CategorieDto]]
 - [[_COMMUNITY_Entites - BudgetApp|Entites - BudgetApp]]
 - [[_COMMUNITY_Error.razor|Error.razor]]
+- [[_COMMUNITY_settings.local.json|settings.local.json]]
 - [[_COMMUNITY_RedirectToLogin.razor|RedirectToLogin.razor]]
 - [[_COMMUNITY_App.razor|App.razor]]
 - [[_COMMUNITY_Counter.razor|Counter.razor]]
@@ -162,7 +162,6 @@
 - [[_COMMUNITY_hooks|hooks]]
 - [[_COMMUNITY_PreToolUse|PreToolUse]]
 - [[_COMMUNITY_permissions|permissions]]
-- [[_COMMUNITY_allow|allow]]
 - [[_COMMUNITY_Test Data Reference|Test Data Reference]]
 - [[_COMMUNITY_Rapport_C|Rapport_C]]
 - [[_COMMUNITY_TransactionVariable_C|TransactionVariable_C]]
@@ -171,11 +170,9 @@
 - [[_COMMUNITY_User Data Isolation by UserId|User Data Isolation by UserId]]
 - [[_COMMUNITY_JWT userId Data Isolation Pattern|JWT userId Data Isolation Pattern]]
 - [[_COMMUNITY_CustomAuthStateProvider|CustomAuthStateProvider]]
-- [[_COMMUNITY_AuthenticatedUserDto|AuthenticatedUserDto]]
 - [[_COMMUNITY_RapportMoisDto|RapportMoisDto]]
 - [[_COMMUNITY_Echelonnement Transaction Generation|Echelonnement Transaction Generation]]
 - [[_COMMUNITY_GetUserId (JWT claim extraction)|GetUserId (JWT claim extraction)]]
-- [[_COMMUNITY_DepenseFixeForm|DepenseFixeForm]]
 - [[_COMMUNITY_DepenseFixe|DepenseFixe]]
 - [[_COMMUNITY_DepenseFixeForm|DepenseFixeForm]]
 - [[_COMMUNITY_TransactionVariableForm|TransactionVariableForm]]
@@ -231,16 +228,11 @@
 - [[_COMMUNITY_Named HttpClient 'Api'|Named HttpClient 'Api']]
 - [[_COMMUNITY_JWT Bearer Authentication Config|JWT Bearer Authentication Config]]
 - [[_COMMUNITY_Program.cs Startup|Program.cs Startup]]
-- [[_COMMUNITY_CategorieFrontService|CategorieFrontService]]
 - [[_COMMUNITY_CategorieDto|CategorieDto]]
 - [[_COMMUNITY_CategorieForm|CategorieForm]]
 - [[_COMMUNITY_DepenseFixeDto|DepenseFixeDto]]
 - [[_COMMUNITY_DepenseFixeForm|DepenseFixeForm]]
-- [[_COMMUNITY_DepenseFixeFrontService|DepenseFixeFrontService]]
-- [[_COMMUNITY_AppToastService|AppToastService]]
-- [[_COMMUNITY_RapportFrontService|RapportFrontService]]
 - [[_COMMUNITY_TransactionVariableForm|TransactionVariableForm]]
-- [[_COMMUNITY_TransactionFrontService|TransactionFrontService]]
 - [[_COMMUNITY_DepenseFixe|DepenseFixe]]
 - [[_COMMUNITY_Rappel|Rappel]]
 - [[_COMMUNITY_GetClientAsync JWT Injection Pattern|GetClientAsync JWT Injection Pattern]]
@@ -282,19 +274,18 @@
 - [[_COMMUNITY_TForm|TForm]]
 - [[_COMMUNITY_TransactionType|TransactionType]]
 - [[_COMMUNITY_TransactionVariable|TransactionVariable]]
-- [[_COMMUNITY_TransactionVariable_C|TransactionVariable_C]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `DepenseFixe_C` - 44 edges
-2. `Entities.Contracts.Dtos` - 42 edges
-3. `Entities.Domain.Models` - 39 edges
-4. `TransactionVariable_C` - 35 edges
-5. `Entities.Contracts.Forms` - 35 edges
+1. `Entities.Contracts.Dtos` - 50 edges
+2. `Entities.Domain.Models` - 46 edges
+3. `DepenseFixe_C` - 44 edges
+4. `Entities.Contracts.Forms` - 43 edges
+5. `TransactionVariable_C` - 37 edges
 6. `Rapport_C` - 25 edges
 7. `DepenseFixeDto` - 25 edges
-8. `TransactionVariableDto` - 22 edges
-9. `Categories_C` - 21 edges
-10. `User` - 20 edges
+8. `Application.Interfaces` - 23 edges
+9. `TransactionVariableDto` - 22 edges
+10. `Categories_C` - 21 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Favicon (Purple @ Swirl Logo)` --conceptually_related_to--> `BudgetApp README (Obsidian)`  [INFERRED]
@@ -305,8 +296,8 @@
   Application/Interfaces/IDepenseFixeService.cs → Entities/Contracts/Dtos/DepenseFixeDto.cs
 - `IWriteDepenseFixe` --references--> `DepenseFixeForm`  [EXTRACTED]
   Application/Interfaces/IDepenseFixeService.cs → Entities/Contracts/Forms/DepenseFixeForm.cs
-- `MyDbContext` --references--> `Categorie`  [EXTRACTED]
-  Application/Persistence/MyDbContext.cs → Entities/Domain/Models/Categorie.cs
+- `MyDbContext` --references--> `RefreshToken`  [EXTRACTED]
+  Application/Persistence/MyDbContext.cs → Entities/Domain/Models/RefreshToken.cs
 
 ## Import Cycles
 - None detected.
@@ -329,7 +320,7 @@
 - **FrontService HTTP+JWT+Error Pattern** — front_budgetapp_front_budgetapp_services_categoriefrontservice, front_budgetapp_front_budgetapp_services_depensefixefrontservice, front_budgetapp_front_budgetapp_services_transactionfrontservice, front_budgetapp_front_budgetapp_services_rapportfrontservice, authstateservice, front_budgetapp_front_budgetapp_services_httperrorhelper [INFERRED 0.85]
 - **Blazor JWT Auth Flow** — authstateservice, customauthstateprovider, front_budgetapp_front_budgetapp_components_routes_razor, front_budgetapp_front_budgetapp_program_jwtbearer [INFERRED 0.75]
 
-## Communities (278 total, 207 thin omitted)
+## Communities (269 total, 195 thin omitted)
 
 ### Community 1 - "DepenseFixe_C"
 Cohesion: 0.06
@@ -344,16 +335,16 @@ Cohesion: 0.06
 Nodes (35): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, inspectUri, launchBrowser, applicationUrl (+27 more)
 
 ### Community 4 - "Entities.Contracts.Dtos"
-Cohesion: 0.06
-Nodes (43): MapperDto, Front_BudgetApp.Services.Notifications, Application.Persistence, Front_BudgetApp.Api.Endpoints, Entities.Domain.Models, Entities.Contracts.Validations, Entities.Contracts.Dtos, Application.Interfaces (+35 more)
+Cohesion: 0.15
+Nodes (11): Front_BudgetApp.Services.Notifications, Entities.Contracts.Dtos, BudgetApp.Shared.Components.Import, Front_BudgetApp.Services.Sécurité, BudgetApp.Shared.Components.Catégories, BudgetApp.Shared.Interfaces.Http, Front_BudgetApp.Services, BudgetApp.Shared.Components.Transactions (+3 more)
 
 ### Community 5 - "TransactionVariableDto"
 Cohesion: 0.11
 Nodes (22): IReadTranscation, ITranscationService, IWriteTranscation, IReadOnlyList, Result, Task, TransactionService, IReadOnlyList (+14 more)
 
 ### Community 6 - "Login.razor"
-Cohesion: 0.06
-Nodes (30): AutoCompleteDataProviderRequest, AutoCompleteDataProviderResult, CategorieForm_C, List, Task, BootIcone, BootstrapIconList, List (+22 more)
+Cohesion: 0.12
+Nodes (11): AutoCompleteDataProviderRequest, AutoCompleteDataProviderResult, CategorieForm_C, List, Task, BootIcone, BootstrapIconList, List (+3 more)
 
 ### Community 8 - "Home.razor"
 Cohesion: 0.08
@@ -363,25 +354,21 @@ Nodes (24): BudgetApp.Shared.Interfaces.Http, CardFooter, ChargerRapport, GetSol
 Cohesion: 0.28
 Nodes (6): DepenseFixeService, DateTime, IReadOnlyList, List, Result, Task
 
-### Community 10 - "Dashboard-Dev.md"
-Cohesion: 0.50
-Nodes (3): Template Concept Appris, Template Nouveau Projet, Template Probleme Technique
-
 ### Community 11 - "Categories_C"
 Cohesion: 0.07
-Nodes (30): ICategorieService, IReadCategorie, IWriteCategorie, IReadOnlyList, Result, Task, CategorieService, IReadOnlyList (+22 more)
+Nodes (28): ICategorieService, IReadCategorie, IWriteCategorie, IReadOnlyList, Result, Task, CategorieService, IReadOnlyList (+20 more)
 
 ### Community 12 - "DepenseFixe_C.razor"
 Cohesion: 0.09
 Nodes (22): Alert, Badge, BodyTemplate, Card, CardBody, CardHeader, ConfirmDialog, DataAnnotationsValidator (+14 more)
 
 ### Community 13 - "Categorie"
-Cohesion: 0.16
-Nodes (11): Entities.Domain.Interfaces, DateTime, IModel, ITransaction, DateTime, IEnumerable, Categorie, DateTime (+3 more)
+Cohesion: 0.05
+Nodes (38): MyDbContext, ModelBuilder, ProjectionDto, BackgroundService, CancellationToken, Entities.Domain.Interfaces, Entities.Domain.Mappers, DbContext (+30 more)
 
 ### Community 14 - "Datas.Persistence.Migrations"
-Cohesion: 0.07
-Nodes (17): MigrationBuilder, InitialAfterAddUser, ModelBuilder, InitialAfterAddUser, MigrationBuilder, AddUserIdToTransactions, ModelBuilder, AddUserIdToTransactions (+9 more)
+Cohesion: 0.05
+Nodes (21): MigrationBuilder, InitialAfterAddUser, ModelBuilder, InitialAfterAddUser, MigrationBuilder, AddUserIdToTransactions, ModelBuilder, AddUserIdToTransactions (+13 more)
 
 ### Community 15 - "MainLayout.razor"
 Cohesion: 0.11
@@ -393,7 +380,7 @@ Nodes (17): Alert, Badge, BodyTemplate, Card, CardBody, ConfirmDialog, Entities.
 
 ### Community 17 - "Front_BudgetApp.csproj"
 Cohesion: 0.12
-Nodes (16): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.1), Microsoft.EntityFrameworkCore.SqlServer (10.0.1), Serilog (4.3.1-dev-02373) (+8 more)
+Nodes (16): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.10), Microsoft.EntityFrameworkCore.SqlServer (10.0.10), Serilog (4.4.0) (+8 more)
 
 ### Community 18 - "IWriteDepenseFixe"
 Cohesion: 0.13
@@ -404,44 +391,44 @@ Cohesion: 0.12
 Nodes (16): BudgetApp.Shared.Components.Rapport, BudgetApp.Shared.Components.Transactions, Content, Dispose, IsValidTab, OnAfterRenderAsync, OnInitialized, OnLocationChanged (+8 more)
 
 ### Community 20 - "DepenseFixeScheduler"
-Cohesion: 0.29
-Nodes (7): BackgroundService, CancellationToken, DateTime, List, Task, DepenseFixeScheduler, ILogger
+Cohesion: 0.06
+Nodes (30): IImportService, Result, Stream, Task, ImportService, GeneratedRegex, int, Regex (+22 more)
 
 ### Community 21 - "Rapport_C"
-Cohesion: 0.07
-Nodes (19): BudgetApp.Shared.Components, BudgetApp.Shared.Components.Catégories, Rapport_C, bool, DateTime, IconColor, IEnumerable, int (+11 more)
+Cohesion: 0.09
+Nodes (19): IBankStatementParser, IReadOnlyList, Result, Stream, BelfiusCsvParser, DateTime, GeneratedRegex, IReadOnlyList (+11 more)
 
 ### Community 22 - "User"
-Cohesion: 0.08
-Nodes (22): IUserService, Result, Task, IJwtTokenGenerator, DateTime, IPasswordHasher, PasswordVerificationResult, UserService (+14 more)
+Cohesion: 0.10
+Nodes (16): IUserService, Result, Task, IPasswordHasher, PasswordVerificationResult, UserService, Result, Task (+8 more)
 
 ### Community 25 - "Application.csproj"
 Cohesion: 0.14
-Nodes (13): net10.0, Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.1), Microsoft.EntityFrameworkCore.SqlServer (10.0.1), Serilog (4.3.1-dev-02373), Serilog.Extensions.Logging (10.0.0) (+5 more)
+Nodes (13): net10.0, Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.10), Microsoft.EntityFrameworkCore.SqlServer (10.0.10), Serilog (4.4.0), Serilog.Extensions.Logging (10.0.0) (+5 more)
 
 ### Community 26 - "Entities.csproj"
 Cohesion: 0.14
-Nodes (12): net10.0, Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.1), Microsoft.EntityFrameworkCore.SqlServer (10.0.1), Serilog (4.3.1-dev-02373), Serilog.Extensions.Logging (10.0.0) (+4 more)
+Nodes (12): net10.0, Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Microsoft.EntityFrameworkCore.Design (10.0.10), Microsoft.EntityFrameworkCore.SqlServer (10.0.10), Serilog (4.4.0), Serilog.Extensions.Logging (10.0.0) (+4 more)
 
 ### Community 29 - "BudgetApp.Shared.csproj"
 Cohesion: 0.15
-Nodes (12): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Serilog (4.3.1-dev-02373), Serilog.Extensions.Logging (10.0.0), Serilog.Sinks.Console (6.1.1) (+4 more)
+Nodes (12): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Serilog (4.4.0), Serilog.Extensions.Logging (10.0.0), Serilog.Sinks.Console (6.1.1) (+4 more)
 
 ### Community 30 - "Front_BudgetApp.Client.csproj"
 Cohesion: 0.15
-Nodes (12): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Serilog (4.3.1-dev-02373), Serilog.Extensions.Logging (10.0.0), Serilog.Sinks.Console (6.1.1) (+4 more)
+Nodes (12): net10.0, Blazor.Bootstrap (3.5.0), Blazored.FluentValidation (2.2.0), FluentResults (4.0.0), FluentValidation (12.1.1), Serilog (4.4.0), Serilog.Extensions.Logging (10.0.0), Serilog.Sinks.Console (6.1.1) (+4 more)
 
 ### Community 32 - "_Imports.razor"
 Cohesion: 0.15
 Nodes (12): Front_BudgetApp, Front_BudgetApp.Components, BlazorBootstrap, Front_BudgetApp.Client, Front_BudgetApp.Components.Layout, Microsoft.AspNetCore.Components.Forms, Microsoft.AspNetCore.Components.Routing, Microsoft.AspNetCore.Components.Web (+4 more)
 
 ### Community 34 - "AppToastService"
-Cohesion: 0.14
-Nodes (6): IAppToastService, AppToastService, bool, AppToastService, Queue, ToastType
+Cohesion: 0.05
+Nodes (22): BudgetApp.Shared.Components, BudgetApp.Shared.Components.Catégories, Import_C, bool, List, long, NavigationManager, string (+14 more)
 
 ### Community 37 - ".GetDepensesFixesMois"
-Cohesion: 0.10
-Nodes (21): IRapportService, IReadOnlyList, Result, Task, RapportService, IReadOnlyList, Result, Task (+13 more)
+Cohesion: 0.05
+Nodes (29): IRapportService, IReadOnlyList, Result, Task, RapportService, IReadOnlyList, Result, Task (+21 more)
 
 ### Community 38 - "NavMenu.razor"
 Cohesion: 0.18
@@ -455,9 +442,17 @@ Nodes (9): BlazorBootstrap, Front_BudgetApp.Client, Microsoft.AspNetCore.Compone
 Cohesion: 0.25
 Nodes (7): Alert, Badge, Card, CardBody, Entities.Contracts.Dtos, Icon, Spinner
 
+### Community 44 - "IHttpRapport"
+Cohesion: 0.13
+Nodes (9): Front_BudgetApp.Api.Endpoints, Application.Interfaces, Application.Interfaces.Sécurité, IEndpointRouteBuilder, AuthEndpoints, IEndpointRouteBuilder, CategorieEndpoints, IEndpointRouteBuilder (+1 more)
+
 ### Community 45 - "TransactionVariable"
-Cohesion: 0.29
-Nodes (4): Entities.Domain.Mappers, MapperForm, DateTime, TransactionVariable
+Cohesion: 0.27
+Nodes (5): Application.Persistence, Entities.Domain.Models, Application.Services, Application.Services.Import, Application.Projections
+
+### Community 46 - "IAppToastService"
+Cohesion: 0.22
+Nodes (6): IJwtTokenGenerator, DateTime, JwtOptions, JwtTokenGenerator, byte, Application.Tools.Sécurité
 
 ### Community 47 - "Routes.razor"
 Cohesion: 0.33
@@ -476,8 +471,8 @@ Cohesion: 0.04
 Nodes (45): 1. Entities (Couche Domaine), 2. Application (Couche Services & Persistance), 3. BudgetApp.Shared (Composants partages), 4. Front_BudgetApp (Application principale), API Design, Architecture, Authentification & Securite, Base de donnees (+37 more)
 
 ### Community 56 - "MyDbContext"
-Cohesion: 0.25
-Nodes (6): MyDbContext, ModelBuilder, DbContext, DbSet, DateTime, DepenseDueDate
+Cohesion: 0.20
+Nodes (9): Alert, Badge, Card, CardBody, Entities.Contracts.Dtos, Icon, Microsoft.AspNetCore.Components.Forms, Spinner (+1 more)
 
 ### Community 57 - "Decisions architecturales initiales"
 Cohesion: 0.05
@@ -507,6 +502,10 @@ Nodes (10): 2025-01-12 - Session documentation, Derniers apprentissages, Liens r
 Cohesion: 0.22
 Nodes (9): Appris de ca, Code final, Contexte, Discussion avec IA, Le probleme concret, Ma premiere solution (avant IA), Pourquoi ca ne marche pas ?, Tags (+1 more)
 
+### Community 69 - "HttpErrorHelper"
+Cohesion: 0.32
+Nodes (5): AbstractValidator, Entities.Contracts.Validations, CategorieValidator, LoginUserValidator, RegisterUserValidator
+
 ### Community 71 - "Entites - BudgetApp"
 Cohesion: 0.22
 Nodes (9): Diagramme des relations, Entites - BudgetApp, Index et contraintes, Modele de donnees, References, Table Categories, Table DepenseDueDates, Table Rappels (+1 more)
@@ -514,6 +513,10 @@ Nodes (9): Diagramme des relations, Entites - BudgetApp, Index et contraintes, M
 ### Community 72 - "Error.razor"
 Cohesion: 0.50
 Nodes (3): OnInitialized, PageTitle, System.Diagnostics
+
+### Community 74 - "settings.local.json"
+Cohesion: 0.40
+Nodes (4): ClaimsPrincipal, IEndpointRouteBuilder, long, ImportEndpoints
 
 ### Community 79 - "Donnees de test - BudgetApp"
 Cohesion: 0.25
@@ -523,13 +526,17 @@ Nodes (7): Categories existantes (IDs), Depenses Fixes, Donnees de test - Budget
 Cohesion: 0.25
 Nodes (8): Comment ca marche (avec mes mots), En une phrase, Exemple C#/Blazor, Le probleme que ca resout, [Nom du Pattern/Concept], Projets ou je l'ai applique, Quand l'utiliser ?, Resources
 
+### Community 86 - "CategorieForm"
+Cohesion: 0.50
+Nodes (3): BudgetApp.Shared.Components.Import, PageTitle, route:/import
+
 ### Community 87 - "[Nom du Projet]"
 Cohesion: 0.25
 Nodes (8): Architecture (version 1), Liens, Log de decisions, Mes zones d'incertitude, [Nom du Projet], Objectif initial (sans IA), Problemes rencontres, Stack technique
 
 ### Community 88 - "AuthService"
-Cohesion: 0.12
-Nodes (17): AbstractValidator, IAuthService, Result, Task, AuthService, Result, Task, AuthenticatedUserDto (+9 more)
+Cohesion: 0.15
+Nodes (12): IAuthService, Result, Task, AuthService, Result, Task, AuthenticatedUserDto, LoginForm (+4 more)
 
 ### Community 89 - "CategorieForm_C.razor"
 Cohesion: 0.29
@@ -537,11 +544,11 @@ Nodes (6): AutoComplete, EditForm, InputSelect, InputText, Microsoft.AspNetCore.
 
 ### Community 90 - "STOP - Checklist avant IA"
 Cohesion: 0.29
-Nodes (7): Checklist Avant IA (Methodologie), 1. J'ai essaye quoi ?, 2. Qu'est-ce que je ne comprends pas exactement ?, 3. Ma meilleure hypothese de solution ?, 4. Qu'est-ce que je veux apprendre de ca ?, STOP - Checklist avant IA, Template de question pour IA
+Nodes (6): 1. J'ai essaye quoi ?, 2. Qu'est-ce que je ne comprends pas exactement ?, 3. Ma meilleure hypothese de solution ?, 4. Qu'est-ce que je veux apprendre de ca ?, STOP - Checklist avant IA, Template de question pour IA
 
 ### Community 91 - "AuthStateService"
-Cohesion: 0.13
-Nodes (14): AuthenticationState, AuthenticationStateProvider, CancellationTokenSource, Entities.Domain.Models.Front, DateTime, AuthSession, bool, string (+6 more)
+Cohesion: 0.06
+Nodes (32): AuthenticationState, AuthenticationStateProvider, CancellationTokenSource, Entities.Domain.Models.Front, Entities.Contracts.Forms, Entities.Domain.Models.Front, DateTime, AuthSession (+24 more)
 
 ### Community 94 - "Entites detaillees"
 Cohesion: 0.29
@@ -571,29 +578,25 @@ Nodes (4): Donnees principales, Fonctionnalites MVP (3-5 max), Ma reflexion init
 Cohesion: 0.50
 Nodes (4): Audit Trail, Choix TPH (Table Per Hierarchy), Notes sur le design, Separation DTO/Entity
 
-### Community 104 - "DepenseFixe"
-Cohesion: 0.19
-Nodes (9): ProjectionDto, RappelDto, DateTime, ICollection, DepenseFixe, DateTime, Rappel, Expression (+1 more)
-
 ## Knowledge Gaps
-- **648 isolated node(s):** `net10.0`, `Blazored.FluentValidation (2.2.0)`, `FluentResults (4.0.0)`, `FluentValidation (12.1.1)`, `Microsoft.EntityFrameworkCore.Design (10.0.1)` (+643 more)
+- **643 isolated node(s):** `net10.0`, `Blazored.FluentValidation (2.2.0)`, `FluentResults (4.0.0)`, `FluentValidation (12.1.1)`, `Microsoft.EntityFrameworkCore.Design (10.0.10)` (+638 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **207 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **195 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Entities.Contracts.Dtos` connect `Entities.Contracts.Dtos` to `.GetDepensesFixesMois`, `TransactionVariableDto`, `DepenseFixe`, `Categories_C`, `Rapport_C`, `User`, `AuthService`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
-- **Why does `Entities.Contracts.Forms` connect `Entities.Contracts.Dtos` to `AuthService`, `TransactionVariable`, `Categories_C`, `TransactionVariableDto`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `TransactionVariable_C` connect `TransactionVariable_C` to `AppToastService`, `Entities.Contracts.Dtos`, `TransactionVariableDto`, `Categories_C`, `Rapport_C`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+- **Why does `Entities.Contracts.Forms` connect `Entities.Contracts.Dtos` to `TransactionVariableDto`, `HttpErrorHelper`, `Categories_C`, `IHttpRapport`, `TransactionVariable`, `Categorie`, `DepenseFixeScheduler`, `AuthService`, `permissions`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
+- **Why does `Entities.Contracts.Dtos` connect `Entities.Contracts.Dtos` to `DepenseFixe_C`, `TransactionVariableDto`, `.GetDepensesFixesMois`, `DepenseFixe`, `Categories_C`, `IHttpRapport`, `TransactionVariable`, `IAppToastService`, `DepenseFixe_C`, `Rapport_C`, `Categorie`, `DepenseFixeScheduler`, `IHttpTransaction`, `User`, `AuthService`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+- **Why does `Entities.Domain.Models` connect `TransactionVariable` to `DepenseFixe_C`, `Entities.Contracts.Dtos`, `TransactionVariableDto`, `HttpErrorHelper`, `DepenseFixe`, `Rapport_C`, `IHttpRapport`, `Categorie`, `IAppToastService`, `DepenseFixeScheduler`, `Rapport_C`, `AuthService`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **What connects `net10.0`, `Blazored.FluentValidation (2.2.0)`, `FluentResults (4.0.0)` to the rest of the system?**
-  _665 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _660 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `DepenseFixe_C` be split into smaller, more focused modules?**
-  _Cohesion score 0.05955734406438632 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05829420970266041 - nodes in this community are weakly interconnected._
 - **Should `TransactionVariable_C` be split into smaller, more focused modules?**
-  _Cohesion score 0.0962566844919786 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09848484848484848 - nodes in this community are weakly interconnected._
 - **Should `http` be split into smaller, more focused modules?**
   _Cohesion score 0.06031746031746032 - nodes in this community are weakly interconnected._
