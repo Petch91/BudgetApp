@@ -32,3 +32,13 @@ obj/
 # Logs
 *.log
 logs/.DS_Store
+
+# graphify (on garde graph.json / graph.html / GRAPH_REPORT.md ; on ignore le cache + l'état machine)
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/manifest.json
+graphify-out/cost.json
+
+# Claude Code / scratch
+tmpclaude-*
+.claude/settings.local.json
