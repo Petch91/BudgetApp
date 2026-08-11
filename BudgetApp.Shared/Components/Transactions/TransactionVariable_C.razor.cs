@@ -14,6 +14,7 @@ public partial class TransactionVariable_C : ComponentBase
     [Inject] public IHttpTransaction HttpTransaction { get; set; } = default!;
     [Inject] public IHttpCategorie HttpCategorie { get; set; } = default!;
     [Inject] public IAppToastService ToastService { get; set; } = default!;
+    [Inject] public NavigationManager Navigation { get; set; } = default!;
 
     private bool IsLoading = true;
     private bool _isSaving;
@@ -336,5 +337,10 @@ public partial class TransactionVariable_C : ComponentBase
                 ToastService.Success("Transaction supprimée avec succès");
             }
         }
+    }
+
+    private void GoImportPage()
+    {
+        Navigation.NavigateTo("/import");
     }
 }

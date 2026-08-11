@@ -50,6 +50,9 @@ public class MyDbContext : DbContext
         entityTransaction.Property(p => p.CategorieId).HasDefaultValue(1);
         entityTransaction.Property(p => p.CreatedAt).HasDefaultValueSql("GETDATE()");
         entityTransaction.Property(p => p.UpdatedAt).HasDefaultValueSql("GETDATE()");
+        // Import d'extraits : reference bancaire du mouvement d'origine (anti-doublon)
+        entityTransaction.Property(p => p.ExternalRef).HasMaxLength(100);
+        entityTransaction.HasIndex(p => p.ExternalRef);
         entityTransaction.HasOne(t => t.Categorie)
             .WithMany(c => c.Transactions as IEnumerable<TransactionVariable>);
 

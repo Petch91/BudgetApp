@@ -1,0 +1,254 @@
+@using Entities.Contracts.Dtos
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="container-fluid py-4">
+    @* ===== HEADER ===== *@
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h2 class="mb-0">
+            <Icon Name="IconName.FileEarmarkArrowUp" class="me-2"/>
+            Importer un extrait
+        </h2>
+        @* Toujours visible : on doit pouvoir repartir sans rien importer. *@
+        <Button Color="ButtonColor.Secondary" Outline="true" @onclick="RetourTransactions">
+            <Icon Name="IconName.ArrowLeft" class="me-1"/>
+            Retour aux transactions
+        </Button>
+    </div>
+
+    @* ===== ERREUR ===== *@
+    @if (_errorMessage is not null)
+    {
+        <Alert Color="AlertColor.Danger" class="mb-4">
+            <Icon Name="IconName.ExclamationTriangle" class="me-2"/>
+            @_errorMessage
+        </Alert>
+    }
+
+    @if (_preview is null)
+    {
+        @* ===== ETAPE 1 : CHOIX DU FICHIER ===== *@
+        <Card Class="border-0 shadow-sm">
+            <CardBody>
+                @if (_isAnalyzing)
+                {
+                    <div class="text-center py-5">
+                        <Spinner Color="SpinnerColor.Primary"/>
+                        <p class="mt-3 text-muted">Analyse de @_nomFichier en cours...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="upload-zone">
+                        <Icon Name="IconName.FileEarmarkSpreadsheet" Size="IconSize.x4" class="upload-icon"/>
+                        <h5 class="mt-3 mb-1">Choisissez votre extrait de compte</h5>
+                        <p class="text-muted mb-4">
+                            Export CSV depuis votre banque en ligne (5 Mo maximum).
+                            Rien n'est enregistré : vous validerez chaque ligne avant l'import.
+                        </p>
+                        <label class="btn btn-primary upload-btn">
+                            <Icon Name="IconName.Upload" class="me-1"/>
+                            Sélectionner un fichier CSV
+                            <InputFile OnChange="AnalyserFichier" accept=".csv" class="upload-input"/>
+                        </label>
+                    </div>
+                }
+            </CardBody>
+        </Card>
+    }
+    else
+    {
+        @* ===== ETAPE 2 : REVUE ===== *@
+
+        @* Résumé de l'analyse *@
+        <div class="row mb-3 g-3">
+            <div class="col-md-4">
+                <Card Class="h-100 border-0 shadow-sm">
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.ListCheck" Size="IconSize.x2" Color="IconColor.Primary"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">À importer</h6>
+                                <h4 class="mb-0 text-primary">@NbSelectionnees <small class="text-muted fs-6">/ @_preview.TotalLignes</small></h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+            <div class="col-md-4">
+                <Card Class="h-100 border-0 shadow-sm">
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.ArrowDownCircle" Size="IconSize.x2" Color="IconColor.Danger"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">Dépenses</h6>
+                                <h4 class="mb-0 text-danger">-@TotalDebitsSelection.ToString("N2") &euro;</h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+            <div class="col-md-4">
+                <Card Class="h-100 border-0 shadow-sm">
+                    <CardBody>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success bg-opacity-10 p-3 rounded">
+                                    <Icon Name="IconName.ArrowUpCircle" Size="IconSize.x2" Color="IconColor.Success"/>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted mb-1">Revenus</h6>
+                                <h4 class="mb-0 text-success">+@TotalCreditsSelection.ToString("N2") &euro;</h4>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        </div>
+
+        @* Lignes écartées d'office *@
+        @if (_preview.NbDoublons > 0 || _preview.NbDepensesFixes > 0)
+        {
+            <Alert Color="AlertColor.Info" class="mb-3">
+                <Icon Name="IconName.InfoCircle" class="me-2"/>
+                @if (_preview.NbDepensesFixes > 0)
+                {
+                    <span>@_preview.NbDepensesFixes ligne(s) décochée(s) : domiciliations, ordres permanents et crédits, déjà suivis dans vos dépenses fixes. </span>
+                }
+                @if (_preview.NbDoublons > 0)
+                {
+                    <span>@_preview.NbDoublons ligne(s) déjà importée(s) précédemment.</span>
+                }
+            </Alert>
+        }
+
+        @* Barre d'actions *@
+        <Card Class="border-0 shadow-sm mb-3">
+            <CardBody Class="py-2">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="fw-bold text-nowrap me-2">
+                        <Icon Name="IconName.FileEarmarkText" class="me-1"/>
+                        @_nomFichier
+                    </span>
+                    <div class="ms-auto d-flex gap-2">
+                        <Button Color="ButtonColor.Secondary" Outline="true" Size="ButtonSize.Small"
+                                @onclick="() => ToutSelectionner(true)">
+                            Tout cocher
+                        </Button>
+                        <Button Color="ButtonColor.Secondary" Outline="true" Size="ButtonSize.Small"
+                                @onclick="() => ToutSelectionner(false)">
+                            Tout décocher
+                        </Button>
+                    </div>
+                </div>
+            </CardBody>
+        </Card>
+
+        @* Tableau de revue *@
+        <Card Class="border-0 shadow-sm">
+            <CardBody Class="p-0">
+                <div class="table-responsive import-table-wrapper">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 4%" class="text-center">
+                                <Icon Name="IconName.Check2Square" title="Importer"/>
+                            </th>
+                            <th style="width: 10%">Date</th>
+                            <th style="width: 26%">Intitulé</th>
+                            <th style="width: 14%">Type</th>
+                            <th style="width: 20%">Catégorie</th>
+                            <th style="width: 14%" class="text-end">Montant</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @for (var i = 0; i < _lignes.Count; i++)
+                        {
+                            var index = i;
+                            var ligne = _lignes[index];
+
+                            <tr class="@ClasseLigne(ligne)">
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input"
+                                           checked="@ligne.Include"
+                                           @onchange="() => BasculerLigne(index)"
+                                           aria-label="Importer cette ligne"/>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span>@ligne.Date.ToString("dd/MM")</span>
+                                        <small class="text-muted">@ligne.Date.ToString("yyyy")</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <strong>@ligne.Intitule</strong>
+                                        @if (ligne.IsDuplicate)
+                                        {
+                                            <small class="text-warning">
+                                                <Icon Name="IconName.ArrowRepeat" class="me-1"/>Déjà importée
+                                            </small>
+                                        }
+                                        else if (ligne.IsLikelyDepenseFixe)
+                                        {
+                                            <small class="text-muted">
+                                                <Icon Name="IconName.PinAngle" class="me-1"/>Probablement une dépense fixe
+                                            </small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <Badge Color="BadgeColor.Secondary">@ligne.TypeLabel</Badge>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm"
+                                            value="@ligne.CategorieId"
+                                            @onchange="e => ChangerCategorie(index, e)"
+                                            aria-label="Catégorie">
+                                        @foreach (var categorie in _categories)
+                                        {
+                                            <option value="@categorie.Id">@categorie.Name</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="text-end">
+                                    <span class="fw-bold @(ligne.IsRevenu ? "text-success" : "text-danger")">
+                                        @(ligne.IsRevenu ? "+" : "-")@ligne.Montant.ToString("N2") &euro;
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </CardBody>
+        </Card>
+
+        @* Validation *@
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <Button Color="ButtonColor.Secondary" Outline="true" @onclick="Reinitialiser" Disabled="_isImporting">
+                <Icon Name="IconName.ArrowCounterclockwise" class="me-1"/>
+                Choisir un autre fichier
+            </Button>
+            <Button Color="ButtonColor.Primary" @onclick="ImporterSelection" Disabled="_isImporting">
+                @if (_isImporting)
+                {
+                    <Spinner Size="SpinnerSize.Small" class="me-1"/>
+                }
+                else
+                {
+                    <Icon Name="IconName.Download" class="me-1"/>
+                }
+                Importer @NbSelectionnees transaction(s)
+            </Button>
+        </div>
+    }
+</div>

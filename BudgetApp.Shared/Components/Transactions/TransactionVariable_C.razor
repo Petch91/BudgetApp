@@ -10,6 +10,10 @@
             Transactions Variables
         </h2>
         <div class="d-flex gap-2">
+            <Button Color="ButtonColor.Secondary" @onclick="GoImportPage">
+                <Icon Name="IconName.FileEarmarkArrowUp" class="me-1"/>
+                Importer CSV
+            </Button>
             <Button Color="ButtonColor.Success" @onclick="() => OuvrirModal(null, TransactionType.Revenu)">
                 <Icon Name="IconName.PlusCircle" class="me-1"/>
                 Revenu

@@ -1,0 +1,57 @@
+/* Import_C - Styles specifiques au composant */
+
+/* ===== ZONE D'UPLOAD ===== */
+.upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 2px dashed var(--border-color, rgba(255, 255, 255, 0.15));
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.upload-icon {
+    color: var(--accent-primary, #ff8c42);
+    opacity: 0.8;
+}
+
+.upload-zone p {
+    max-width: 52ch;
+}
+
+/* Le champ natif est masque : c'est le label stylise qui sert de bouton */
+.upload-btn {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.upload-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* ===== TABLEAU DE REVUE ===== */
+.import-table-wrapper {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Ligne deja importee : presente pour information, mais ecartee */
+.ligne-doublon {
+    opacity: 0.5;
+}
+
+/* Ligne decochee par l'utilisateur ou par defaut */
+.ligne-exclue {
+    opacity: 0.65;
+}
+
+.ligne-doublon td,
+.ligne-exclue td {
+    font-style: italic;
+}

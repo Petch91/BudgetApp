@@ -6,6 +6,7 @@ using Application.Interfaces;
 using Application.Interfaces.Sécurité;
 using Application.Persistence;
 using Application.Services;
+using Application.Services.Import;
 using Application.Tools.Sécurité;
 using Front_BudgetApp.Api.Endpoints;
 using Front_BudgetApp.Components;
@@ -84,6 +85,10 @@ builder.Services.AddScoped<ITranscationService, TransactionService>();
 builder.Services.AddScoped<ICategorieService, CategorieService>();
 builder.Services.AddScoped<IRapportService, RapportService>();
 
+// Import d'extraits de compte
+builder.Services.AddScoped<IBankStatementParser, BelfiusCsvParser>();
+builder.Services.AddScoped<IImportService, ImportService>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -108,6 +113,7 @@ builder.Services.AddScoped<IHttpCategorie, CategorieFrontService>();
 builder.Services.AddScoped<IHttpDepenseFixe, DepenseFixeFrontService>();
 builder.Services.AddScoped<IHttpTransaction, TransactionFrontService>();
 builder.Services.AddScoped<IHttpRapport, RapportFrontService>();
+builder.Services.AddScoped<IHttpImport, ImportFrontService>();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Connected", policy =>
@@ -167,6 +173,7 @@ app.MapTransactionVariable();
 app.MapCategorie();
 app.MapRapport();
 app.MapAuth();
+app.MapImport();
 
 /* BLAZOR */
 app.MapRazorComponents<App>()
