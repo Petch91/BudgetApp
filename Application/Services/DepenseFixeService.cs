@@ -84,7 +84,8 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
             Rappels = []
         };
 
-        SetDates(depense, form.BeginDate);
+        // Creation : aucun historique a proteger, on genere depuis la date de debut.
+        SetDates(depense, form.BeginDate, preserverHistorique: false);
 
         context.DepenseFixes.Add(depense);
         await context.SaveChangesAsync();
@@ -124,7 +125,8 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         if (form.IsEchelonne && depense.EcheancesRestantes == null)
             depense.EcheancesRestantes = form.NombreEcheances;
 
-        SetDates(depense, form.BeginDate);
+        // Modification : les mois clotures restent tels qu'ils ont ete rapportes.
+        SetDates(depense, form.BeginDate, preserverHistorique: true);
 
         await context.SaveChangesAsync();
 
@@ -211,7 +213,8 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
         if (depense is null)
             return Result.Fail("Dépense fixe non trouvée");
 
-        SetDates(depense, beginDate);
+        // Deplacer la date de debut ne doit pas davantage reecrire les mois clotures.
+        SetDates(depense, beginDate, preserverHistorique: true);
         await context.SaveChangesAsync();
 
         return Result.Ok();
@@ -284,14 +287,39 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
      * PRIVATE LOGIC
      * ======================= */
 
-    private void SetDates(DepenseFixe depense, DateTime beginDate)
+    /// <summary>
+    /// (Re)genere les echeances et les rappels d'une depense fixe.
+    /// </summary>
+    /// <param name="preserverHistorique">
+    /// true lors d'une modification : les echeances des mois clotures sont des faits, elles
+    /// figurent deja dans des rapports consultes. Les toucher reecrirait le passe (une
+    /// depense disparait des anciens rapports, ou y change de montant). On ne regenere alors
+    /// que le mois courant et le futur.
+    /// false a la creation : il n'y a pas encore d'historique a proteger, on genere tout
+    /// depuis la date de debut.
+    /// </param>
+    private void SetDates(DepenseFixe depense, DateTime beginDate, bool preserverHistorique)
     {
-        depense.DueDates.Clear();
-        depense.Rappels.Clear();
+        // Plancher en dessous duquel on ne touche a rien.
+        var plancher = preserverHistorique
+            ? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
+            : DateTime.MinValue;
+
+        foreach (var echeance in depense.DueDates.Where(dd => dd.Date >= plancher).ToList())
+            depense.DueDates.Remove(echeance);
+
+        foreach (var rappel in depense.Rappels.Where(r => r.RappelDate >= plancher).ToList())
+            depense.Rappels.Remove(rappel);
 
         var date = beginDate;
 
-        for (int i = 0; i < (int)depense.Frequence; i++)
+        // Si la depense a commence il y a longtemps, on rejoint le plancher en gardant le
+        // rythme ancre sur la date de debut : une mensuelle du 6 reste au 6.
+        var garde = 0;
+        while (date < plancher && garde++ < 600)
+            date = ProchaineDate(date, depense.Frequence);
+
+        for (var i = 0; i < (int)depense.Frequence; i++)
         {
             // Ne pas générer de dates au-delà de DateFin
             if (depense.DateFin.HasValue && date > depense.DateFin.Value)
@@ -311,16 +339,18 @@ public class DepenseFixeService(MyDbContext context) : IDepenseFixeService
                 }
             }
 
-            date = depense.Frequence switch
-            {
-                Frequence.Mensuel => date.AddMonths(1),
-                Frequence.Trimestriel => date.AddMonths(3),
-                Frequence.Biannuel => date.AddMonths(6),
-                Frequence.Annuel => date.AddYears(1),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+            date = ProchaineDate(date, depense.Frequence);
         }
     }
+
+    private static DateTime ProchaineDate(DateTime date, Frequence frequence) => frequence switch
+    {
+        Frequence.Mensuel => date.AddMonths(1),
+        Frequence.Trimestriel => date.AddMonths(3),
+        Frequence.Biannuel => date.AddMonths(6),
+        Frequence.Annuel => date.AddYears(1),
+        _ => throw new ArgumentOutOfRangeException(nameof(frequence), frequence, null)
+    };
 
     private static List<Rappel> SetRappels(DateTime date, int reminderDaysBefore)
         => new()
