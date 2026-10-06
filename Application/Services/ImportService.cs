@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Application.Interfaces;
@@ -16,6 +16,17 @@ namespace Application.Services;
 public partial class ImportService(MyDbContext context, IBankStatementParser parser) : IImportService
 {
     private const int IntituleMaxLength = 150;
+
+    /// <summary>Prefixe des references calculees comme empreinte de contenu.</summary>
+    private const string PrefixeEmpreinte = "BEL:H:";
+
+    /// <summary>
+    /// Cle de repli pour reconnaitre une transaction importee avant l'empreinte de contenu.
+    /// Moins sure qu'une empreinte (deux achats identiques le meme jour se confondent), mais
+    /// c'est la seule information commune entre l'ancien et le nouveau format.
+    /// </summary>
+    private static string CleMetier(DateTime date, decimal montant, string? intitule)
+        => $"{date:yyyyMMdd}|{montant.ToString(CultureInfo.InvariantCulture)}|{intitule?.Trim().ToUpperInvariant()}";
 
     /// <summary>Types qui correspondent presque toujours a une depense fixe deja enregistree.</summary>
     private static readonly HashSet<MouvementBancaireType> TypesDepenseFixe =
@@ -56,20 +67,35 @@ public partial class ImportService(MyDbContext context, IBankStatementParser par
         var categorieParId = categories.ToDictionary(c => c.Id, c => c.Name);
         var categorieDefautId = categories.Any(c => c.Id == 1) ? 1 : categories[0].Id;
 
-        // Deja importe ? On compare sur la reference bancaire du mouvement.
-        var refsExistantes = await context.TransactionsVariables
+        // Deja importe ? On compare sur l'empreinte du mouvement.
+        var dejaImportees = await context.TransactionsVariables
             .Where(t => t.UserId == userId && t.ExternalRef != null)
-            .Select(t => t.ExternalRef!)
+            .Select(t => new { t.ExternalRef, t.Date, t.Montant, t.Intitule })
             .ToListAsync();
 
-        var refsConnues = refsExistantes.ToHashSet(StringComparer.Ordinal);
+        var refsConnues = dejaImportees
+            .Select(t => t.ExternalRef!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Passerelle pour les lignes importees avant le passage a l'empreinte de contenu :
+        // leur reference suit l'ancien format et ne correspondra jamais aux nouvelles. On les
+        // reconnait alors sur date + montant + intitule, faute de mieux. Les imports recents
+        // portent le prefixe d'empreinte et sont compares exactement.
+        var clesHeritees = dejaImportees
+            .Where(t => !t.ExternalRef!.StartsWith(PrefixeEmpreinte, StringComparison.Ordinal))
+            .Select(t => CleMetier(t.Date, t.Montant, t.Intitule))
+            .ToHashSet(StringComparer.Ordinal);
 
         var lignes = new List<ImportedTransactionDto>(mouvements.Count);
 
         foreach (var mouvement in mouvements)
         {
             var estDepenseFixe = TypesDepenseFixe.Contains(mouvement.Type);
-            var estDoublon = refsConnues.Contains(mouvement.ExternalRef);
+            var intitule = ConstruireIntitule(mouvement);
+
+            var estDoublon = refsConnues.Contains(mouvement.ExternalRef)
+                             || clesHeritees.Contains(
+                                 CleMetier(mouvement.DateValeur, Math.Abs(mouvement.Montant), intitule));
 
             var nomSuggere = CategorieMatcher.Suggerer(mouvement);
             var categorieId = nomSuggere is not null
@@ -80,7 +106,7 @@ public partial class ImportService(MyDbContext context, IBankStatementParser par
             lignes.Add(new ImportedTransactionDto(
                 ExternalRef: mouvement.ExternalRef,
                 Date: mouvement.DateValeur,
-                Intitule: ConstruireIntitule(mouvement),
+                Intitule: intitule,
                 Description: mouvement.Description,
                 Montant: Math.Abs(mouvement.Montant),
                 IsRevenu: mouvement.IsRevenu,

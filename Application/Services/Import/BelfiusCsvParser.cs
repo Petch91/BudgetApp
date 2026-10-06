@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Application.Interfaces;
@@ -186,24 +186,27 @@ public partial class BelfiusCsvParser : IBankStatementParser
      * ======================= */
 
     /// <summary>
-    /// Utilise la reference bancaire du mouvement quand elle est presente (unique et stable).
-    /// Sinon, retombe sur une empreinte de la date, du montant et du libelle.
+    /// Empreinte du mouvement : date valeur, montant et libelle complet.
+    ///
+    /// On n'utilise PAS la reference "REF. : xxx" du libelle. Contrairement a ce que son nom
+    /// laisse croire, elle n'identifie pas la transaction mais le terminal du commerçant :
+    /// deux achats differents chez le meme commercant la partagent (constate sur
+    /// "L'ATELIER DE MATHIEU", meme reference le 27/08 et le 01/10), et les achats par
+    /// internet recoivent tous la valeur de remplissage 0320000000000. S'en servir comme cle
+    /// faisait passer de vraies depenses pour des doublons deja importes.
+    ///
+    /// Le libelle, lui, contient l'horodatage de l'achat, ce qui distingue meme deux passages
+    /// le meme jour chez le meme commercant pour le meme montant. Verifie sur cinq extraits :
+    /// empreinte identique pour une meme transaction d'un export a l'autre, et aucune
+    /// collision entre transactions distinctes.
     /// </summary>
     private static string ConstruireExternalRef(string description, DateTime date, decimal montant)
     {
-        var matches = RefBancaireRegex().Matches(description);
-        if (matches.Count > 0)
-        {
-            var reference = matches[^1].Groups[1].Value;
-            if (!string.IsNullOrWhiteSpace(reference))
-                return Tronquer($"BEL:{reference}", 100);
-        }
-
         var empreinte = $"{date:yyyyMMdd}|{montant.ToString(CultureInfo.InvariantCulture)}|{description}";
         var hash = Convert.ToHexString(
             System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(empreinte)));
 
-        return $"BEL:H:{hash[..24]}";
+        return $"BEL:H:{hash[..32]}";
     }
 
     /* =======================
@@ -302,9 +305,6 @@ public partial class BelfiusCsvParser : IBankStatementParser
 
     private static string Tronquer(string valeur, int max)
         => valeur.Length <= max ? valeur : valeur[..max];
-
-    [GeneratedRegex(@"REF\.\s*:\s*(\S+)\s+VAL\.")]
-    private static partial Regex RefBancaireRegex();
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex EspacesMultiplesRegex();
