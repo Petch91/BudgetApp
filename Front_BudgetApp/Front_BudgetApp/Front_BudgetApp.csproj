@@ -26,7 +26,7 @@
         <ProjectReference Include="..\..\BudgetApp.Shared\BudgetApp.Shared.csproj" />
         <ProjectReference Include="..\..\Application\Application.csproj" />
         <ProjectReference Include="..\Front_BudgetApp.Client\Front_BudgetApp.Client.csproj" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
     </ItemGroup>
 
     <ItemGroup>
